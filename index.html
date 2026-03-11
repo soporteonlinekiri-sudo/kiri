@@ -521,33 +521,67 @@ header {
   text-transform: lowercase; color: rgba(255,255,255,0.55);
 }
 .mhome-dash-body {
-  flex: 1; padding: 14px 14px 0;
+  flex: 1; padding: 12px 14px 0;
   display: grid; grid-template-columns: 1fr 1fr;
   gap: 10px; align-content: start; overflow: hidden;
 }
+/* Tarjeta grande de ancho completo */
 .mhome-metric {
-  background: var(--surface); border-radius: 8px;
-  padding: 18px 18px; border: 1px solid var(--border);
-  display: flex; flex-direction: column; gap: 7px;
+  background: var(--surface); border-radius: 10px;
+  border: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow: hidden; position: relative;
 }
 .mhome-metric.full { grid-column: 1 / -1; }
+
+/* Bloque de color sólido arriba — el número protagonista */
+.mhome-metric-top {
+  padding: 18px 18px 14px;
+  flex: 1;
+  display: flex; flex-direction: column; justify-content: space-between;
+}
 .mhome-metric-lbl {
-  font-size: 7px; font-weight: 500; letter-spacing: 3px;
-  text-transform: lowercase; color: var(--ink2);
+  font-size: 8px; font-weight: 600; letter-spacing: 2.5px;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
 }
 .mhome-metric-val {
   font-family: 'DM Mono', monospace;
-  font-size: 16px; font-weight: 400; color: var(--ink);
-  letter-spacing: -0.3px; line-height: 1;
+  font-size: 22px; font-weight: 500; color: var(--ink);
+  letter-spacing: -1px; line-height: 1;
 }
-.mhome-metric-sub { font-size: 10px; color: var(--ink2); }
+.mhome-metric-val.big {
+  font-size: 28px;
+}
+/* Franja inferior con color */
+.mhome-metric-bottom {
+  padding: 8px 18px;
+  font-size: 9px; letter-spacing: 1.5px; font-weight: 500;
+  text-transform: lowercase;
+}
+.mhome-metric-sub {
+  font-size: 10px; color: var(--muted); margin-top: 6px;
+}
+/* colores de acento */
+.mhome-metric.accent-green .mhome-metric-bottom { background: #e8f0e8; color: #3a6e3a; }
+.mhome-metric.accent-red .mhome-metric-bottom { background: #f0e8e8; color: #9a3a3a; }
+.mhome-metric.accent-orange .mhome-metric-bottom { background: #f0ece4; color: #7a5020; }
+.mhome-metric.accent-neutral .mhome-metric-bottom { background: var(--bg); color: var(--muted); }
+
+.mhome-metric-positive { color: #2d6a2d !important; }
+.mhome-metric-negative { color: #b03030 !important; }
+
+/* barra de progreso dentro de métrica */
+.mhome-metric-bar-wrap { padding: 0 18px 14px; }
 .mhome-metric-bar {
-  height: 3px; background: var(--border); border-radius: 2px;
-  overflow: hidden; margin-top: 4px;
+  height: 4px; background: var(--border); border-radius: 2px;
+  overflow: hidden; margin-bottom: 4px;
 }
-.mhome-metric-bar-fill { height: 100%; background: var(--kiri); border-radius: 2px; }
-.mhome-metric-positive { color: #3a6e3a !important; font-weight: 500 !important; }
-.mhome-metric-negative { color: #c0392b !important; font-weight: 500 !important; }
+.mhome-metric-bar-fill { height: 100%; background: var(--kiri); border-radius: 2px; transition: width 0.5s; }
+.mhome-metric-bar-lbl {
+  display: flex; justify-content: space-between;
+  font-size: 8px; color: var(--muted);
+  font-family: 'DM Mono', monospace;
+}
 
 /* ── PROYECTOS — CARRUSEL SNAP ──────────────────────────────── */
 /* ── DECK DE CARTAS APILADAS (estilo Wallet) ────────────────── */
@@ -2877,27 +2911,38 @@ function renderMobileHome(el, tab) {
           '</div>' +
         '</div>' +
         '<div class="mhome-dash-body">' +
-          '<div class="mhome-metric">' +
-            '<div class="mhome-metric-lbl">Ganancia proyectada</div>' +
-            '<div class="mhome-metric-val ' + (gananciaProyec>=0?'mhome-metric-positive':'mhome-metric-negative') + '">' +
-              (gananciaProyec>=0?'':'−') + '$' + fmt(Math.abs(gananciaProyec)) +
+          '<div class="mhome-metric full ' + (gananciaProyec>=0?'accent-green':'accent-red') + '">' +
+            '<div class="mhome-metric-top">' +
+              '<div class="mhome-metric-lbl">Ganancia proyectada</div>' +
+              '<div class="mhome-metric-val big ' + (gananciaProyec>=0?'mhome-metric-positive':'mhome-metric-negative') + '">' +
+                (gananciaProyec>=0?'':'-') + '$' + fmt(Math.abs(gananciaProyec)) +
+              '</div>' +
             '</div>' +
-            '<div class="mhome-metric-sub">si se cobra todo</div>' +
+            '<div class="mhome-metric-bottom">si se cobra todo lo pendiente</div>' +
           '</div>' +
-          '<div class="mhome-metric">' +
-            '<div class="mhome-metric-lbl">Falta cobrar</div>' +
-            '<div class="mhome-metric-val">$' + fmt(faltaCobrar) + '</div>' +
-            '<div class="mhome-metric-sub">pendiente</div>' +
+          '<div class="mhome-metric accent-orange">' +
+            '<div class="mhome-metric-top">' +
+              '<div class="mhome-metric-lbl">Falta cobrar</div>' +
+              '<div class="mhome-metric-val">' + '$' + fmt(faltaCobrar) + '</div>' +
+            '</div>' +
+            '<div class="mhome-metric-bottom">pendiente del cliente</div>' +
           '</div>' +
-          '<div class="mhome-metric">' +
-            '<div class="mhome-metric-lbl">Total gastos</div>' +
-            '<div class="mhome-metric-val">$' + fmt(totalGastos) + '</div>' +
-            '<div class="mhome-metric-sub">todos los proyectos</div>' +
+          '<div class="mhome-metric accent-neutral">' +
+            '<div class="mhome-metric-top">' +
+              '<div class="mhome-metric-lbl">Total gastos</div>' +
+              '<div class="mhome-metric-val">' + '$' + fmt(totalGastos) + '</div>' +
+            '</div>' +
+            '<div class="mhome-metric-bottom">todos los proyectos</div>' +
           '</div>' +
-          '<div class="mhome-metric">' +
-            '<div class="mhome-metric-lbl">Cobrado</div>' +
-            '<div class="mhome-metric-val">' + pctCobrado.toFixed(0) + '%</div>' +
-            '<div class="mhome-metric-bar"><div class="mhome-metric-bar-fill" style="width:' + pctCobrado + '%"></div></div>' +
+          '<div class="mhome-metric accent-neutral">' +
+            '<div class="mhome-metric-top">' +
+              '<div class="mhome-metric-lbl">Cobrado</div>' +
+              '<div class="mhome-metric-val">' + pctCobrado.toFixed(0) + '%</div>' +
+            '</div>' +
+            '<div class="mhome-metric-bar-wrap">' +
+              '<div class="mhome-metric-bar"><div class="mhome-metric-bar-fill" style="width:' + pctCobrado + '%"></div></div>' +
+              '<div class="mhome-metric-bar-lbl"><span>cobrado</span><span>' + pctCobrado.toFixed(0) + '%</span></div>' +
+            '</div>' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -3180,28 +3225,20 @@ function renderMain() {
           <div class="cliente-label">Presupuesto total</div>
           <div class="cliente-budget">${p.budget > 0 ? '$' + fmt(p.budget) : 'Sin definir'}</div>
           ${p.budget > 0 ? `
-          <div style="display:flex;gap:14px;margin-top:8px;flex-wrap:wrap">
-            <div>
-              <div style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:2px;font-family:'Noto Sans JP',sans-serif">Mano de obra</div>
-              <div style="font-family:'DM Mono',monospace;font-size:13px;color:rgba(255,255,255,0.75)">$${fmt(p.budgetMO || 0)}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+            <div style="background:rgba(0,0,0,0.15);border-radius:6px;padding:10px 12px">
+              <div style="font-size:8px;color:rgba(255,255,255,0.45);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px">Mano de obra</div>
+              <div style="font-family:'DM Mono',monospace;font-size:15px;color:#fff;font-weight:500">$${fmt(p.budgetMO || 0)}</div>
             </div>
-            <div style="width:1px;background:rgba(255,255,255,0.1)"></div>
-            <div>
-              <div style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:2px;font-family:'Noto Sans JP',sans-serif">Materiales</div>
-              <div style="font-family:'DM Mono',monospace;font-size:13px;color:rgba(255,255,255,0.75)">$${fmt(p.budgetMat || 0)}</div>
+            <div style="background:rgba(0,0,0,0.15);border-radius:6px;padding:10px 12px">
+              <div style="font-size:8px;color:rgba(255,255,255,0.45);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px">Materiales</div>
+              <div style="font-family:'DM Mono',monospace;font-size:15px;color:#fff;font-weight:500">$${fmt(p.budgetMat || 0)}</div>
             </div>
             ${(p.extras || []).map(ex => `
-            <div style="width:1px;background:rgba(255,255,255,0.1)"></div>
-            <div>
-              <div style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:2px;font-family:'Noto Sans JP',sans-serif">${esc(ex.nombre || 'Extra')}</div>
-              <div style="font-family:'DM Mono',monospace;font-size:13px;color:rgba(255,255,255,0.75)">$${fmt(ex.monto || 0)}</div>
+            <div style="background:rgba(0,0,0,0.15);border-radius:6px;padding:10px 12px">
+              <div style="font-size:8px;color:rgba(255,255,255,0.45);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px">${esc(ex.nombre || 'Extra')}</div>
+              <div style="font-family:'DM Mono',monospace;font-size:15px;color:#fff;font-weight:500">$${fmt(ex.monto || 0)}</div>
             </div>`).join('')}
-            ${(p.extras || []).length > 0 ? `
-            <div style="width:1px;background:rgba(255,255,255,0.1)"></div>
-            <div>
-              <div style="font-size:9px;color:rgba(255,255,255,0.55);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:2px;font-family:'Noto Sans JP',sans-serif">Total extras</div>
-              <div style="font-family:'DM Mono',monospace;font-size:13px;color:#fff;font-weight:700">$${fmt((p.extras||[]).reduce((s,ex)=>s+(ex.monto||0),0))}</div>
-            </div>` : ''}
           </div>` : ''}
         </div>
         <div style="text-align:right">
