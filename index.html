@@ -580,35 +580,34 @@ header {
   text-transform: lowercase;
 }
 
-/* Contenedor del mazo — altura fija, las cartas se centran dentro */
+/* Contenedor del mazo — perspectiva 3D, cartas centradas */
 .mhome-deck-wrap {
   flex: 1; position: relative;
   margin: 0 14px;
   margin-top: 16px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  touch-action: pan-x;
+  perspective: 900px;
+  perspective-origin: 50% 50%;
+  touch-action: none;
   overscroll-behavior: none;
 }
 
-/* Cada carta — pivote en la BASE, abanico en Z como naipes en la mano */
+/* Cada carta centrada absolutamente, sin transform-origin especial */
 .mhome-card {
   position: absolute;
-  left: 6%; right: 6%;
-  bottom: 0;
+  left: 0; right: 0;
+  top: 50%; margin-top: -185px;   /* centrado vertical: mitad de max-height */
   height: min(calc(100dvh - 50px - 76px - 200px), 370px);
   border-radius: 20px; overflow: hidden;
   cursor: pointer; -webkit-tap-highlight-color: transparent;
-  /* Pivote en el borde inferior → rotación Z = abanico plano, como naipes */
-  transform-origin: 50% 100%;
-  transition: transform 0.44s cubic-bezier(0.34,1.1,0.64,1),
+  transform-origin: center center;
+  transition: transform 0.48s cubic-bezier(0.4,0,0.2,1),
               box-shadow 0.35s ease,
-              opacity 0.3s ease,
-              filter 0.3s ease;
+              opacity 0.32s ease,
+              filter 0.32s ease;
   box-shadow: 0 12px 40px rgba(0,0,0,0.25);
   will-change: transform;
   user-select: none;
+  backface-visibility: hidden;
 }
 .mhome-card:active { filter: brightness(0.93); }
 
@@ -3000,46 +2999,57 @@ function initDeck(deckEl, total) {
   let current = 0;
   let animating = false;
 
-  // Abanico en Z con pivote en la BASE — naipes en la mano
-  // transform-origin: 50% 100% en CSS — el pivote es el borde inferior central
-  const STEP_DEG = 10;  // ángulo entre cada carta
-  const MAX_VIS  = 3;   // cartas visibles a cada lado
+  // Rolodex: cartas anteriores y siguientes rotan en Y y se alejan en Z
+  // Loop infinito con módulo
+  const STEP_Y   = 42;   // grados rotación Y por posición
+  const STEP_Z   = 90;   // px alejamiento en Z por posición
+  const STEP_Y2  = 8;    // leve desplazamiento vertical por posición
+  const MAX_VIS  = 3;    // cartas visibles a cada lado
+
+  function mod(n, m) { return ((n % m) + m) % m; }
 
   function layoutDeck(activeIdx, animated) {
     const trans = animated
-      ? 'transform 0.42s cubic-bezier(0.34,1.1,0.64,1), opacity 0.28s ease, filter 0.28s ease, box-shadow 0.3s ease'
+      ? 'transform 0.48s cubic-bezier(0.4,0,0.2,1), opacity 0.32s ease, filter 0.32s ease, box-shadow 0.3s ease'
       : 'none';
 
     cards.forEach((card, i) => {
       card.style.transition = trans;
-      const rel   = i - activeIdx;
+
+      // Distancia circular más corta al activo
+      let rel = i - activeIdx;
+      if (rel > total / 2)  rel -= total;
+      if (rel < -total / 2) rel += total;
+
       const depth = Math.abs(rel);
-      const angle = rel * STEP_DEG;
 
       if (depth > MAX_VIS) {
         card.style.opacity       = '0';
         card.style.zIndex        = '0';
         card.style.pointerEvents = 'none';
-        card.style.transform     = 'rotate(' + angle + 'deg)';
+        card.style.transform     = 'translateZ(-400px) rotateY(' + (rel * STEP_Y) + 'deg)';
         return;
       }
 
-      // Carta activa: recta, al frente
       if (rel === 0) {
-        card.style.transform     = 'rotate(0deg)';
+        // Carta activa: al frente, recta
+        card.style.transform     = 'translateZ(0px) rotateY(0deg) translateY(0px)';
         card.style.zIndex        = String(total + 20);
         card.style.opacity       = '1';
         card.style.pointerEvents = 'all';
         card.style.filter        = 'none';
-        card.style.boxShadow     = '0 20px 56px rgba(0,0,0,0.32)';
+        card.style.boxShadow     = '0 24px 60px rgba(0,0,0,0.38)';
         return;
       }
 
-      // Cartas de fondo: rotan desde la base en Z, se oscurecen
-      const opac   = depth === 1 ? 0.85 : depth === 2 ? 0.6 : 0.35;
-      const bright = Math.max(0.55, 1 - depth * 0.15);
+      // Cartas de fondo: rotan en Y y se alejan en Z
+      const tz     = -depth * STEP_Z;
+      const ry     = rel * STEP_Y;
+      const ty     = depth * STEP_Y2;
+      const opac   = depth === 1 ? 0.82 : depth === 2 ? 0.55 : 0.28;
+      const bright = Math.max(0.5, 1 - depth * 0.18);
 
-      card.style.transform     = 'rotate(' + angle + 'deg)';
+      card.style.transform     = 'translateZ(' + tz + 'px) rotateY(' + ry + 'deg) translateY(' + ty + 'px)';
       card.style.zIndex        = String(total + 10 - depth);
       card.style.opacity       = String(opac);
       card.style.pointerEvents = 'none';
@@ -3047,41 +3057,38 @@ function initDeck(deckEl, total) {
       card.style.boxShadow     = '0 4px 16px rgba(0,0,0,0.12)';
     });
 
-    // Dots
+    // Dots — con módulo
     cards.forEach((_, i) => {
       const dot = document.getElementById('mcdot-' + i);
       if (dot) dot.classList.toggle('active', i === activeIdx);
     });
+    // Hint siempre visible en loop infinito
     const hint = document.querySelector('.mhome-swipe-hint');
-    if (hint) hint.style.opacity = activeIdx < total - 1 ? '1' : '0';
+    if (hint) hint.style.opacity = total > 1 ? '1' : '0';
   }
 
-  function goTo(idx, fromDir) {
+  function goTo(idx) {
     if (animating) return;
     animating = true;
-    current = idx;
+    current = mod(idx, total);  // loop infinito
     layoutDeck(current, true);
-    setTimeout(() => { animating = false; }, 460);
+    setTimeout(() => { animating = false; }, 500);
   }
 
-  function nextCard() {
-    if (current < total - 1) goTo(current + 1, 1);
-  }
-  function prevCard() {
-    if (current > 0) goTo(current - 1, -1);
-  }
+  function nextCard() { goTo(current + 1); }
+  function prevCard() { goTo(current - 1); }
 
   layoutDeck(0, false);
   requestAnimationFrame(() => layoutDeck(0, true));
 
-  // Tap carta activa → entrar
+  // Tap carta activa → entrar al proyecto
   cards.forEach((card, i) => {
     card.addEventListener('click', () => {
       if (i === current && !animating) selectMobileProject(i);
     });
   });
 
-  // Swipe horizontal (más natural para efecto de rueda)
+  // Swipe horizontal
   let startX = 0, startY = 0, tracking = false;
   deckEl.addEventListener('touchstart', e => {
     startX = e.touches[0].clientX;
@@ -3090,7 +3097,7 @@ function initDeck(deckEl, total) {
   }, { passive: true });
 
   deckEl.addEventListener('touchmove', e => {
-    e.preventDefault(); // bloquea pull-to-refresh
+    e.preventDefault();
   }, { passive: false });
 
   deckEl.addEventListener('touchend', e => {
@@ -3099,8 +3106,8 @@ function initDeck(deckEl, total) {
     const dx = startX - e.changedTouches[0].clientX;
     const dy = Math.abs(startY - e.changedTouches[0].clientY);
     if (Math.abs(dx) < 30 || dy > Math.abs(dx) * 1.2) return;
-    if (dx > 0) nextCard();  // swipe izquierda → siguiente
-    else prevCard();          // swipe derecha → anterior
+    if (dx > 0) nextCard();
+    else prevCard();
   }, { passive: true });
 
   deckEl.addEventListener('wheel', e => {
