@@ -1398,131 +1398,141 @@ header {
 
 
 /* ── FAB RADIAL ─────────────────────────────────────────────────── */
-#fab-wrap {
-  display: none;
-}
-@media (max-width: 700px) {
-  #fab-wrap {
-    display: block;
-    position: fixed;
-    bottom: 28px;
-    left: 50%; transform: translateX(-50%);
-    z-index: 1100;
-    width: 56px; height: 56px;
-  }
-  /* Botón FAB principal */
-  #fab-btn {
-    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-    width: 56px; height: 56px;
-    background: var(--kiri);
-    border: none; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; z-index: 2;
-    box-shadow: 0 4px 20px rgba(122,47,47,0.5);
-    transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1),
-                box-shadow 0.2s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  #fab-btn svg { width: 22px; height: 22px; stroke: #fff; }
-  #fab-btn:active { transform: translateX(-50%) scale(0.9); }
-  #fab-wrap.open #fab-btn {
-    background: var(--ink2);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.35);
-  }
+/* ── FAB + NAV (mobile) ─────────────────────────────────────── */
+#fab-wrap { display: none; }
 
-  /* Overlay oscuro */
+@media (max-width: 700px) {
+
+  /* Overlay oscuro detrás del menú radial */
   #fab-overlay {
     display: none;
     position: fixed; inset: 0;
     background: rgba(0,0,0,0);
     z-index: 1050;
-    transition: background 0.25s;
+    transition: background 0.3s;
+    pointer-events: none;
   }
-  #fab-wrap.open ~ * { } /* nothing */
   #fab-overlay.visible {
     display: block;
-    background: rgba(0,0,0,0.4);
+    background: rgba(0,0,0,0.45);
+    pointer-events: all;
   }
 
-  /* Opciones radiales */
-  .fab-option {
+  /* Contenedor del FAB — centrado justo sobre el botón inicio */
+  #fab-wrap {
+    display: block;
+    position: fixed;
+    bottom: 72px; /* sobre el nav */
+    left: 50%; transform: translateX(-50%);
+    z-index: 1100;
+    width: 0; height: 0; /* solo ancla, no ocupa espacio */
+  }
+
+  /* Botón "+" pequeño que flota sobre el botón inicio */
+  #fab-btn {
     position: absolute;
-    bottom: 8px; left: 50%;
-    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 32px; height: 32px;
+    background: var(--kiri);
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 12px rgba(122,47,47,0.6);
+    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1),
+                background 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #fab-btn svg { width: 16px; height: 16px; stroke: #fff; stroke-width: 2.5; }
+  #fab-btn:active { transform: translateX(-50%) scale(0.85); }
+  #fab-wrap.open #fab-btn {
+    transform: translateX(-50%) rotate(45deg);
+    background: #333;
+  }
+
+  /* Opciones radiales — parten desde el centro del FAB */
+  .fab-option {
+    position: fixed;
+    bottom: 84px; left: 50%;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
     z-index: 1101;
     opacity: 0; pointer-events: none;
-    transition: opacity 0.2s, transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
-    transform: translateX(-50%) translateY(0);
+    /* posición de reposo: todas en el centro */
+    transform: translateX(-50%) translateY(20px) scale(0.7);
+    transition: opacity 0.22s ease,
+                transform 0.35s cubic-bezier(0.34,1.4,0.64,1);
   }
   #fab-wrap.open .fab-option {
     opacity: 1; pointer-events: all;
+    transform: translateX(-50%) scale(1);
   }
-  /* Posiciones angulares: izquierda, arriba-centro, derecha */
-  #fab-opt-manual {
-    transform: translateX(-50%) translateY(0);
-    transition-delay: 0s;
-  }
-  #fab-opt-voz {
-    transform: translateX(-50%) translateY(0);
-    transition-delay: 0.03s;
-  }
-  #fab-opt-archivo {
-    transform: translateX(-50%) translateY(0);
-    transition-delay: 0.06s;
-  }
-  /* Posiciones abiertas — arco semircircular hacia arriba */
-  #fab-wrap.open #fab-opt-manual {
-    transform: translateX(calc(-50% - 80px)) translateY(-70px);
+  /* Arco semicircular hacia arriba */
+  #fab-opt-manual    { transition-delay: 0.00s; }
+  #fab-opt-voz       { transition-delay: 0.05s; }
+  #fab-opt-archivo   { transition-delay: 0.10s; }
+
+  #fab-wrap.open #fab-opt-manual  {
+    transform: translateX(calc(-50% - 100px)) translateY(-30px) scale(1);
   }
   #fab-wrap.open #fab-opt-voz {
-    transform: translateX(-50%) translateY(-100px);
+    transform: translateX(-50%) translateY(-60px) scale(1);
   }
   #fab-wrap.open #fab-opt-archivo {
-    transform: translateX(calc(-50% + 80px)) translateY(-70px);
+    transform: translateX(calc(-50% + 100px)) translateY(-30px) scale(1);
   }
 
   .fab-opt-icon {
-    width: 48px; height: 48px;
+    width: 52px; height: 52px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.2);
     transition: transform 0.15s;
   }
-  .fab-opt-icon svg { width: 20px; height: 20px; stroke: var(--ink); }
-  .fab-option:active .fab-opt-icon { transform: scale(0.9); }
+  .fab-opt-icon svg { width: 22px; height: 22px; stroke: var(--ink); }
+  .fab-option:active .fab-opt-icon { transform: scale(0.88); }
   .fab-opt-label {
-    font-size: 8px; font-weight: 400; letter-spacing: 2px;
+    font-size: 9px; font-weight: 400; letter-spacing: 1.5px;
     text-transform: lowercase; color: #fff;
     white-space: nowrap;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    text-shadow: 0 1px 6px rgba(0,0,0,0.6);
+    background: rgba(0,0,0,0.4);
+    padding: 3px 8px; border-radius: 10px;
   }
 
-  /* Nav centro — INICIO destacado */
-  .mnav-home-center {
-    position: relative;
-    margin-bottom: 18px; /* sube sobre el nav */
-    background: var(--kiri) !important;
-    border-radius: 18px !important;
-    width: 80px !important;
-    height: 52px !important;
-    color: #fff !important;
-    box-shadow: 0 -4px 20px rgba(122,47,47,0.4);
-    flex: 1.4 !important;
-  }
-  .mnav-home-center svg { stroke-width: 1.5; }
-  .mnav-home-center.active {
-    background: var(--kiri-deep) !important;
-  }
-
-  /* Nav ajustes con centro elevado */
+  /* ── NAV — 3 botones iguales, inicio al centro ── */
   #mobile-nav {
-    align-items: flex-end;
-    padding-bottom: 8px;
-    height: 68px;
+    align-items: center;
+    padding-bottom: 0;
+    height: 62px;
   }
-  #mnav-indicator { display: none; } /* pillq oculto con nuevo diseño */
+  #mnav-indicator { display: none; }
+
+  /* Centro elevado visualmente pero sin cubrir el texto */
+  .mnav-home-center {
+    flex: 1.2 !important;
+    padding-top: 0 !important;
+    color: #fff !important;
+    position: relative;
+  }
+  .mnav-home-center::before {
+    content: '';
+    position: absolute;
+    inset: 4px 6px;
+    background: var(--kiri);
+    border-radius: 12px;
+    z-index: 0;
+    box-shadow: 0 0 16px rgba(122,47,47,0.4);
+  }
+  .mnav-home-center svg,
+  .mnav-home-center span {
+    position: relative; z-index: 1;
+  }
+  .mnav-home-center .mnav-label {
+    position: relative; z-index: 1;
+  }
 }
 
 </style>
@@ -1751,7 +1761,7 @@ header {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
     </svg>
-    inicio
+    <span class="mnav-label">inicio</span>
   </button>
   <button class="mnav-btn" id="mnav-export" onclick="openMobileMenu()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
@@ -2923,99 +2933,128 @@ function initDeck(deckEl, total) {
   const cards = Array.from(deckEl.querySelectorAll('.mhome-card'));
   if (!cards.length) return;
   let current = 0;
+  let animating = false;
 
-  // Constantes de apilado
-  const STACK_OFFSET = 12; // px que asoma cada carta de fondo
-  const STACK_SCALE  = 0.05; // escala que decrece por nivel
+  // Ángulos de rotación tipo mazo en abanico para las cartas de fondo
+  const FAN_ANGLES  = [0, -4, 4, -7, 7];
+  const FAN_OFFSET_Y = [0, 14, 16, 22, 26]; // cuánto sobresalen abajo
 
   function layoutDeck(activeIdx, animated) {
+    const trans = animated
+      ? 'transform 0.45s cubic-bezier(0.34,1.15,0.64,1), box-shadow 0.3s ease, opacity 0.3s ease, filter 0.3s ease'
+      : 'none';
+
     cards.forEach((card, i) => {
-      const rel = i - activeIdx; // posición relativa al activo
-      card.style.transition = animated
-        ? 'transform 0.42s cubic-bezier(0.34,1.2,0.64,1), box-shadow 0.35s, opacity 0.3s'
-        : 'none';
+      card.style.transition = trans;
+      const rel = i - activeIdx;
 
       if (rel < 0) {
-        // Cartas ya pasadas — ocultas debajo, escondidas abajo
-        card.style.transform = 'translateY(110%) scale(0.85)';
+        // Carta ya pasada: sale volando hacia arriba
+        card.style.transform = 'translateY(-115%) rotate(-8deg) scale(0.9)';
         card.style.zIndex = 0;
         card.style.opacity = '0';
         card.style.pointerEvents = 'none';
+        card.style.filter = 'none';
       } else if (rel === 0) {
-        // Carta activa — al frente, completa
-        card.style.transform = 'translateY(0) scale(1)';
-        card.style.zIndex = total + 5;
+        // Carta activa: centrada, sin rotación, al frente
+        card.style.transform = 'translateY(0) rotate(0deg) scale(1)';
+        card.style.zIndex = total + 10;
         card.style.opacity = '1';
         card.style.pointerEvents = 'all';
-        card.style.boxShadow = '0 16px 48px rgba(0,0,0,0.3)';
+        card.style.boxShadow = '0 20px 60px rgba(0,0,0,0.35)';
+        card.style.filter = 'none';
       } else {
-        // Cartas de fondo — asoman desde abajo, escala decrece
-        const depth = Math.min(rel, 4); // máx 4 niveles visibles
-        const yOffset = depth * STACK_OFFSET;
-        const scale = 1 - depth * STACK_SCALE;
-        const brightness = 1 - depth * 0.08;
-        card.style.transform = 'translateY(' + yOffset + 'px) scale(' + scale + ')';
-        card.style.zIndex = total + 5 - rel;
-        card.style.opacity = depth <= 3 ? String(1 - depth * 0.1) : '0';
+        // Cartas de fondo: abanico con rotación alternada
+        const depth = Math.min(rel, 4);
+        const angle = FAN_ANGLES[depth] || 0;
+        const yOff  = FAN_OFFSET_Y[depth] || 30;
+        const scale = 1 - depth * 0.04;
+        const bright = 1 - depth * 0.1;
+        card.style.transform =
+          'translateY(' + yOff + 'px) rotate(' + angle + 'deg) scale(' + scale + ')';
+        card.style.zIndex = total + 10 - rel;
+        card.style.opacity = depth <= 3 ? String(1 - depth * 0.08) : '0';
         card.style.pointerEvents = 'none';
-        card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-        card.style.filter = 'brightness(' + brightness + ')';
+        card.style.boxShadow = '0 4px 16px rgba(0,0,0,0.15)';
+        card.style.filter = 'brightness(' + bright + ')';
       }
     });
 
-    // Actualizar dots
+    // Dots
     cards.forEach((_, i) => {
       const dot = document.getElementById('mcdot-' + i);
       if (dot) dot.classList.toggle('active', i === activeIdx);
     });
-
-    // Hint solo si hay más cartas
     const hint = document.querySelector('.mhome-swipe-hint');
     if (hint) hint.style.opacity = activeIdx < total - 1 ? '1' : '0';
   }
 
-  // Layout inicial sin animación
+  // Función para avanzar carta con animación de salida dramática
+  function nextCard() {
+    if (animating || current >= total - 1) return;
+    animating = true;
+    const topCard = cards[current];
+    // Vuela hacia arriba con giro
+    topCard.style.transition = 'transform 0.38s cubic-bezier(0.55,0,1,0.45), opacity 0.3s ease';
+    topCard.style.transform = 'translateY(-120%) rotate(-12deg) scale(0.88)';
+    topCard.style.opacity = '0';
+    setTimeout(() => {
+      current++;
+      layoutDeck(current, true);
+      animating = false;
+    }, 200);
+  }
+
+  function prevCard() {
+    if (animating || current <= 0) return;
+    animating = true;
+    current--;
+    // Carta anterior vuelve desde arriba
+    const prevC = cards[current];
+    prevC.style.transition = 'none';
+    prevC.style.transform = 'translateY(-80%) rotate(6deg) scale(0.9)';
+    prevC.style.opacity = '0';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        layoutDeck(current, true);
+        animating = false;
+      });
+    });
+  }
+
   layoutDeck(0, false);
   requestAnimationFrame(() => layoutDeck(0, true));
 
-  // ── Tap en carta activa: entrar al proyecto ──────────────────
+  // Tap: si es carta activa → entrar al proyecto
   cards.forEach((card, i) => {
     card.addEventListener('click', () => {
-      if (i === current) {
-        selectMobileProject(i);
-      }
+      if (i === current && !animating) selectMobileProject(i);
     });
   });
 
-  // ── Swipe vertical en el deck ────────────────────────────────
-  let startY = 0, startX = 0, isDragging = false;
-
+  // Swipe vertical
+  let startY = 0, startX = 0, tracking = false;
   deckEl.addEventListener('touchstart', e => {
     startY = e.touches[0].clientY;
     startX = e.touches[0].clientX;
-    isDragging = true;
+    tracking = true;
   }, { passive: true });
 
   deckEl.addEventListener('touchend', e => {
-    if (!isDragging) return;
-    isDragging = false;
+    if (!tracking) return;
+    tracking = false;
     const dy = startY - e.changedTouches[0].clientY;
     const dx = Math.abs(startX - e.changedTouches[0].clientX);
-    if (Math.abs(dy) < 40 || dx > Math.abs(dy)) return; // demasiado corto o horizontal
-    if (dy > 0 && current < total - 1) {
-      current++;
-      layoutDeck(current, true);
-    } else if (dy < 0 && current > 0) {
-      current--;
-      layoutDeck(current, true);
-    }
+    if (Math.abs(dy) < 35 || dx > Math.abs(dy) * 0.8) return;
+    if (dy > 0) nextCard();
+    else prevCard();
   }, { passive: true });
 
-  // Navegación con scroll (rueda del mouse en desktop test)
+  // Mouse wheel (prueba desktop)
   deckEl.addEventListener('wheel', e => {
     e.preventDefault();
-    if (e.deltaY > 30 && current < total - 1) { current++; layoutDeck(current, true); }
-    else if (e.deltaY < -30 && current > 0) { current--; layoutDeck(current, true); }
+    if (e.deltaY > 20) nextCard();
+    else if (e.deltaY < -20) prevCard();
   }, { passive: false });
 }
 
@@ -4306,131 +4345,141 @@ async function exportPDF() {
   .note-box { background: #f5f0e8; border-left: 3px solid #7a2f2f; padding: 10px 14px; border-radius: 0 3px 3px 0; font-size: 11px; color: #5a4a3a; margin-top: 8px; }
 
 /* ── FAB RADIAL ─────────────────────────────────────────────────── */
-#fab-wrap {
-  display: none;
-}
-@media (max-width: 700px) {
-  #fab-wrap {
-    display: block;
-    position: fixed;
-    bottom: 28px;
-    left: 50%; transform: translateX(-50%);
-    z-index: 1100;
-    width: 56px; height: 56px;
-  }
-  /* Botón FAB principal */
-  #fab-btn {
-    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-    width: 56px; height: 56px;
-    background: var(--kiri);
-    border: none; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; z-index: 2;
-    box-shadow: 0 4px 20px rgba(122,47,47,0.5);
-    transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1),
-                box-shadow 0.2s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  #fab-btn svg { width: 22px; height: 22px; stroke: #fff; }
-  #fab-btn:active { transform: translateX(-50%) scale(0.9); }
-  #fab-wrap.open #fab-btn {
-    background: var(--ink2);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.35);
-  }
+/* ── FAB + NAV (mobile) ─────────────────────────────────────── */
+#fab-wrap { display: none; }
 
-  /* Overlay oscuro */
+@media (max-width: 700px) {
+
+  /* Overlay oscuro detrás del menú radial */
   #fab-overlay {
     display: none;
     position: fixed; inset: 0;
     background: rgba(0,0,0,0);
     z-index: 1050;
-    transition: background 0.25s;
+    transition: background 0.3s;
+    pointer-events: none;
   }
-  #fab-wrap.open ~ * { } /* nothing */
   #fab-overlay.visible {
     display: block;
-    background: rgba(0,0,0,0.4);
+    background: rgba(0,0,0,0.45);
+    pointer-events: all;
   }
 
-  /* Opciones radiales */
-  .fab-option {
+  /* Contenedor del FAB — centrado justo sobre el botón inicio */
+  #fab-wrap {
+    display: block;
+    position: fixed;
+    bottom: 72px; /* sobre el nav */
+    left: 50%; transform: translateX(-50%);
+    z-index: 1100;
+    width: 0; height: 0; /* solo ancla, no ocupa espacio */
+  }
+
+  /* Botón "+" pequeño que flota sobre el botón inicio */
+  #fab-btn {
     position: absolute;
-    bottom: 8px; left: 50%;
-    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 32px; height: 32px;
+    background: var(--kiri);
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 12px rgba(122,47,47,0.6);
+    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1),
+                background 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #fab-btn svg { width: 16px; height: 16px; stroke: #fff; stroke-width: 2.5; }
+  #fab-btn:active { transform: translateX(-50%) scale(0.85); }
+  #fab-wrap.open #fab-btn {
+    transform: translateX(-50%) rotate(45deg);
+    background: #333;
+  }
+
+  /* Opciones radiales — parten desde el centro del FAB */
+  .fab-option {
+    position: fixed;
+    bottom: 84px; left: 50%;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
     z-index: 1101;
     opacity: 0; pointer-events: none;
-    transition: opacity 0.2s, transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
-    transform: translateX(-50%) translateY(0);
+    /* posición de reposo: todas en el centro */
+    transform: translateX(-50%) translateY(20px) scale(0.7);
+    transition: opacity 0.22s ease,
+                transform 0.35s cubic-bezier(0.34,1.4,0.64,1);
   }
   #fab-wrap.open .fab-option {
     opacity: 1; pointer-events: all;
+    transform: translateX(-50%) scale(1);
   }
-  /* Posiciones angulares: izquierda, arriba-centro, derecha */
-  #fab-opt-manual {
-    transform: translateX(-50%) translateY(0);
-    transition-delay: 0s;
-  }
-  #fab-opt-voz {
-    transform: translateX(-50%) translateY(0);
-    transition-delay: 0.03s;
-  }
-  #fab-opt-archivo {
-    transform: translateX(-50%) translateY(0);
-    transition-delay: 0.06s;
-  }
-  /* Posiciones abiertas — arco semircircular hacia arriba */
-  #fab-wrap.open #fab-opt-manual {
-    transform: translateX(calc(-50% - 80px)) translateY(-70px);
+  /* Arco semicircular hacia arriba */
+  #fab-opt-manual    { transition-delay: 0.00s; }
+  #fab-opt-voz       { transition-delay: 0.05s; }
+  #fab-opt-archivo   { transition-delay: 0.10s; }
+
+  #fab-wrap.open #fab-opt-manual  {
+    transform: translateX(calc(-50% - 100px)) translateY(-30px) scale(1);
   }
   #fab-wrap.open #fab-opt-voz {
-    transform: translateX(-50%) translateY(-100px);
+    transform: translateX(-50%) translateY(-60px) scale(1);
   }
   #fab-wrap.open #fab-opt-archivo {
-    transform: translateX(calc(-50% + 80px)) translateY(-70px);
+    transform: translateX(calc(-50% + 100px)) translateY(-30px) scale(1);
   }
 
   .fab-opt-icon {
-    width: 48px; height: 48px;
+    width: 52px; height: 52px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.2);
     transition: transform 0.15s;
   }
-  .fab-opt-icon svg { width: 20px; height: 20px; stroke: var(--ink); }
-  .fab-option:active .fab-opt-icon { transform: scale(0.9); }
+  .fab-opt-icon svg { width: 22px; height: 22px; stroke: var(--ink); }
+  .fab-option:active .fab-opt-icon { transform: scale(0.88); }
   .fab-opt-label {
-    font-size: 8px; font-weight: 400; letter-spacing: 2px;
+    font-size: 9px; font-weight: 400; letter-spacing: 1.5px;
     text-transform: lowercase; color: #fff;
     white-space: nowrap;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    text-shadow: 0 1px 6px rgba(0,0,0,0.6);
+    background: rgba(0,0,0,0.4);
+    padding: 3px 8px; border-radius: 10px;
   }
 
-  /* Nav centro — INICIO destacado */
-  .mnav-home-center {
-    position: relative;
-    margin-bottom: 18px; /* sube sobre el nav */
-    background: var(--kiri) !important;
-    border-radius: 18px !important;
-    width: 80px !important;
-    height: 52px !important;
-    color: #fff !important;
-    box-shadow: 0 -4px 20px rgba(122,47,47,0.4);
-    flex: 1.4 !important;
-  }
-  .mnav-home-center svg { stroke-width: 1.5; }
-  .mnav-home-center.active {
-    background: var(--kiri-deep) !important;
-  }
-
-  /* Nav ajustes con centro elevado */
+  /* ── NAV — 3 botones iguales, inicio al centro ── */
   #mobile-nav {
-    align-items: flex-end;
-    padding-bottom: 8px;
-    height: 68px;
+    align-items: center;
+    padding-bottom: 0;
+    height: 62px;
   }
-  #mnav-indicator { display: none; } /* pillq oculto con nuevo diseño */
+  #mnav-indicator { display: none; }
+
+  /* Centro elevado visualmente pero sin cubrir el texto */
+  .mnav-home-center {
+    flex: 1.2 !important;
+    padding-top: 0 !important;
+    color: #fff !important;
+    position: relative;
+  }
+  .mnav-home-center::before {
+    content: '';
+    position: absolute;
+    inset: 4px 6px;
+    background: var(--kiri);
+    border-radius: 12px;
+    z-index: 0;
+    box-shadow: 0 0 16px rgba(122,47,47,0.4);
+  }
+  .mnav-home-center svg,
+  .mnav-home-center span {
+    position: relative; z-index: 1;
+  }
+  .mnav-home-center .mnav-label {
+    position: relative; z-index: 1;
+  }
 }
 
 </style>
@@ -4813,131 +4862,141 @@ async function exportClientPDF() {
   }
 
 /* ── FAB RADIAL ─────────────────────────────────────────────────── */
-#fab-wrap {
-  display: none;
-}
-@media (max-width: 700px) {
-  #fab-wrap {
-    display: block;
-    position: fixed;
-    bottom: 28px;
-    left: 50%; transform: translateX(-50%);
-    z-index: 1100;
-    width: 56px; height: 56px;
-  }
-  /* Botón FAB principal */
-  #fab-btn {
-    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-    width: 56px; height: 56px;
-    background: var(--kiri);
-    border: none; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; z-index: 2;
-    box-shadow: 0 4px 20px rgba(122,47,47,0.5);
-    transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1),
-                box-shadow 0.2s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  #fab-btn svg { width: 22px; height: 22px; stroke: #fff; }
-  #fab-btn:active { transform: translateX(-50%) scale(0.9); }
-  #fab-wrap.open #fab-btn {
-    background: var(--ink2);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.35);
-  }
+/* ── FAB + NAV (mobile) ─────────────────────────────────────── */
+#fab-wrap { display: none; }
 
-  /* Overlay oscuro */
+@media (max-width: 700px) {
+
+  /* Overlay oscuro detrás del menú radial */
   #fab-overlay {
     display: none;
     position: fixed; inset: 0;
     background: rgba(0,0,0,0);
     z-index: 1050;
-    transition: background 0.25s;
+    transition: background 0.3s;
+    pointer-events: none;
   }
-  #fab-wrap.open ~ * { } /* nothing */
   #fab-overlay.visible {
     display: block;
-    background: rgba(0,0,0,0.4);
+    background: rgba(0,0,0,0.45);
+    pointer-events: all;
   }
 
-  /* Opciones radiales */
-  .fab-option {
+  /* Contenedor del FAB — centrado justo sobre el botón inicio */
+  #fab-wrap {
+    display: block;
+    position: fixed;
+    bottom: 72px; /* sobre el nav */
+    left: 50%; transform: translateX(-50%);
+    z-index: 1100;
+    width: 0; height: 0; /* solo ancla, no ocupa espacio */
+  }
+
+  /* Botón "+" pequeño que flota sobre el botón inicio */
+  #fab-btn {
     position: absolute;
-    bottom: 8px; left: 50%;
-    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 32px; height: 32px;
+    background: var(--kiri);
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 12px rgba(122,47,47,0.6);
+    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1),
+                background 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #fab-btn svg { width: 16px; height: 16px; stroke: #fff; stroke-width: 2.5; }
+  #fab-btn:active { transform: translateX(-50%) scale(0.85); }
+  #fab-wrap.open #fab-btn {
+    transform: translateX(-50%) rotate(45deg);
+    background: #333;
+  }
+
+  /* Opciones radiales — parten desde el centro del FAB */
+  .fab-option {
+    position: fixed;
+    bottom: 84px; left: 50%;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
     z-index: 1101;
     opacity: 0; pointer-events: none;
-    transition: opacity 0.2s, transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
-    transform: translateX(-50%) translateY(0);
+    /* posición de reposo: todas en el centro */
+    transform: translateX(-50%) translateY(20px) scale(0.7);
+    transition: opacity 0.22s ease,
+                transform 0.35s cubic-bezier(0.34,1.4,0.64,1);
   }
   #fab-wrap.open .fab-option {
     opacity: 1; pointer-events: all;
+    transform: translateX(-50%) scale(1);
   }
-  /* Posiciones angulares: izquierda, arriba-centro, derecha */
-  #fab-opt-manual {
-    transform: translateX(-50%) translateY(0);
-    transition-delay: 0s;
-  }
-  #fab-opt-voz {
-    transform: translateX(-50%) translateY(0);
-    transition-delay: 0.03s;
-  }
-  #fab-opt-archivo {
-    transform: translateX(-50%) translateY(0);
-    transition-delay: 0.06s;
-  }
-  /* Posiciones abiertas — arco semircircular hacia arriba */
-  #fab-wrap.open #fab-opt-manual {
-    transform: translateX(calc(-50% - 80px)) translateY(-70px);
+  /* Arco semicircular hacia arriba */
+  #fab-opt-manual    { transition-delay: 0.00s; }
+  #fab-opt-voz       { transition-delay: 0.05s; }
+  #fab-opt-archivo   { transition-delay: 0.10s; }
+
+  #fab-wrap.open #fab-opt-manual  {
+    transform: translateX(calc(-50% - 100px)) translateY(-30px) scale(1);
   }
   #fab-wrap.open #fab-opt-voz {
-    transform: translateX(-50%) translateY(-100px);
+    transform: translateX(-50%) translateY(-60px) scale(1);
   }
   #fab-wrap.open #fab-opt-archivo {
-    transform: translateX(calc(-50% + 80px)) translateY(-70px);
+    transform: translateX(calc(-50% + 100px)) translateY(-30px) scale(1);
   }
 
   .fab-opt-icon {
-    width: 48px; height: 48px;
+    width: 52px; height: 52px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.2);
     transition: transform 0.15s;
   }
-  .fab-opt-icon svg { width: 20px; height: 20px; stroke: var(--ink); }
-  .fab-option:active .fab-opt-icon { transform: scale(0.9); }
+  .fab-opt-icon svg { width: 22px; height: 22px; stroke: var(--ink); }
+  .fab-option:active .fab-opt-icon { transform: scale(0.88); }
   .fab-opt-label {
-    font-size: 8px; font-weight: 400; letter-spacing: 2px;
+    font-size: 9px; font-weight: 400; letter-spacing: 1.5px;
     text-transform: lowercase; color: #fff;
     white-space: nowrap;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    text-shadow: 0 1px 6px rgba(0,0,0,0.6);
+    background: rgba(0,0,0,0.4);
+    padding: 3px 8px; border-radius: 10px;
   }
 
-  /* Nav centro — INICIO destacado */
-  .mnav-home-center {
-    position: relative;
-    margin-bottom: 18px; /* sube sobre el nav */
-    background: var(--kiri) !important;
-    border-radius: 18px !important;
-    width: 80px !important;
-    height: 52px !important;
-    color: #fff !important;
-    box-shadow: 0 -4px 20px rgba(122,47,47,0.4);
-    flex: 1.4 !important;
-  }
-  .mnav-home-center svg { stroke-width: 1.5; }
-  .mnav-home-center.active {
-    background: var(--kiri-deep) !important;
-  }
-
-  /* Nav ajustes con centro elevado */
+  /* ── NAV — 3 botones iguales, inicio al centro ── */
   #mobile-nav {
-    align-items: flex-end;
-    padding-bottom: 8px;
-    height: 68px;
+    align-items: center;
+    padding-bottom: 0;
+    height: 62px;
   }
-  #mnav-indicator { display: none; } /* pillq oculto con nuevo diseño */
+  #mnav-indicator { display: none; }
+
+  /* Centro elevado visualmente pero sin cubrir el texto */
+  .mnav-home-center {
+    flex: 1.2 !important;
+    padding-top: 0 !important;
+    color: #fff !important;
+    position: relative;
+  }
+  .mnav-home-center::before {
+    content: '';
+    position: absolute;
+    inset: 4px 6px;
+    background: var(--kiri);
+    border-radius: 12px;
+    z-index: 0;
+    box-shadow: 0 0 16px rgba(122,47,47,0.4);
+  }
+  .mnav-home-center svg,
+  .mnav-home-center span {
+    position: relative; z-index: 1;
+  }
+  .mnav-home-center .mnav-label {
+    position: relative; z-index: 1;
+  }
 }
 
 </style>
