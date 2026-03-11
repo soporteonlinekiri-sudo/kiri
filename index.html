@@ -548,115 +548,99 @@ header {
 .mhome-metric-negative { color: #c0392b !important; }
 
 /* ── PROYECTOS — CARRUSEL SNAP ──────────────────────────────── */
+/* ── DECK DE CARTAS APILADAS (estilo Wallet) ────────────────── */
 .mhome-carousel-wrap {
-  height: calc(100dvh - 54px - 76px);
+  height: calc(100dvh - 50px - 76px);
   display: flex; flex-direction: column;
   background: var(--bg); overflow: hidden;
+  position: relative;
 }
 .mhome-carousel-topbar {
-  padding: 16px 18px 10px;
+  padding: 20px 22px 0px;
   display: flex; align-items: center; justify-content: space-between;
-  flex-shrink: 0;
+  flex-shrink: 0; position: relative; z-index: 2;
 }
 .mhome-carousel-title {
-  font-size: 8px; font-weight: 300; letter-spacing: 5px;
-  text-transform: lowercase; color: var(--muted);
+  font-size: 22px; font-weight: 300; letter-spacing: 0px;
+  text-transform: none; color: var(--ink);
+}
+.mhome-carousel-subtitle {
+  font-size: 10px; font-weight: 300; letter-spacing: 3px;
+  color: var(--muted); display: block; margin-top: 2px;
+  text-transform: lowercase;
 }
 .mhome-add-btn {
-  background: var(--kiri); color: #fff; border: none;
-  border-radius: 8px; padding: 7px 13px;
-  font-size: 10px; font-weight: 700; letter-spacing: 1px;
+  background: none; color: var(--muted); border: none;
+  border-radius: 8px; padding: 7px 4px;
+  font-size: 10px; font-weight: 400; letter-spacing: 2px;
   font-family: 'DM Sans', sans-serif; cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-}
-.mhome-carousel-pager {
-  font-family: 'DM Mono', monospace;
-  font-size: 10px; color: var(--border2);
-}
-.mhome-carousel {
-  flex: 1; overflow-y: scroll;
-  scroll-snap-type: y mandatory;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none; padding: 0 14px 14px;
-}
-.mhome-carousel::-webkit-scrollbar { display: none; }
-.mhome-carousel-dots {
-  display: flex; justify-content: center; gap: 6px;
-  padding: 8px 0 4px; flex-shrink: 0;
-}
-.mhome-cdot {
-  width: 5px; height: 5px; border-radius: 50%;
-  background: var(--border2); transition: background 0.2s, transform 0.2s;
-}
-.mhome-cdot.active { background: var(--kiri); transform: scale(1.4); }
-
-@keyframes cardSlideIn {
-  from { opacity: 0; transform: translateY(28px) scale(0.97); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
-@keyframes fadeDown {
-  from { opacity: 0; transform: translateY(-8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  text-transform: lowercase;
 }
 
-/* Cards del carrusel */
+/* Contenedor del mazo — posición relativa para apilar */
+.mhome-deck-wrap {
+  flex: 1; position: relative;
+  margin: 0 18px;
+  margin-top: 28px;
+}
+
+/* Cada carta posicionada absolutamente */
 .mhome-card {
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
-  height: calc(100dvh - 50px - 76px - 86px);
-  border-radius: 12px; overflow: hidden;
+  position: absolute;
+  left: 0; right: 0;
+  height: calc(100dvh - 50px - 76px - 160px);
+  border-radius: 18px; overflow: hidden;
   cursor: pointer; -webkit-tap-highlight-color: transparent;
-  transition: filter 0.1s, transform 0.1s;
-  margin-bottom: 14px;
-  box-shadow: 0 8px 28px rgba(0,0,0,0.2);
-  position: relative; flex-shrink: 0;
-  opacity: 0;
-  animation: cardSlideIn 0.4s cubic-bezier(0.22,1,0.36,1) forwards;
+  transform-origin: bottom center;
+  transition: transform 0.45s cubic-bezier(0.34,1.2,0.64,1),
+              box-shadow 0.35s ease,
+              filter 0.25s ease;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.22);
+  will-change: transform;
+  user-select: none;
 }
-.mhome-card:nth-child(1) { animation-delay: 0.04s; }
-.mhome-card:nth-child(2) { animation-delay: 0.10s; }
-.mhome-card:nth-child(3) { animation-delay: 0.16s; }
-.mhome-card:nth-child(4) { animation-delay: 0.22s; }
-.mhome-card:nth-child(5) { animation-delay: 0.28s; }
-.mhome-card:active { filter: brightness(0.88); transform: scale(0.985); }
+.mhome-card:active { filter: brightness(0.93); }
+
+/* Card body */
 .mhome-card-body {
-  padding: 32px 28px 24px;
+  padding: 28px 26px 22px;
   height: 100%; box-sizing: border-box;
   display: flex; flex-direction: column;
 }
 .mhome-card-top {
   display: flex; justify-content: space-between;
-  align-items: flex-start; margin-bottom: 10px;
+  align-items: flex-start; margin-bottom: 8px;
 }
 .mhome-card-num {
   font-family: 'DM Mono', monospace;
-  font-size: 7px; color: rgba(255,255,255,0.2); letter-spacing: 4px;
+  font-size: 7px; color: rgba(255,255,255,0.22); letter-spacing: 4px;
 }
 .mhome-card-pct {
   font-family: 'DM Mono', monospace;
-  font-size: 12px; color: rgba(255,255,255,0.45);
+  font-size: 11px; color: rgba(255,255,255,0.4);
 }
 .mhome-card-date {
-  font-size: 10px; color: rgba(255,255,255,0.3);
-  margin-bottom: 10px; font-family: 'DM Mono', monospace;
+  font-size: 9px; color: rgba(255,255,255,0.28);
+  margin-bottom: 12px; font-family: 'DM Mono', monospace;
 }
 .mhome-card-name {
-  font-size: 26px; font-weight: 300;
+  font-size: 24px; font-weight: 300;
   color: #fff; text-transform: uppercase;
-  letter-spacing: 3px; line-height: 1.1; margin-bottom: 8px;
+  letter-spacing: 2px; line-height: 1.1; margin-bottom: 6px;
 }
 .mhome-card-desc {
-  font-size: 8px; color: rgba(255,255,255,0.25);
+  font-size: 8px; color: rgba(255,255,255,0.22);
   text-transform: lowercase; letter-spacing: 3px; margin-bottom: auto;
 }
 .mhome-card-price-row {
   display: flex; align-items: center; gap: 10px;
-  margin-top: 20px; margin-bottom: 12px;
+  margin-top: 16px; margin-bottom: 10px;
 }
 .mhome-card-amount {
   font-family: 'DM Mono', monospace;
-  font-size: 20px; font-weight: 300;
-  color: rgba(255,255,255,0.9); letter-spacing: -0.5px; flex: 1;
+  font-size: 22px; font-weight: 300;
+  color: rgba(255,255,255,0.92); letter-spacing: -0.5px; flex: 1;
 }
 .mhome-card-eye {
   background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
@@ -666,14 +650,45 @@ header {
 }
 .mhome-card-eye:active { background: rgba(255,255,255,0.2); }
 .mhome-card-bar {
-  height: 2px; background: rgba(255,255,255,0.12);
-  border-radius: 1px; overflow: hidden; margin-bottom: 5px;
+  height: 1px; background: rgba(255,255,255,0.15);
+  overflow: hidden; margin-bottom: 5px;
 }
-.mhome-card-bar-fill { height: 100%; background: rgba(255,255,255,0.5); border-radius: 1px; }
+.mhome-card-bar-fill { height: 100%; background: rgba(255,255,255,0.55); }
 .mhome-card-bar-lbl {
   display: flex; justify-content: space-between;
-  font-size: 8px; color: rgba(255,255,255,0.22);
+  font-size: 7px; color: rgba(255,255,255,0.2);
   font-family: 'DM Mono', monospace;
+}
+
+/* Dots indicadores */
+.mhome-carousel-dots {
+  display: flex; justify-content: center; gap: 5px;
+  padding: 10px 0 6px; flex-shrink: 0; position: relative; z-index: 2;
+}
+.mhome-cdot {
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--border2); transition: background 0.25s, transform 0.25s;
+}
+.mhome-cdot.active { background: var(--kiri); transform: scale(1.5); }
+
+/* Hint swipe */
+.mhome-swipe-hint {
+  text-align: center; padding-bottom: 4px;
+  font-size: 7px; letter-spacing: 3px; color: var(--border2);
+  text-transform: lowercase; flex-shrink: 0;
+}
+
+@keyframes deckIn {
+  from { opacity: 0; transform: translateY(60px) scale(0.9); }
+  to   { opacity: 1; }
+}
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes cardSlideIn {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* Empty state */
@@ -2829,7 +2844,7 @@ function renderMobileHome(el, tab) {
     return;
   }
 
-  // ── TAB PROYECTOS: carrusel snap ─────────────────────────────
+  // ── TAB PROYECTOS: deck apilado estilo Wallet ────────────────
   if (!window._cardPriceVisible) window._cardPriceVisible = {};
 
   const eyeIcon = (vis) => vis
@@ -2840,12 +2855,12 @@ function renderMobileHome(el, tab) {
     el.innerHTML =
       '<div class="mhome-carousel-wrap">' +
         '<div class="mhome-carousel-topbar">' +
-          '<span class="mhome-carousel-title">Proyectos</span>' +
-          '<button class="mhome-add-btn" onclick="openModal(&quot;proj&quot;)">+ Nuevo</button>' +
+          '<div><span class="mhome-carousel-title">Proyectos</span>' +
+          '<span class="mhome-carousel-subtitle">ninguno todavía</span></div>' +
         '</div>' +
         '<div class="mhome-empty">' +
           '<div class="mhome-empty-kanji" style="font-family:sans-serif;font-size:40px;font-weight:800;letter-spacing:8px;color:var(--border2)">KIRI</div>' +
-          '<div class="mhome-empty-text">Todavía no hay proyectos.<br>Creá el primero para empezar.</div>' +
+          '<div class="mhome-empty-text">Todavía no hay proyectos.<br>Usá el + para crear el primero.</div>' +
         '</div>' +
       '</div>';
     return;
@@ -2863,7 +2878,7 @@ function renderMobileHome(el, tab) {
     const fecha = p.createdAt
       ? new Date(p.createdAt).toLocaleDateString('es-AR',{day:'2-digit',month:'short',year:'numeric'})
       : '';
-    return '<div class="mhome-card" style="background:' + color + '" onclick="selectMobileProject(' + i + ')">' +
+    return '<div class="mhome-card" data-idx="' + i + '" style="background:' + color + '">' +
       '<div class="mhome-card-body">' +
         '<div class="mhome-card-top">' +
           '<span class="mhome-card-num">N°' + String(i+1).padStart(2,'0') + '</span>' +
@@ -2885,35 +2900,123 @@ function renderMobileHome(el, tab) {
   }).join('');
 
   el.innerHTML =
-    '<div class="mhome-carousel-wrap">' +
+    '<div class="mhome-carousel-wrap" id="deck-wrap">' +
       '<div class="mhome-carousel-topbar">' +
-        '<span class="mhome-carousel-title">Proyectos</span>' +
-        '<button class="mhome-add-btn" onclick="openModal(&quot;proj&quot;)">+ Nuevo</button>' +
+        '<div><span class="mhome-carousel-title">Proyectos</span>' +
+        '<span class="mhome-carousel-subtitle">' + n + ' ' + (n===1?'proyecto':'proyectos') + '</span></div>' +
       '</div>' +
-      '<div class="mhome-carousel" id="mhome-carousel">' + cardsHTML + '</div>' +
-      '<div class="mhome-carousel-dots">' + dots + '</div>' +
+      '<div class="mhome-deck-wrap" id="mhome-deck"></div>' +
+      '<div class="mhome-carousel-dots" id="deck-dots">' + dots + '</div>' +
+      '<div class="mhome-swipe-hint">deslizá para ver más</div>' +
     '</div>';
 
-  // Dots: actualizar al hacer scroll snap
-  requestAnimationFrame(() => {
-    const carousel = document.getElementById('mhome-carousel');
-    if (!carousel) return;
-    // Activar primer dot
-    const d0 = document.getElementById('mcdot-0');
-    if (d0) d0.classList.add('active');
-    // Scroll listener para dots
-    carousel.addEventListener('scroll', () => {
-      const cards = carousel.querySelectorAll('.mhome-card');
-      cards.forEach((card, idx) => {
-        const rect = card.getBoundingClientRect();
-        const carRect = carousel.getBoundingClientRect();
-        const dot = document.getElementById('mcdot-' + idx);
-        if (!dot) return;
-        const visible = rect.top >= carRect.top - 10 && rect.top <= carRect.top + 10;
-        dot.classList.toggle('active', visible);
-      });
-    }, { passive: true });
+  // Insertar cards en el deck
+  const deckEl = document.getElementById('mhome-deck');
+  if (!deckEl) return;
+  deckEl.innerHTML = cardsHTML;
+
+  // ── DECK ENGINE ──────────────────────────────────────────────
+  initDeck(deckEl, n);
+}
+
+function initDeck(deckEl, total) {
+  const cards = Array.from(deckEl.querySelectorAll('.mhome-card'));
+  if (!cards.length) return;
+  let current = 0;
+
+  // Constantes de apilado
+  const STACK_OFFSET = 12; // px que asoma cada carta de fondo
+  const STACK_SCALE  = 0.05; // escala que decrece por nivel
+
+  function layoutDeck(activeIdx, animated) {
+    cards.forEach((card, i) => {
+      const rel = i - activeIdx; // posición relativa al activo
+      card.style.transition = animated
+        ? 'transform 0.42s cubic-bezier(0.34,1.2,0.64,1), box-shadow 0.35s, opacity 0.3s'
+        : 'none';
+
+      if (rel < 0) {
+        // Cartas ya pasadas — ocultas debajo, escondidas abajo
+        card.style.transform = 'translateY(110%) scale(0.85)';
+        card.style.zIndex = 0;
+        card.style.opacity = '0';
+        card.style.pointerEvents = 'none';
+      } else if (rel === 0) {
+        // Carta activa — al frente, completa
+        card.style.transform = 'translateY(0) scale(1)';
+        card.style.zIndex = total + 5;
+        card.style.opacity = '1';
+        card.style.pointerEvents = 'all';
+        card.style.boxShadow = '0 16px 48px rgba(0,0,0,0.3)';
+      } else {
+        // Cartas de fondo — asoman desde abajo, escala decrece
+        const depth = Math.min(rel, 4); // máx 4 niveles visibles
+        const yOffset = depth * STACK_OFFSET;
+        const scale = 1 - depth * STACK_SCALE;
+        const brightness = 1 - depth * 0.08;
+        card.style.transform = 'translateY(' + yOffset + 'px) scale(' + scale + ')';
+        card.style.zIndex = total + 5 - rel;
+        card.style.opacity = depth <= 3 ? String(1 - depth * 0.1) : '0';
+        card.style.pointerEvents = 'none';
+        card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+        card.style.filter = 'brightness(' + brightness + ')';
+      }
+    });
+
+    // Actualizar dots
+    cards.forEach((_, i) => {
+      const dot = document.getElementById('mcdot-' + i);
+      if (dot) dot.classList.toggle('active', i === activeIdx);
+    });
+
+    // Hint solo si hay más cartas
+    const hint = document.querySelector('.mhome-swipe-hint');
+    if (hint) hint.style.opacity = activeIdx < total - 1 ? '1' : '0';
+  }
+
+  // Layout inicial sin animación
+  layoutDeck(0, false);
+  requestAnimationFrame(() => layoutDeck(0, true));
+
+  // ── Tap en carta activa: entrar al proyecto ──────────────────
+  cards.forEach((card, i) => {
+    card.addEventListener('click', () => {
+      if (i === current) {
+        selectMobileProject(i);
+      }
+    });
   });
+
+  // ── Swipe vertical en el deck ────────────────────────────────
+  let startY = 0, startX = 0, isDragging = false;
+
+  deckEl.addEventListener('touchstart', e => {
+    startY = e.touches[0].clientY;
+    startX = e.touches[0].clientX;
+    isDragging = true;
+  }, { passive: true });
+
+  deckEl.addEventListener('touchend', e => {
+    if (!isDragging) return;
+    isDragging = false;
+    const dy = startY - e.changedTouches[0].clientY;
+    const dx = Math.abs(startX - e.changedTouches[0].clientX);
+    if (Math.abs(dy) < 40 || dx > Math.abs(dy)) return; // demasiado corto o horizontal
+    if (dy > 0 && current < total - 1) {
+      current++;
+      layoutDeck(current, true);
+    } else if (dy < 0 && current > 0) {
+      current--;
+      layoutDeck(current, true);
+    }
+  }, { passive: true });
+
+  // Navegación con scroll (rueda del mouse en desktop test)
+  deckEl.addEventListener('wheel', e => {
+    e.preventDefault();
+    if (e.deltaY > 30 && current < total - 1) { current++; layoutDeck(current, true); }
+    else if (e.deltaY < -30 && current > 0) { current--; layoutDeck(current, true); }
+  }, { passive: false });
 }
 
 
