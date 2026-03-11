@@ -580,26 +580,29 @@ header {
   text-transform: lowercase;
 }
 
-/* Contenedor del mazo — posición relativa para apilar */
+/* Contenedor del mazo — altura fija, las cartas se centran dentro */
 .mhome-deck-wrap {
   flex: 1; position: relative;
-  margin: 0 18px;
-  margin-top: 28px;
-  touch-action: pan-x; /* permite solo horizontal, bloquea pull-to-refresh */
+  margin: 0 14px;
+  margin-top: 16px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  touch-action: pan-x;
   overscroll-behavior: none;
 }
 
-/* Cada carta posicionada absolutamente — efecto rueda radial */
+/* Cada carta — pivote en la BASE, abanico en Z como naipes en la mano */
 .mhome-card {
   position: absolute;
-  left: 8%; right: 8%;  /* más angosta = más card */
-  height: calc(100dvh - 50px - 76px - 200px);
-  max-height: 360px;
+  left: 6%; right: 6%;
+  bottom: 0;
+  height: min(calc(100dvh - 50px - 76px - 200px), 370px);
   border-radius: 20px; overflow: hidden;
   cursor: pointer; -webkit-tap-highlight-color: transparent;
-  /* Pivote muy abajo → las cartas rotan como una rueda */
-  transform-origin: center 200%;
-  transition: transform 0.42s cubic-bezier(0.34,1.1,0.64,1),
+  /* Pivote en el borde inferior → rotación Z = abanico plano, como naipes */
+  transform-origin: 50% 100%;
+  transition: transform 0.44s cubic-bezier(0.34,1.1,0.64,1),
               box-shadow 0.35s ease,
               opacity 0.3s ease,
               filter 0.3s ease;
@@ -2947,59 +2950,51 @@ function initDeck(deckEl, total) {
   let current = 0;
   let animating = false;
 
-  // Ángulo de separación entre cartas en la rueda
-  const STEP_DEG = 11;   // grados entre cada carta
-  const MAX_VISIBLE = 3; // cartas visibles a cada lado
+  // Abanico en Z con pivote en la BASE — naipes en la mano
+  // transform-origin: 50% 100% en CSS — el pivote es el borde inferior central
+  const STEP_DEG = 10;  // ángulo entre cada carta
+  const MAX_VIS  = 3;   // cartas visibles a cada lado
 
   function layoutDeck(activeIdx, animated) {
     const trans = animated
-      ? 'transform 0.44s cubic-bezier(0.34,1.1,0.64,1), opacity 0.3s ease, filter 0.28s ease, box-shadow 0.3s ease'
+      ? 'transform 0.42s cubic-bezier(0.34,1.1,0.64,1), opacity 0.28s ease, filter 0.28s ease, box-shadow 0.3s ease'
       : 'none';
 
     cards.forEach((card, i) => {
       card.style.transition = trans;
-      const rel = i - activeIdx; // posición relativa: 0=activa, +N=atrás, -N=ya pasada
+      const rel   = i - activeIdx;
+      const depth = Math.abs(rel);
+      const angle = rel * STEP_DEG;
 
-      if (rel < -(MAX_VISIBLE) || rel > MAX_VISIBLE + 1) {
-        // Fuera de vista — oculta
-        card.style.opacity = '0';
+      if (depth > MAX_VIS) {
+        card.style.opacity       = '0';
+        card.style.zIndex        = '0';
         card.style.pointerEvents = 'none';
-        card.style.zIndex = '0';
-        card.style.transform = 'rotate(' + (rel * STEP_DEG) + 'deg)';
+        card.style.transform     = 'rotate(' + angle + 'deg)';
         return;
       }
 
+      // Carta activa: recta, al frente
       if (rel === 0) {
-        // Carta activa — centrada, máximo tamaño
-        card.style.transform = 'rotate(0deg) scale(1)';
-        card.style.zIndex = String(total + 10);
-        card.style.opacity = '1';
+        card.style.transform     = 'rotate(0deg)';
+        card.style.zIndex        = String(total + 20);
+        card.style.opacity       = '1';
         card.style.pointerEvents = 'all';
-        card.style.boxShadow = '0 20px 56px rgba(0,0,0,0.32)';
-        card.style.filter = 'none';
-      } else if (rel < 0) {
-        // Cartas ya vistas — salen a la izquierda rotadas
-        const depth = Math.abs(rel);
-        const angle = rel * STEP_DEG; // negativo = gira a la izquierda
-        const bright = Math.max(0.6, 1 - depth * 0.15);
-        card.style.transform = 'rotate(' + angle + 'deg)';
-        card.style.zIndex = String(total + 10 - depth);
-        card.style.opacity = depth <= 2 ? String(1 - depth * 0.35) : '0';
-        card.style.pointerEvents = 'none';
-        card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)';
-        card.style.filter = 'brightness(' + bright + ')';
-      } else {
-        // Cartas siguientes — salen a la derecha rotadas
-        const depth = rel;
-        const angle = rel * STEP_DEG; // positivo = gira a la derecha
-        const bright = Math.max(0.6, 1 - depth * 0.12);
-        card.style.transform = 'rotate(' + angle + 'deg)';
-        card.style.zIndex = String(total + 10 - depth);
-        card.style.opacity = depth <= 3 ? String(1 - depth * 0.22) : '0';
-        card.style.pointerEvents = 'none';
-        card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)';
-        card.style.filter = 'brightness(' + bright + ')';
+        card.style.filter        = 'none';
+        card.style.boxShadow     = '0 20px 56px rgba(0,0,0,0.32)';
+        return;
       }
+
+      // Cartas de fondo: rotan desde la base en Z, se oscurecen
+      const opac   = depth === 1 ? 0.85 : depth === 2 ? 0.6 : 0.35;
+      const bright = Math.max(0.55, 1 - depth * 0.15);
+
+      card.style.transform     = 'rotate(' + angle + 'deg)';
+      card.style.zIndex        = String(total + 10 - depth);
+      card.style.opacity       = String(opac);
+      card.style.pointerEvents = 'none';
+      card.style.filter        = 'brightness(' + bright + ')';
+      card.style.boxShadow     = '0 4px 16px rgba(0,0,0,0.12)';
     });
 
     // Dots
