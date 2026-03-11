@@ -589,18 +589,21 @@ header {
   overscroll-behavior: none;
 }
 
-/* Cada carta posicionada absolutamente */
+/* Cada carta posicionada absolutamente — efecto rueda radial */
 .mhome-card {
   position: absolute;
-  left: 0; right: 0;
-  height: calc(100dvh - 50px - 76px - 160px);
-  border-radius: 18px; overflow: hidden;
+  left: 8%; right: 8%;  /* más angosta = más card */
+  height: calc(100dvh - 50px - 76px - 200px);
+  max-height: 360px;
+  border-radius: 20px; overflow: hidden;
   cursor: pointer; -webkit-tap-highlight-color: transparent;
-  transform-origin: bottom center;
-  transition: transform 0.45s cubic-bezier(0.34,1.2,0.64,1),
+  /* Pivote muy abajo → las cartas rotan como una rueda */
+  transform-origin: center 200%;
+  transition: transform 0.42s cubic-bezier(0.34,1.1,0.64,1),
               box-shadow 0.35s ease,
-              filter 0.25s ease;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.22);
+              opacity 0.3s ease,
+              filter 0.3s ease;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.25);
   will-change: transform;
   user-select: none;
 }
@@ -1148,6 +1151,9 @@ header {
     transform: translateY(100%);
     transition: transform 0.28s cubic-bezier(0.32,0.72,0,1);
     box-shadow: 0 -4px 32px rgba(0,0,0,0.12);
+    max-height: 82vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
   #mobile-menu-drawer.open #mobile-menu-drawer-panel {
     transform: translateY(0);
@@ -1506,37 +1512,43 @@ header {
     padding: 3px 8px; border-radius: 10px;
   }
 
-  /* ── NAV — 3 botones iguales, inicio al centro ── */
+  /* ── NAV — 3 botones, pill rojo en el activo ── */
   #mobile-nav {
     align-items: center;
-    padding-bottom: 0;
+    padding: 0 6px;
     height: 62px;
+    gap: 4px;
   }
   #mnav-indicator { display: none; }
 
-  /* Centro elevado visualmente pero sin cubrir el texto */
-  .mnav-home-center {
-    flex: 1.2 !important;
-    padding-top: 0 !important;
-    color: #fff !important;
+  /* Todos los botones iguales */
+  .mnav-btn {
+    flex: 1 !important;
+    border-radius: 14px !important;
+    height: 46px !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    color: rgba(255,255,255,0.4) !important;
     position: relative;
+    transition: color 0.2s, background 0.2s !important;
   }
-  .mnav-home-center::before {
-    content: '';
-    position: absolute;
-    inset: 4px 6px;
-    background: var(--kiri);
-    border-radius: 12px;
-    z-index: 0;
-    box-shadow: 0 0 16px rgba(122,47,47,0.4);
+  /* Pill rojo al activar cualquier tab */
+  .mnav-btn.active {
+    background: var(--kiri) !important;
+    color: #fff !important;
+    box-shadow: 0 2px 12px rgba(122,47,47,0.4) !important;
   }
-  .mnav-home-center svg,
-  .mnav-home-center span {
-    position: relative; z-index: 1;
+  /* Centro ya no tiene estilo especial propio */
+  .mnav-home-center {
+    flex: 1 !important;
+    color: rgba(255,255,255,0.4) !important;
+    background: none !important;
+    box-shadow: none !important;
+    margin-bottom: 0 !important;
+    height: 46px !important;
   }
-  .mnav-home-center .mnav-label {
-    position: relative; z-index: 1;
-  }
+  .mnav-home-center::before { display: none !important; }
+  .mnav-home-center svg { position: static !important; }
 }
 
 </style>
@@ -1795,7 +1807,7 @@ header {
 
 <!-- DRAWER: menú opciones (mobile) -->
 <div id="mobile-menu-drawer">
-  <div id="mobile-menu-drawer-overlay" onclick="closeMobileMenu()"></div>
+  <div id="mobile-menu-drawer-overlay" onclick="closeMobileMenuAndRestore()"></div>
   <div id="mobile-menu-drawer-panel">
     <div class="mmenu-handle"></div>
     <button class="mmenu-item" onclick="closeMobileMenu();exportPDF()" id="mmenu-pdf-interno" style="display:none">
@@ -1828,15 +1840,11 @@ header {
       <div><div class="mmenu-label">Configuración</div><div class="mmenu-sub">Keys y conexión</div></div>
     </button>
     <div style="height:1px;background:var(--border);margin:4px 0"></div>
-    <button class="mmenu-item" id="mmenu-install-btn" onclick="closeMobileMenu();pwaTriggerInstall()" style="display:none">
+    <button class="mmenu-item" id="mmenu-install-btn" onclick="closeMobileMenu();pwaTriggerInstall()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M8 12l4 4 4-4"/><line x1="12" y1="8" x2="12" y2="16"/></svg>
       <div><div class="mmenu-label">Instalar app</div><div class="mmenu-sub">Agregar a pantalla de inicio</div></div>
     </button>
-    <button class="mmenu-item" id="mmenu-install-ios" onclick="closeMobileMenu();showIosInstall()" style="display:none">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M8 12l4 4 4-4"/><line x1="12" y1="8" x2="12" y2="16"/></svg>
-      <div><div class="mmenu-label">Instalar app</div><div class="mmenu-sub">Agregar a pantalla de inicio</div></div>
-    </button>
-    <button class="mmenu-cancel" onclick="closeMobileMenu()">Cancelar</button>
+    <button class="mmenu-cancel" onclick="closeMobileMenuAndRestore()">Cancelar</button>
   </div>
 </div>
 
@@ -2939,47 +2947,57 @@ function initDeck(deckEl, total) {
   let current = 0;
   let animating = false;
 
-  // Ángulos de rotación tipo mazo en abanico para las cartas de fondo
-  const FAN_ANGLES  = [0, -4, 4, -7, 7];
-  const FAN_OFFSET_Y = [0, 14, 16, 22, 26]; // cuánto sobresalen abajo
+  // Ángulo de separación entre cartas en la rueda
+  const STEP_DEG = 11;   // grados entre cada carta
+  const MAX_VISIBLE = 3; // cartas visibles a cada lado
 
   function layoutDeck(activeIdx, animated) {
     const trans = animated
-      ? 'transform 0.45s cubic-bezier(0.34,1.15,0.64,1), box-shadow 0.3s ease, opacity 0.3s ease, filter 0.3s ease'
+      ? 'transform 0.44s cubic-bezier(0.34,1.1,0.64,1), opacity 0.3s ease, filter 0.28s ease, box-shadow 0.3s ease'
       : 'none';
 
     cards.forEach((card, i) => {
       card.style.transition = trans;
-      const rel = i - activeIdx;
+      const rel = i - activeIdx; // posición relativa: 0=activa, +N=atrás, -N=ya pasada
 
-      if (rel < 0) {
-        // Carta ya pasada: sale volando hacia arriba
-        card.style.transform = 'translateY(-115%) rotate(-8deg) scale(0.9)';
-        card.style.zIndex = 0;
+      if (rel < -(MAX_VISIBLE) || rel > MAX_VISIBLE + 1) {
+        // Fuera de vista — oculta
         card.style.opacity = '0';
         card.style.pointerEvents = 'none';
-        card.style.filter = 'none';
-      } else if (rel === 0) {
-        // Carta activa: centrada, sin rotación, al frente
-        card.style.transform = 'translateY(0) rotate(0deg) scale(1)';
-        card.style.zIndex = total + 10;
+        card.style.zIndex = '0';
+        card.style.transform = 'rotate(' + (rel * STEP_DEG) + 'deg)';
+        return;
+      }
+
+      if (rel === 0) {
+        // Carta activa — centrada, máximo tamaño
+        card.style.transform = 'rotate(0deg) scale(1)';
+        card.style.zIndex = String(total + 10);
         card.style.opacity = '1';
         card.style.pointerEvents = 'all';
-        card.style.boxShadow = '0 20px 60px rgba(0,0,0,0.35)';
+        card.style.boxShadow = '0 20px 56px rgba(0,0,0,0.32)';
         card.style.filter = 'none';
-      } else {
-        // Cartas de fondo: abanico con rotación alternada
-        const depth = Math.min(rel, 4);
-        const angle = FAN_ANGLES[depth] || 0;
-        const yOff  = FAN_OFFSET_Y[depth] || 30;
-        const scale = 1 - depth * 0.04;
-        const bright = 1 - depth * 0.1;
-        card.style.transform =
-          'translateY(' + yOff + 'px) rotate(' + angle + 'deg) scale(' + scale + ')';
-        card.style.zIndex = total + 10 - rel;
-        card.style.opacity = depth <= 3 ? String(1 - depth * 0.08) : '0';
+      } else if (rel < 0) {
+        // Cartas ya vistas — salen a la izquierda rotadas
+        const depth = Math.abs(rel);
+        const angle = rel * STEP_DEG; // negativo = gira a la izquierda
+        const bright = Math.max(0.6, 1 - depth * 0.15);
+        card.style.transform = 'rotate(' + angle + 'deg)';
+        card.style.zIndex = String(total + 10 - depth);
+        card.style.opacity = depth <= 2 ? String(1 - depth * 0.35) : '0';
         card.style.pointerEvents = 'none';
-        card.style.boxShadow = '0 4px 16px rgba(0,0,0,0.15)';
+        card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)';
+        card.style.filter = 'brightness(' + bright + ')';
+      } else {
+        // Cartas siguientes — salen a la derecha rotadas
+        const depth = rel;
+        const angle = rel * STEP_DEG; // positivo = gira a la derecha
+        const bright = Math.max(0.6, 1 - depth * 0.12);
+        card.style.transform = 'rotate(' + angle + 'deg)';
+        card.style.zIndex = String(total + 10 - depth);
+        card.style.opacity = depth <= 3 ? String(1 - depth * 0.22) : '0';
+        card.style.pointerEvents = 'none';
+        card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)';
         card.style.filter = 'brightness(' + bright + ')';
       }
     });
@@ -2993,77 +3011,57 @@ function initDeck(deckEl, total) {
     if (hint) hint.style.opacity = activeIdx < total - 1 ? '1' : '0';
   }
 
-  // Función para avanzar carta con animación de salida dramática
-  function nextCard() {
-    if (animating || current >= total - 1) return;
+  function goTo(idx, fromDir) {
+    if (animating) return;
     animating = true;
-    const topCard = cards[current];
-    // Vuela hacia arriba con giro
-    topCard.style.transition = 'transform 0.38s cubic-bezier(0.55,0,1,0.45), opacity 0.3s ease';
-    topCard.style.transform = 'translateY(-120%) rotate(-12deg) scale(0.88)';
-    topCard.style.opacity = '0';
-    setTimeout(() => {
-      current++;
-      layoutDeck(current, true);
-      animating = false;
-    }, 200);
+    current = idx;
+    layoutDeck(current, true);
+    setTimeout(() => { animating = false; }, 460);
   }
 
+  function nextCard() {
+    if (current < total - 1) goTo(current + 1, 1);
+  }
   function prevCard() {
-    if (animating || current <= 0) return;
-    animating = true;
-    current--;
-    // Carta anterior vuelve desde arriba
-    const prevC = cards[current];
-    prevC.style.transition = 'none';
-    prevC.style.transform = 'translateY(-80%) rotate(6deg) scale(0.9)';
-    prevC.style.opacity = '0';
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        layoutDeck(current, true);
-        animating = false;
-      });
-    });
+    if (current > 0) goTo(current - 1, -1);
   }
 
   layoutDeck(0, false);
   requestAnimationFrame(() => layoutDeck(0, true));
 
-  // Tap: si es carta activa → entrar al proyecto
+  // Tap carta activa → entrar
   cards.forEach((card, i) => {
     card.addEventListener('click', () => {
       if (i === current && !animating) selectMobileProject(i);
     });
   });
 
-  // Swipe vertical
-  let startY = 0, startX = 0, tracking = false;
+  // Swipe horizontal (más natural para efecto de rueda)
+  let startX = 0, startY = 0, tracking = false;
   deckEl.addEventListener('touchstart', e => {
-    startY = e.touches[0].clientY;
     startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
     tracking = true;
   }, { passive: true });
 
   deckEl.addEventListener('touchmove', e => {
-    // Bloquar pull-to-refresh y scroll de página mientras se mueve en el deck
-    e.preventDefault();
+    e.preventDefault(); // bloquea pull-to-refresh
   }, { passive: false });
 
   deckEl.addEventListener('touchend', e => {
     if (!tracking) return;
     tracking = false;
-    const dy = startY - e.changedTouches[0].clientY;
-    const dx = Math.abs(startX - e.changedTouches[0].clientX);
-    if (Math.abs(dy) < 35 || dx > Math.abs(dy) * 0.8) return;
-    if (dy > 0) nextCard();
-    else prevCard();
+    const dx = startX - e.changedTouches[0].clientX;
+    const dy = Math.abs(startY - e.changedTouches[0].clientY);
+    if (Math.abs(dx) < 30 || dy > Math.abs(dx) * 1.2) return;
+    if (dx > 0) nextCard();  // swipe izquierda → siguiente
+    else prevCard();          // swipe derecha → anterior
   }, { passive: true });
 
-  // Mouse wheel (prueba desktop)
   deckEl.addEventListener('wheel', e => {
     e.preventDefault();
-    if (e.deltaY > 20) nextCard();
-    else if (e.deltaY < -20) prevCard();
+    if (e.deltaX > 15 || e.deltaY > 15) nextCard();
+    else if (e.deltaX < -15 || e.deltaY < -15) prevCard();
   }, { passive: false });
 }
 
@@ -4458,37 +4456,43 @@ async function exportPDF() {
     padding: 3px 8px; border-radius: 10px;
   }
 
-  /* ── NAV — 3 botones iguales, inicio al centro ── */
+  /* ── NAV — 3 botones, pill rojo en el activo ── */
   #mobile-nav {
     align-items: center;
-    padding-bottom: 0;
+    padding: 0 6px;
     height: 62px;
+    gap: 4px;
   }
   #mnav-indicator { display: none; }
 
-  /* Centro elevado visualmente pero sin cubrir el texto */
-  .mnav-home-center {
-    flex: 1.2 !important;
-    padding-top: 0 !important;
-    color: #fff !important;
+  /* Todos los botones iguales */
+  .mnav-btn {
+    flex: 1 !important;
+    border-radius: 14px !important;
+    height: 46px !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    color: rgba(255,255,255,0.4) !important;
     position: relative;
+    transition: color 0.2s, background 0.2s !important;
   }
-  .mnav-home-center::before {
-    content: '';
-    position: absolute;
-    inset: 4px 6px;
-    background: var(--kiri);
-    border-radius: 12px;
-    z-index: 0;
-    box-shadow: 0 0 16px rgba(122,47,47,0.4);
+  /* Pill rojo al activar cualquier tab */
+  .mnav-btn.active {
+    background: var(--kiri) !important;
+    color: #fff !important;
+    box-shadow: 0 2px 12px rgba(122,47,47,0.4) !important;
   }
-  .mnav-home-center svg,
-  .mnav-home-center span {
-    position: relative; z-index: 1;
+  /* Centro ya no tiene estilo especial propio */
+  .mnav-home-center {
+    flex: 1 !important;
+    color: rgba(255,255,255,0.4) !important;
+    background: none !important;
+    box-shadow: none !important;
+    margin-bottom: 0 !important;
+    height: 46px !important;
   }
-  .mnav-home-center .mnav-label {
-    position: relative; z-index: 1;
-  }
+  .mnav-home-center::before { display: none !important; }
+  .mnav-home-center svg { position: static !important; }
 }
 
 </style>
@@ -4975,37 +4979,43 @@ async function exportClientPDF() {
     padding: 3px 8px; border-radius: 10px;
   }
 
-  /* ── NAV — 3 botones iguales, inicio al centro ── */
+  /* ── NAV — 3 botones, pill rojo en el activo ── */
   #mobile-nav {
     align-items: center;
-    padding-bottom: 0;
+    padding: 0 6px;
     height: 62px;
+    gap: 4px;
   }
   #mnav-indicator { display: none; }
 
-  /* Centro elevado visualmente pero sin cubrir el texto */
-  .mnav-home-center {
-    flex: 1.2 !important;
-    padding-top: 0 !important;
-    color: #fff !important;
+  /* Todos los botones iguales */
+  .mnav-btn {
+    flex: 1 !important;
+    border-radius: 14px !important;
+    height: 46px !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    color: rgba(255,255,255,0.4) !important;
     position: relative;
+    transition: color 0.2s, background 0.2s !important;
   }
-  .mnav-home-center::before {
-    content: '';
-    position: absolute;
-    inset: 4px 6px;
-    background: var(--kiri);
-    border-radius: 12px;
-    z-index: 0;
-    box-shadow: 0 0 16px rgba(122,47,47,0.4);
+  /* Pill rojo al activar cualquier tab */
+  .mnav-btn.active {
+    background: var(--kiri) !important;
+    color: #fff !important;
+    box-shadow: 0 2px 12px rgba(122,47,47,0.4) !important;
   }
-  .mnav-home-center svg,
-  .mnav-home-center span {
-    position: relative; z-index: 1;
+  /* Centro ya no tiene estilo especial propio */
+  .mnav-home-center {
+    flex: 1 !important;
+    color: rgba(255,255,255,0.4) !important;
+    background: none !important;
+    box-shadow: none !important;
+    margin-bottom: 0 !important;
+    height: 46px !important;
   }
-  .mnav-home-center .mnav-label {
-    position: relative; z-index: 1;
-  }
+  .mnav-home-center::before { display: none !important; }
+  .mnav-home-center svg { position: static !important; }
 }
 
 </style>
@@ -5877,6 +5887,7 @@ function closeFab() {
 }
 
 function mobileNavHome() {
+  closeMobileMenu();
   window._mobileTab = 'home';
   S.active = null;
   renderMobileHome(document.getElementById('main'), 'home');
@@ -5884,6 +5895,7 @@ function mobileNavHome() {
 }
 
 function mobileNavProjects() {
+  closeMobileMenu();
   window._mobileTab = 'projects';
   S.active = null;
   renderMobileHome(document.getElementById('main'), 'projects');
@@ -5965,6 +5977,14 @@ function openMobileMenu() {
   if (interno) interno.style.display = hasPDF ? 'flex' : 'none';
   if (cliente) cliente.style.display = hasPDF ? 'flex' : 'none';
   document.getElementById('mobile-menu-drawer').classList.add('open');
+  updateMobileNav('export');
+}
+
+function closeMobileMenuAndRestore() {
+  closeMobileMenu();
+  // Restaurar tab activo
+  const tab = window._mobileTab || 'home';
+  updateMobileNav(S.active !== null ? 'projects' : tab);
 }
 
 function closeMobileMenu() {
