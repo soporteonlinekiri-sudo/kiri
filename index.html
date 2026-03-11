@@ -4604,47 +4604,6 @@ ${sobranteMat > 0.01 ? `
   <span>Documento generado automáticamente</span>
 </div>
 
-
-<!-- MODAL INSTALAR APP -->
-<div id="modal-install-guide" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.6);align-items:flex-end;justify-content:center">
-  <div style="background:var(--surface);border-radius:20px 20px 0 0;padding:28px 24px 40px;width:100%;max-width:500px;box-sizing:border-box">
-    <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 24px"></div>
-    <div style="font-size:18px;font-weight:600;color:var(--ink);margin-bottom:6px">Instalar Kiri</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:24px;letter-spacing:1px">agregar a pantalla de inicio</div>
-
-    <!-- Android / Chrome -->
-    <div style="background:var(--bg);border-radius:10px;padding:16px;margin-bottom:12px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:12px;text-transform:uppercase">Android · Chrome</div>
-      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">1</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Tocá los <strong>3 puntos ⋮</strong> arriba a la derecha</div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">2</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Seleccioná <strong>"Agregar a pantalla de inicio"</strong></div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:12px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">3</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Tocá <strong>"Agregar"</strong> en el diálogo</div>
-      </div>
-    </div>
-
-    <!-- iOS / Safari -->
-    <div style="background:var(--bg);border-radius:10px;padding:16px;margin-bottom:24px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:12px;text-transform:uppercase">iPhone · Safari</div>
-      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">1</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Tocá el ícono de <strong>compartir ↑</strong> abajo</div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:12px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">2</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Seleccioná <strong>"Añadir a inicio"</strong></div>
-      </div>
-    </div>
-
-    <button onclick="closeInstallGuide()" style="width:100%;padding:16px;background:var(--kiri);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;letter-spacing:0.5px">Entendido</button>
-  </div>
-</div>
 </body>
 </html>`;
 
@@ -4700,89 +4659,7 @@ ${sobranteMat > 0.01 ? `
   ].join('\n');
 
   // Mostrar loading mientras Claude analiza
-  const loadingHtml = html.replace('
-<!-- MODAL INSTALAR APP -->
-<div id="modal-install-guide" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.6);align-items:flex-end;justify-content:center">
-  <div style="background:var(--surface);border-radius:20px 20px 0 0;padding:28px 24px 40px;width:100%;max-width:500px;box-sizing:border-box">
-    <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 24px"></div>
-    <div style="font-size:18px;font-weight:600;color:var(--ink);margin-bottom:6px">Instalar Kiri</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:24px;letter-spacing:1px">agregar a pantalla de inicio</div>
-
-    <!-- Android / Chrome -->
-    <div style="background:var(--bg);border-radius:10px;padding:16px;margin-bottom:12px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:12px;text-transform:uppercase">Android · Chrome</div>
-      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">1</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Tocá los <strong>3 puntos ⋮</strong> arriba a la derecha</div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">2</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Seleccioná <strong>"Agregar a pantalla de inicio"</strong></div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:12px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">3</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Tocá <strong>"Agregar"</strong> en el diálogo</div>
-      </div>
-    </div>
-
-    <!-- iOS / Safari -->
-    <div style="background:var(--bg);border-radius:10px;padding:16px;margin-bottom:24px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:12px;text-transform:uppercase">iPhone · Safari</div>
-      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">1</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Tocá el ícono de <strong>compartir ↑</strong> abajo</div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:12px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">2</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Seleccioná <strong>"Añadir a inicio"</strong></div>
-      </div>
-    </div>
-
-    <button onclick="closeInstallGuide()" style="width:100%;padding:16px;background:var(--kiri);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;letter-spacing:0.5px">Entendido</button>
-  </div>
-</div>
-</body>', '<div id="kiri-ai-analysis" style="margin:32px 24px;padding:20px 24px;background:#f5f0e8;border-radius:6px;border-left:4px solid #7a2f2f"><p style="font-size:13px;color:#7a2f2f;font-weight:700">⏳ Generando análisis con Claude…</p></div>
-<!-- MODAL INSTALAR APP -->
-<div id="modal-install-guide" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.6);align-items:flex-end;justify-content:center">
-  <div style="background:var(--surface);border-radius:20px 20px 0 0;padding:28px 24px 40px;width:100%;max-width:500px;box-sizing:border-box">
-    <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 24px"></div>
-    <div style="font-size:18px;font-weight:600;color:var(--ink);margin-bottom:6px">Instalar Kiri</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:24px;letter-spacing:1px">agregar a pantalla de inicio</div>
-
-    <!-- Android / Chrome -->
-    <div style="background:var(--bg);border-radius:10px;padding:16px;margin-bottom:12px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:12px;text-transform:uppercase">Android · Chrome</div>
-      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">1</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Tocá los <strong>3 puntos ⋮</strong> arriba a la derecha</div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">2</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Seleccioná <strong>"Agregar a pantalla de inicio"</strong></div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:12px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">3</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Tocá <strong>"Agregar"</strong> en el diálogo</div>
-      </div>
-    </div>
-
-    <!-- iOS / Safari -->
-    <div style="background:var(--bg);border-radius:10px;padding:16px;margin-bottom:24px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:12px;text-transform:uppercase">iPhone · Safari</div>
-      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">1</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Tocá el ícono de <strong>compartir ↑</strong> abajo</div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:12px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">2</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Seleccioná <strong>"Añadir a inicio"</strong></div>
-      </div>
-    </div>
-
-    <button onclick="closeInstallGuide()" style="width:100%;padding:16px;background:var(--kiri);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;letter-spacing:0.5px">Entendido</button>
-  </div>
-</div>
-</body>');
+  const loadingHtml = html.replace('</body>', '<div id="kiri-ai-analysis" style="margin:32px 24px;padding:20px 24px;background:#f5f0e8;border-radius:6px;border-left:4px solid #7a2f2f"><p style="font-size:13px;color:#7a2f2f;font-weight:700">⏳ Generando análisis con Claude…</p></div></body>');
   const blob0 = new Blob([loadingHtml], { type: 'text/html;charset=utf-8' });
   const url0 = URL.createObjectURL(blob0);
   const win = window.open(url0, '_blank');
@@ -4813,89 +4690,7 @@ ${sobranteMat > 0.01 ? `
         }).join('')
       + '</div>';
 
-    const finalHtml = html.replace('
-<!-- MODAL INSTALAR APP -->
-<div id="modal-install-guide" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.6);align-items:flex-end;justify-content:center">
-  <div style="background:var(--surface);border-radius:20px 20px 0 0;padding:28px 24px 40px;width:100%;max-width:500px;box-sizing:border-box">
-    <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 24px"></div>
-    <div style="font-size:18px;font-weight:600;color:var(--ink);margin-bottom:6px">Instalar Kiri</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:24px;letter-spacing:1px">agregar a pantalla de inicio</div>
-
-    <!-- Android / Chrome -->
-    <div style="background:var(--bg);border-radius:10px;padding:16px;margin-bottom:12px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:12px;text-transform:uppercase">Android · Chrome</div>
-      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">1</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Tocá los <strong>3 puntos ⋮</strong> arriba a la derecha</div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">2</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Seleccioná <strong>"Agregar a pantalla de inicio"</strong></div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:12px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">3</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Tocá <strong>"Agregar"</strong> en el diálogo</div>
-      </div>
-    </div>
-
-    <!-- iOS / Safari -->
-    <div style="background:var(--bg);border-radius:10px;padding:16px;margin-bottom:24px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:12px;text-transform:uppercase">iPhone · Safari</div>
-      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">1</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Tocá el ícono de <strong>compartir ↑</strong> abajo</div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:12px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">2</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Seleccioná <strong>"Añadir a inicio"</strong></div>
-      </div>
-    </div>
-
-    <button onclick="closeInstallGuide()" style="width:100%;padding:16px;background:var(--kiri);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;letter-spacing:0.5px">Entendido</button>
-  </div>
-</div>
-</body>', analisisHtml + '
-<!-- MODAL INSTALAR APP -->
-<div id="modal-install-guide" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.6);align-items:flex-end;justify-content:center">
-  <div style="background:var(--surface);border-radius:20px 20px 0 0;padding:28px 24px 40px;width:100%;max-width:500px;box-sizing:border-box">
-    <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 24px"></div>
-    <div style="font-size:18px;font-weight:600;color:var(--ink);margin-bottom:6px">Instalar Kiri</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:24px;letter-spacing:1px">agregar a pantalla de inicio</div>
-
-    <!-- Android / Chrome -->
-    <div style="background:var(--bg);border-radius:10px;padding:16px;margin-bottom:12px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:12px;text-transform:uppercase">Android · Chrome</div>
-      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">1</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Tocá los <strong>3 puntos ⋮</strong> arriba a la derecha</div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">2</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Seleccioná <strong>"Agregar a pantalla de inicio"</strong></div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:12px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">3</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Tocá <strong>"Agregar"</strong> en el diálogo</div>
-      </div>
-    </div>
-
-    <!-- iOS / Safari -->
-    <div style="background:var(--bg);border-radius:10px;padding:16px;margin-bottom:24px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:12px;text-transform:uppercase">iPhone · Safari</div>
-      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">1</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Tocá el ícono de <strong>compartir ↑</strong> abajo</div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:12px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">2</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Seleccioná <strong>"Añadir a inicio"</strong></div>
-      </div>
-    </div>
-
-    <button onclick="closeInstallGuide()" style="width:100%;padding:16px;background:var(--kiri);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;letter-spacing:0.5px">Entendido</button>
-  </div>
-</div>
-</body>');
+    const finalHtml = html.replace('</body>', analisisHtml + '</body>');
     URL.revokeObjectURL(url0);
     const blob1 = new Blob([finalHtml], { type: 'text/html;charset=utf-8' });
     const url1 = URL.createObjectURL(blob1);
@@ -5333,47 +5128,6 @@ ${cobradoCompleto
   <span>${today}</span>
 </div>
 
-
-<!-- MODAL INSTALAR APP -->
-<div id="modal-install-guide" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.6);align-items:flex-end;justify-content:center">
-  <div style="background:var(--surface);border-radius:20px 20px 0 0;padding:28px 24px 40px;width:100%;max-width:500px;box-sizing:border-box">
-    <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 24px"></div>
-    <div style="font-size:18px;font-weight:600;color:var(--ink);margin-bottom:6px">Instalar Kiri</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:24px;letter-spacing:1px">agregar a pantalla de inicio</div>
-
-    <!-- Android / Chrome -->
-    <div style="background:var(--bg);border-radius:10px;padding:16px;margin-bottom:12px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:12px;text-transform:uppercase">Android · Chrome</div>
-      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">1</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Tocá los <strong>3 puntos ⋮</strong> arriba a la derecha</div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">2</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Seleccioná <strong>"Agregar a pantalla de inicio"</strong></div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:12px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">3</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Tocá <strong>"Agregar"</strong> en el diálogo</div>
-      </div>
-    </div>
-
-    <!-- iOS / Safari -->
-    <div style="background:var(--bg);border-radius:10px;padding:16px;margin-bottom:24px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:12px;text-transform:uppercase">iPhone · Safari</div>
-      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">1</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Tocá el ícono de <strong>compartir ↑</strong> abajo</div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:12px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">2</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Seleccioná <strong>"Añadir a inicio"</strong></div>
-      </div>
-    </div>
-
-    <button onclick="closeInstallGuide()" style="width:100%;padding:16px;background:var(--kiri);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;letter-spacing:0.5px">Entendido</button>
-  </div>
-</div>
 </body>
 </html>`;
 
@@ -5416,89 +5170,7 @@ ${cobradoCompleto
     datosClienteStr
   ].join('\n');
 
-  const loadingHtmlC = html.replace('
-<!-- MODAL INSTALAR APP -->
-<div id="modal-install-guide" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.6);align-items:flex-end;justify-content:center">
-  <div style="background:var(--surface);border-radius:20px 20px 0 0;padding:28px 24px 40px;width:100%;max-width:500px;box-sizing:border-box">
-    <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 24px"></div>
-    <div style="font-size:18px;font-weight:600;color:var(--ink);margin-bottom:6px">Instalar Kiri</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:24px;letter-spacing:1px">agregar a pantalla de inicio</div>
-
-    <!-- Android / Chrome -->
-    <div style="background:var(--bg);border-radius:10px;padding:16px;margin-bottom:12px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:12px;text-transform:uppercase">Android · Chrome</div>
-      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">1</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Tocá los <strong>3 puntos ⋮</strong> arriba a la derecha</div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">2</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Seleccioná <strong>"Agregar a pantalla de inicio"</strong></div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:12px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">3</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Tocá <strong>"Agregar"</strong> en el diálogo</div>
-      </div>
-    </div>
-
-    <!-- iOS / Safari -->
-    <div style="background:var(--bg);border-radius:10px;padding:16px;margin-bottom:24px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:12px;text-transform:uppercase">iPhone · Safari</div>
-      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">1</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Tocá el ícono de <strong>compartir ↑</strong> abajo</div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:12px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">2</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Seleccioná <strong>"Añadir a inicio"</strong></div>
-      </div>
-    </div>
-
-    <button onclick="closeInstallGuide()" style="width:100%;padding:16px;background:var(--kiri);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;letter-spacing:0.5px">Entendido</button>
-  </div>
-</div>
-</body>', '<div style="margin:32px 24px;padding:16px 20px;background:#f5f0e8;border-radius:6px;border-left:4px solid #7a2f2f"><p style="font-size:12px;color:#7a2f2f;font-weight:700">⏳ Preparando mensaje personalizado…</p></div>
-<!-- MODAL INSTALAR APP -->
-<div id="modal-install-guide" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.6);align-items:flex-end;justify-content:center">
-  <div style="background:var(--surface);border-radius:20px 20px 0 0;padding:28px 24px 40px;width:100%;max-width:500px;box-sizing:border-box">
-    <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 24px"></div>
-    <div style="font-size:18px;font-weight:600;color:var(--ink);margin-bottom:6px">Instalar Kiri</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:24px;letter-spacing:1px">agregar a pantalla de inicio</div>
-
-    <!-- Android / Chrome -->
-    <div style="background:var(--bg);border-radius:10px;padding:16px;margin-bottom:12px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:12px;text-transform:uppercase">Android · Chrome</div>
-      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">1</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Tocá los <strong>3 puntos ⋮</strong> arriba a la derecha</div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">2</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Seleccioná <strong>"Agregar a pantalla de inicio"</strong></div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:12px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">3</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Tocá <strong>"Agregar"</strong> en el diálogo</div>
-      </div>
-    </div>
-
-    <!-- iOS / Safari -->
-    <div style="background:var(--bg);border-radius:10px;padding:16px;margin-bottom:24px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:12px;text-transform:uppercase">iPhone · Safari</div>
-      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">1</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Tocá el ícono de <strong>compartir ↑</strong> abajo</div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:12px">
-        <div style="width:24px;height:24px;background:var(--kiri);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff">2</div>
-        <div style="font-size:13px;color:var(--ink);line-height:1.5">Seleccioná <strong>"Añadir a inicio"</strong></div>
-      </div>
-    </div>
-
-    <button onclick="closeInstallGuide()" style="width:100%;padding:16px;background:var(--kiri);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;letter-spacing:0.5px">Entendido</button>
-  </div>
-</div>
-</body>');
+  const loadingHtmlC = html.replace('</body>', '<div style="margin:32px 24px;padding:16px 20px;background:#f5f0e8;border-radius:6px;border-left:4px solid #7a2f2f"><p style="font-size:12px;color:#7a2f2f;font-weight:700">⏳ Preparando mensaje personalizado…</p></div></body>');
   const blob0C = new Blob([loadingHtmlC], { type: 'text/html;charset=utf-8' });
   const url0C = URL.createObjectURL(blob0C);
   const winC = window.open(url0C, '_blank');
@@ -6434,15 +6106,12 @@ requestAnimationFrame(() => {
 });
 
 </script>
-
 <!-- MODAL INSTALAR APP -->
 <div id="modal-install-guide" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.6);align-items:flex-end;justify-content:center">
   <div style="background:var(--surface);border-radius:20px 20px 0 0;padding:28px 24px 40px;width:100%;max-width:500px;box-sizing:border-box">
     <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 24px"></div>
     <div style="font-size:18px;font-weight:600;color:var(--ink);margin-bottom:6px">Instalar Kiri</div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:24px;letter-spacing:1px">agregar a pantalla de inicio</div>
-
-    <!-- Android / Chrome -->
     <div style="background:var(--bg);border-radius:10px;padding:16px;margin-bottom:12px">
       <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:12px;text-transform:uppercase">Android · Chrome</div>
       <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
@@ -6458,8 +6127,6 @@ requestAnimationFrame(() => {
         <div style="font-size:13px;color:var(--ink);line-height:1.5">Tocá <strong>"Agregar"</strong> en el diálogo</div>
       </div>
     </div>
-
-    <!-- iOS / Safari -->
     <div style="background:var(--bg);border-radius:10px;padding:16px;margin-bottom:24px">
       <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:12px;text-transform:uppercase">iPhone · Safari</div>
       <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
@@ -6471,7 +6138,6 @@ requestAnimationFrame(() => {
         <div style="font-size:13px;color:var(--ink);line-height:1.5">Seleccioná <strong>"Añadir a inicio"</strong></div>
       </div>
     </div>
-
     <button onclick="closeInstallGuide()" style="width:100%;padding:16px;background:var(--kiri);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;letter-spacing:0.5px">Entendido</button>
   </div>
 </div>
