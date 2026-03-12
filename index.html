@@ -643,182 +643,151 @@ header {
   font-family: 'DM Mono', monospace;
 }
 
-/* Grid de cuadrantes — scroll manual con inercia */
+/* Grid de cuadrantes — sin scroll, llena el espacio disponible */
 .mproj-grid {
   flex: 1;
-  overflow-y: scroll;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-  padding: 12px;
-  padding-bottom: 24px;
-  scrollbar-width: none;
-  position: relative;
-}
-.mproj-grid::-webkit-scrollbar { display: none; }
-
-/* Inner grid — track real de cards */
-.mproj-scroll-inner {
+  overflow: hidden;
+  padding: 10px;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-auto-rows: calc((100dvh - 54px - 76px - 60px - 24px) / 3);
+  /* grid-template-rows se setea dinámicamente desde JS */
   gap: 8px;
+  min-height: 0;
 }
 
-/* Fades top/bottom para suavizar bordes */
-.mproj-grid::before,
-.mproj-grid::after {
-  content: '';
-  position: sticky;
-  left: 0; right: 0;
-  height: 28px;
-  z-index: 10;
-  pointer-events: none;
-  display: block;
-  flex-shrink: 0;
-}
-.mproj-grid-fade-top {
-  position: sticky;
-  top: 0;
-  height: 28px;
-  background: linear-gradient(to bottom, var(--surface) 0%, transparent 100%);
-  z-index: 10;
-  pointer-events: none;
-  margin-bottom: -28px;
-  grid-column: 1 / -1;
-}
-.mproj-grid-fade-bottom {
-  position: sticky;
-  bottom: 0;
-  height: 28px;
-  background: linear-gradient(to top, var(--surface) 0%, transparent 100%);
-  z-index: 10;
-  pointer-events: none;
-  margin-top: -28px;
-  grid-column: 1 / -1;
-}
-
-
-/* Cards en el grid — animación de entrada staggered */
-
-/* Tamaños según cuadrantes */
-.mproj-card[data-size="4"] { grid-column: span 2; grid-row: span 2; }
-.mproj-card[data-size="2w"] { grid-column: span 2; grid-row: span 1; }
-.mproj-card[data-size="2h"] { grid-column: span 1; grid-row: span 2; }
-.mproj-card[data-size="1"] { grid-column: span 1; grid-row: span 1; }
-
-/* Card base */
+/* Card base — siempre 1×1 */
 .mproj-card {
-  border-radius: 6px; overflow: hidden;
+  border-radius: 8px; overflow: hidden;
   cursor: pointer; position: relative;
   display: flex; flex-direction: column;
   -webkit-tap-highlight-color: transparent;
-  transition: transform 0.12s, filter 0.12s;
+  transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1),
+              filter 0.12s ease;
   min-height: 0;
+  animation: cardIn 0.35s cubic-bezier(0.4,0,0.2,1) both;
 }
-.mproj-card:active { transform: scale(0.97); filter: brightness(0.92); }
+.mproj-card:nth-child(1) { animation-delay:  0ms; }
+.mproj-card:nth-child(2) { animation-delay: 40ms; }
+.mproj-card:nth-child(3) { animation-delay: 60ms; }
+.mproj-card:nth-child(4) { animation-delay: 80ms; }
+.mproj-card:nth-child(5) { animation-delay:100ms; }
+.mproj-card:nth-child(6) { animation-delay:120ms; }
+.mproj-card:active { transform: scale(0.95); filter: brightness(0.88); }
 
-/* Fill visual del % cobrado — sube desde abajo */
+/* Foto render como fondo */
+.mproj-card-photo {
+  position: absolute; inset: 0;
+  background-size: cover; background-position: center;
+  z-index: 0;
+}
+/* Overlay oscuro sobre la foto para legibilidad */
+.mproj-card-photo::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.25) 0%,
+    rgba(0,0,0,0.55) 100%
+  );
+}
+/* Sin foto: overlay sutil de textura */
+.mproj-card-no-photo {
+  position: absolute; inset: 0;
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(255,255,255,0.04) 0px,
+    rgba(255,255,255,0.04) 1px,
+    transparent 1px, transparent 12px
+  );
+  z-index: 0;
+}
+
+/* Fill visual del % cobrado */
 .mproj-fill {
   position: absolute; left: 0; right: 0; bottom: 0;
-  background: rgba(255,255,255,0.18);
-  transition: height 0.6s cubic-bezier(0.4,0,0.2,1);
-  pointer-events: none;
+  background: rgba(255,255,255,0.15);
+  pointer-events: none; z-index: 1;
+  transition: height 0.9s cubic-bezier(0.4,0,0.2,1);
 }
-.mproj-fill.done { background: rgba(255,255,255,0.28); }
+.mproj-fill.done { background: rgba(255,255,255,0.22); }
 
-/* Contenido de la card */
+/* Barra inferior */
+.mproj-bar {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+  background: rgba(0,0,0,0.25); z-index: 3;
+}
+.mproj-bar-fill {
+  height: 100%; background: rgba(255,255,255,0.8);
+  transition: width 0.9s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* Contenido */
 .mproj-inner {
-  position: relative; z-index: 1;
+  position: relative; z-index: 2;
   flex: 1; display: flex; flex-direction: column;
-  padding: 14px 14px 12px;
+  padding: 10px 10px 13px;
   justify-content: space-between;
+  min-height: 0;
 }
 
-/* Nombre del proyecto */
+/* Nombre */
 .mproj-name {
-  font-weight: 700; color: #fff;
+  font-weight: 800; color: #fff;
   text-transform: uppercase; line-height: 1.05;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
+  font-size: clamp(10px, 2.2vw, 14px);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.4);
 }
-.mproj-card[data-size="4"] .mproj-name { font-size: 22px; }
-.mproj-card[data-size="2w"] .mproj-name { font-size: 17px; }
-.mproj-card[data-size="2h"] .mproj-name { font-size: 15px; }
-.mproj-card[data-size="1"] .mproj-name { font-size: 12px; line-height: 1.1; }
-
 .mproj-desc {
-  font-size: 8px; color: rgba(255,255,255,0.5);
-  letter-spacing: 1.5px; margin-top: 3px; text-transform: lowercase;
+  font-size: clamp(7px, 1.5vw, 9px);
+  color: rgba(255,255,255,0.55);
+  letter-spacing: 1px; margin-top: 2px;
+  text-transform: lowercase;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.mproj-card[data-size="1"] .mproj-desc { display: none; }
 
-/* Porcentaje — hero number visual */
+/* Badge de estado */
+.mproj-badge {
+  font-size: 7px; font-weight: 700; letter-spacing: 1.2px;
+  text-transform: uppercase; padding: 2px 6px; border-radius: 2px;
+  display: inline-block; margin-bottom: 5px;
+}
+.mproj-badge.done      { background: rgba(255,255,255,0.25); color: #fff; }
+.mproj-badge.delivered { background: rgba(100,200,100,0.35); color: #cfffcf; }
+.mproj-badge.active    { background: rgba(0,0,0,0.25); color: rgba(255,255,255,0.75); }
+.mproj-badge.urgent    { background: rgba(255,160,0,0.4); color: #ffe0a0; }
+.mproj-badge.overdue   { background: rgba(220,50,50,0.4); color: #ffcfcf;
+                         animation: kPulse 1.8s ease infinite; }
+
+/* Porcentaje hero */
 .mproj-pct-wrap { display: flex; align-items: flex-end; justify-content: space-between; }
 .mproj-pct {
   font-family: 'DM Mono', monospace; font-weight: 700;
   color: #fff; line-height: 1; letter-spacing: -1px;
+  font-size: clamp(20px, 5vw, 30px);
+  text-shadow: 0 1px 6px rgba(0,0,0,0.4);
 }
-.mproj-card[data-size="4"] .mproj-pct { font-size: 56px; }
-.mproj-card[data-size="2w"] .mproj-pct { font-size: 36px; }
-.mproj-card[data-size="2h"] .mproj-pct { font-size: 32px; }
-.mproj-card[data-size="1"] .mproj-pct { font-size: 24px; }
-
-.mproj-pct-sym {
-  font-size: 0.45em; opacity: 0.7; vertical-align: super;
-  font-weight: 400; letter-spacing: 0;
-}
-.mproj-budget {
-  font-family: 'DM Mono', monospace;
-  color: rgba(255,255,255,0.6); font-weight: 400;
-  text-align: right; line-height: 1;
-}
-.mproj-card[data-size="4"] .mproj-budget { font-size: 13px; }
-.mproj-card[data-size="2w"] .mproj-budget { font-size: 11px; }
-.mproj-card[data-size="2h"] .mproj-budget { font-size: 10px; }
-.mproj-card[data-size="1"] .mproj-budget { display: none; }
-
-/* Badge estado */
-.mproj-badge {
-  font-size: 7px; font-weight: 700; letter-spacing: 1.5px;
-  text-transform: uppercase; padding: 3px 7px; border-radius: 2px;
-  display: inline-block; margin-bottom: 6px;
-}
-.mproj-badge.done      { background: rgba(255,255,255,0.25); color: #fff; }
-.mproj-badge.delivered { background: rgba(100,200,100,0.3); color: #cfffcf; }
-.mproj-badge.active    { background: rgba(0,0,0,0.2); color: rgba(255,255,255,0.7); }
-.mproj-badge.urgent    { background: rgba(255,160,0,0.35); color: #ffe0a0; }
-.mproj-badge.overdue   { background: rgba(220,50,50,0.35); color: #ffcfcf; }
-.mproj-card[data-size="1"] .mproj-badge { display: none; }
-
-/* Fecha de entrega chip */
+.mproj-pct-sym { font-size: 0.45em; opacity: 0.7; vertical-align: super; font-weight: 400; }
 .mproj-duedate {
   font-family: 'DM Mono', monospace;
-  font-size: 9px; color: rgba(255,255,255,0.55);
-  text-align: right; line-height: 1.3;
-  letter-spacing: 0.5px;
-}
-.mproj-card[data-size="1"] .mproj-duedate { display: none; }
-
-/* Barra fina en la parte inferior */
-.mproj-bar {
-  position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
-  background: rgba(0,0,0,0.2);
-}
-.mproj-bar-fill {
-  height: 100%; background: rgba(255,255,255,0.7);
-  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+  font-size: clamp(7px, 1.6vw, 9px); color: rgba(255,255,255,0.6);
+  text-align: right; line-height: 1.3; letter-spacing: 0.3px;
 }
 
-@keyframes cardIn {
-  from { opacity: 0; transform: translateY(16px) scale(0.96); }
-  to   { opacity: 1; transform: none; }
+/* Ícono de cámara sobre la card (solo visible al long-press o siempre si no hay foto) */
+.mproj-photo-hint {
+  position: absolute; top: 8px; right: 8px; z-index: 4;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(0,0,0,0.35);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0.6;
 }
-.mproj-card { animation: cardIn 0.3s ease both; }
-.mproj-card:nth-child(1) { animation-delay: 0ms; }
-.mproj-card:nth-child(2) { animation-delay: 40ms; }
-.mproj-card:nth-child(3) { animation-delay: 80ms; }
-.mproj-card:nth-child(4) { animation-delay: 120ms; }
-.mproj-card:nth-child(5) { animation-delay: 160ms; }
+.mproj-photo-hint svg { width: 11px; height: 11px; stroke: #fff; }
+
 
 /* ── SISTEMA DE ANIMACIONES KIRI ─────────────────────────────── */
 
@@ -3341,72 +3310,40 @@ function renderMobileHome(el, tab) {
     return da - db;
   });
 
-  // ── Tamaño de cada card: 4=2×2, 2w=2×1, 1=1×1 ──────────────
-  // Eliminamos 2h (1×2 tall) para evitar huecos
-  const maxBudget = Math.max(...S.projects.map(p => p.budget || 0), 1);
-  function getCardSize(budget) {
-    const ratio = (budget || 0) / maxBudget;
-    if (ratio >= 0.65) return '4';   // 2×2 grande
-    if (ratio >= 0.30) return '2w';  // 2×1 medio
-    return '1';                       // 1×1 chico
-  }
-
-  // ── Lógica anti-hueco para cards 1×1 ─────────────────────────
-  // Si la cantidad de cards 1×1 seguidas es impar, el último se convierte en 2w
-  function buildSizes(items) {
-    const sizes = items.map(({p}) => getCardSize(p.budget));
-    // scan groups of consecutive '1's
-    let i = 0;
-    while (i < sizes.length) {
-      if (sizes[i] === '1') {
-        let j = i;
-        while (j < sizes.length && sizes[j] === '1') j++;
-        const count = j - i;
-        if (count % 2 !== 0) {
-          // último del grupo se vuelve 2w para cerrar la fila
-          sizes[j - 1] = '2w';
-        }
-        i = j;
-      } else {
-        i++;
-      }
-    }
-    return sizes;
-  }
-
-  const sizes = buildSizes(indexed);
-
   const cardsHTML = indexed.map(({ p, origIdx }, sortedIdx) => {
     const color   = projColors[origIdx % projColors.length];
     const pagado  = p.pagos.reduce((s, pg) => s + pg.amount, 0);
     const pct     = p.budget > 0 ? Math.min(100, (pagado / p.budget) * 100) : 0;
-    const size    = sizes[sortedIdx];
     const due     = getDueDate(p);
     const daysLeft = daysUntilDue(p);
     const isDelivered = !!p.deliveredAt;
     const isPagoComplete = p.budget > 0 && pct >= 100;
     const fillH   = pct.toFixed(1) + '%';
 
-    // Badge de estado
+    // Badge
     let badgeText, badgeClass;
-    if (isDelivered && isPagoComplete) {
-      badgeText = '✓ finalizado'; badgeClass = 'done';
-    } else if (isDelivered) {
-      badgeText = '✓ entregado'; badgeClass = 'delivered';
-    } else if (daysLeft !== Infinity && daysLeft <= 0) {
-      badgeText = 'vencido'; badgeClass = 'overdue';
-    } else if (daysLeft !== Infinity && daysLeft <= 7) {
-      badgeText = daysLeft + 'd restantes'; badgeClass = 'urgent';
-    } else {
-      badgeText = 'activo'; badgeClass = 'active';
-    }
+    if (isDelivered && isPagoComplete)               { badgeText = '✓ ok';        badgeClass = 'done'; }
+    else if (isDelivered)                            { badgeText = '✓ entregado'; badgeClass = 'delivered'; }
+    else if (daysLeft !== Infinity && daysLeft <= 0) { badgeText = 'vencido';     badgeClass = 'overdue'; }
+    else if (daysLeft !== Infinity && daysLeft <= 7) { badgeText = daysLeft + 'd';badgeClass = 'urgent'; }
+    else                                             { badgeText = 'activo';      badgeClass = 'active'; }
 
-    // Fecha de entrega en el chip
     const dueDateStr = due ? formatDateShort(due) : null;
 
+    // Fondo: foto render con overlay, o color + textura
+    const photoEl = p.renderImg
+      ? '<div class="mproj-card-photo" style="background-image:url(' + p.renderImg + ')"></div>'
+      : '<div class="mproj-card-no-photo"></div>';
+
+    // Ícono cámara si no tiene foto
+    const camIcon = !p.renderImg
+      ? '<div class="mproj-photo-hint"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>'
+      : '';
+
     return (
-      '<div class="mproj-card anim-fade-up anim-d' + Math.min(sortedIdx + 1, 8) + '" data-size="' + size + '" data-idx="' + origIdx + '" ' +
+      '<div class="mproj-card" data-idx="' + origIdx + '" ' +
           'style="background:' + color + '" onclick="selectMobileProject(' + origIdx + ')">' +
+        photoEl + camIcon +
         '<div class="mproj-fill' + (isPagoComplete ? ' done' : '') + '" style="height:' + fillH + '"></div>' +
         '<div class="mproj-bar"><div class="mproj-bar-fill" style="width:' + pct + '%"></div></div>' +
         '<div class="mproj-inner">' +
@@ -3424,53 +3361,21 @@ function renderMobileHome(el, tab) {
     );
   }).join('');
 
+  // Grid: ceil(n/2) filas para llenar el espacio exacto sin scroll
+  const rows = Math.max(1, Math.ceil(n / 2));
+
   el.innerHTML =
     '<div class="mproj-wrap">' +
       '<div class="mproj-topbar">' +
         '<span class="mproj-title">Proyectos</span>' +
         '<span class="mproj-count">' + n + ' ' + (n === 1 ? 'proyecto' : 'proyectos') + '</span>' +
       '</div>' +
-      '<div class="mproj-grid" id="mproj-grid-outer">' +
-        '<div class="mproj-scroll-inner">' +
-          cardsHTML +
-        '</div>' +
+      '<div class="mproj-grid" id="mproj-grid-outer" style="grid-template-rows:repeat(' + rows + ',1fr)">' +
+        cardsHTML +
       '</div>' +
     '</div>';
 
-  // Momentum scroll para Android (iOS ya tiene -webkit-overflow-scrolling:touch nativo)
-  const grid = document.getElementById('mproj-grid-outer');
-  if (!grid) return;
-
-  let velY = 0, lastY = 0, lastT = 0, isDragging = false, rafId = null;
-
-  function momentumLoop() {
-    velY *= 0.90;
-    grid.scrollTop += velY;
-    if (Math.abs(velY) > 0.8) rafId = requestAnimationFrame(momentumLoop);
-    else rafId = null;
-  }
-
-  grid.addEventListener('touchstart', e => {
-    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-    isDragging = true;
-    lastY = e.touches[0].clientY;
-    lastT = Date.now();
-    velY = 0;
-  }, { passive: true });
-
-  grid.addEventListener('touchmove', e => {
-    if (!isDragging) return;
-    const y = e.touches[0].clientY;
-    const now = Date.now();
-    const dt = Math.max(now - lastT, 1);
-    velY = (lastY - y) / dt * 16;
-    lastY = y; lastT = now;
-  }, { passive: true });
-
-  grid.addEventListener('touchend', () => {
-    isDragging = false;
-    if (Math.abs(velY) > 1.5) rafId = requestAnimationFrame(momentumLoop);
-  }, { passive: true });
+  requestAnimationFrame(() => runPostRenderAnimations());
 }
 
 function initDeck(deckEl, total) {
@@ -3888,6 +3793,15 @@ function renderMobileProject(el) {
 
       <!-- OPCIONES DESTRUCTIVAS -->
       <div style="padding:16px;margin-top:4px;display:flex;flex-direction:column;gap:8px">
+        <!-- Foto render del proyecto -->
+        <div style="display:flex;align-items:center;gap:8px">
+          <label style="flex:1;padding:12px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            ${p.renderImg ? 'Cambiar foto render' : 'Agregar foto render'}
+            <input type="file" accept="image/*" style="display:none" onchange="setProjectRenderImg(${S.active}, this)">
+          </label>
+          ${p.renderImg ? `<button onclick="removeProjectRenderImg(${S.active})" style="padding:12px 14px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:14px;cursor:pointer;-webkit-tap-highlight-color:transparent" title="Quitar foto">✕</button>` : ''}
+        </div>
         ${!p.confirmedAt ? `<button onclick="openModal('editbudget')" style="width:100%;padding:12px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">+ Agregar fecha de confirmación</button>` : ''}
         ${!isDelivered ? `<button onclick="confirmDelivery(${S.active})" style="width:100%;padding:12px;background:var(--sage);border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer">✓ Confirmar entrega del proyecto</button>` : `<div style="text-align:center;font-size:11px;color:var(--sage);font-weight:600;padding:8px 0">✓ Entregado el ${p.deliveredAt.split('-').reverse().join('/')}</div>`}
         <button onclick="deleteProject()" style="width:100%;padding:12px;background:none;border:1px solid #d9a0a0;border-radius:6px;color:var(--kiri);font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;letter-spacing:0.5px">Eliminar proyecto</button>
@@ -4889,56 +4803,80 @@ async function loadHtml2Pdf() {
 }
 
 // Prepara el HTML para renderizado offline (reemplaza Google Fonts con fuentes del sistema)
-function prepareHtmlForPdf(htmlContent) {
-  return htmlContent
-    .replace(/<link[^>]*fonts\.googleapis[^>]*>/gi, '')
-    .replace(/<link[^>]*fonts\.gstatic[^>]*>/gi, '')
-    .replace(/font-family:\s*['"]?DM Sans['"]?,?[^;'"}]*/g,
-      "font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif")
-    .replace(/font-family:\s*['"]?DM Mono['"]?,?[^;'"}]*/g,
-      "font-family: 'Courier New', Courier, monospace")
-    .replace(/font-family:\s*['"]?Noto Sans JP['"]?,?[^;'"}]*/g,
-      "font-family: -apple-system, sans-serif");
-}
-
-// Extrae solo el body+estilos del HTML para inyectar en el DOM
-function extractBodyContent(htmlContent) {
-  const bodyMatch = htmlContent.match(/<body[^>]*>([\s\S]*)<\/body>/i);
-  const styleMatches = htmlContent.match(/<style[^>]*>([\s\S]*?)<\/style>/gi) || [];
-  return styleMatches.join('\n') + (bodyMatch ? bodyMatch[1] : htmlContent);
-}
-
 async function generatePdfBlob(htmlContent) {
   const loaded = await loadHtml2Pdf();
   if (!loaded) throw new Error('html2pdf no disponible');
 
-  const prepared = prepareHtmlForPdf(htmlContent);
-  const content  = extractBodyContent(prepared);
+  // Renderizar en un iframe oculto para mantener todos los estilos intactos
+  // (el div off-screen con z-index negativo no lo captura html2canvas)
+  return new Promise((resolve, reject) => {
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = [
+      'position:fixed', 'top:0', 'left:0',
+      'width:210mm', 'height:297mm',
+      'opacity:0', 'pointer-events:none',
+      'z-index:-1', 'border:none'
+    ].join(';');
+    document.body.appendChild(iframe);
 
-  const container = document.createElement('div');
-  container.style.cssText = [
-    'position:fixed', 'top:-9999px', 'left:0',
-    'width:210mm', 'background:white',
-    'font-size:14px', 'line-height:1.5',
-    'color:#1c1714', 'z-index:-999'
-  ].join(';');
-  container.innerHTML = content;
-  document.body.appendChild(container);
+    iframe.onload = async () => {
+      try {
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        const body = iframeDoc.body;
 
-  try {
-    const blob = await window.html2pdf()
-      .from(container)
-      .set({
-        margin:      [12, 14, 12, 14],
-        html2canvas: { scale: 2, useCORS: false, logging: false, allowTaint: true },
-        jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      })
-      .outputPdf('blob');
-    return blob;
-  } finally {
-    if (document.body.contains(container)) document.body.removeChild(container);
-  }
+        // Aseguramos fondo blanco y fuentes del sistema
+        body.style.cssText = 'margin:0;padding:0;background:white;';
+
+        // Reemplazar Google Fonts por fuentes del sistema (evita bloqueo de red)
+        const links = iframeDoc.querySelectorAll('link[href*="fonts.googleapis"], link[href*="fonts.gstatic"]');
+        links.forEach(l => l.remove());
+        const allEls = iframeDoc.querySelectorAll('*');
+        allEls.forEach(el => {
+          const cs = el.style;
+          if (cs.fontFamily && cs.fontFamily.includes('DM Sans')) cs.fontFamily = "Arial, sans-serif";
+          if (cs.fontFamily && cs.fontFamily.includes('DM Mono')) cs.fontFamily = "'Courier New', monospace";
+          if (cs.fontFamily && cs.fontFamily.includes('Noto Sans')) cs.fontFamily = "Arial, sans-serif";
+        });
+
+        const blob = await window.html2pdf()
+          .from(body)
+          .set({
+            margin:      [10, 12, 10, 12],
+            html2canvas: {
+              scale:      2,
+              useCORS:    false,
+              logging:    false,
+              allowTaint: true,
+              scrollX:    0,
+              scrollY:    0,
+              windowWidth: iframe.contentWindow.document.documentElement.scrollWidth
+            },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+          })
+          .outputPdf('blob');
+
+        resolve(blob);
+      } catch (err) {
+        reject(err);
+      } finally {
+        if (document.body.contains(iframe)) document.body.removeChild(iframe);
+      }
+    };
+
+    iframe.onerror = () => {
+      if (document.body.contains(iframe)) document.body.removeChild(iframe);
+      reject(new Error('iframe load error'));
+    };
+
+    // Preparar HTML: quitar Google Fonts del <head> para no bloquear la carga
+    const prepared = htmlContent
+      .replace(/<link[^>]*fonts\.googleapis[^>]*>/gi, '')
+      .replace(/<link[^>]*fonts\.gstatic[^>]*>/gi, '');
+
+    iframe.srcdoc = prepared;
+  });
 }
+
 
 async function mobileShareOrPrint(htmlContent, filename) {
   const pdfFilename = filename.replace(/\.html?$/i, '.pdf');
@@ -6999,6 +6937,38 @@ function daysUntilDue(p) {
   var today = new Date(); today.setHours(0,0,0,0);
   return Math.round((due - today) / (1000 * 60 * 60 * 24));
 }
+// ── FOTO RENDER DEL PROYECTO ──────────────────────────────────────────────────
+function setProjectRenderImg(idx, input) {
+  const file = input && input.files && input.files[0];
+  if (!file || !S.projects[idx]) return;
+
+  // Redimensionar a max 800px antes de guardar en base64 (para no inflar localStorage)
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const MAX = 800;
+      const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      S.projects[idx].renderImg = canvas.toDataURL('image/jpeg', 0.82);
+      render();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeProjectRenderImg(idx) {
+  if (!S.projects[idx]) return;
+  delete S.projects[idx].renderImg;
+  render();
+}
+
 function confirmDelivery(idx) {
   var proj = S.projects[idx]; if (!proj) return;
   if (!confirm('¿Confirmar entrega del proyecto? Esto no cierra los pagos pendientes.')) return;
