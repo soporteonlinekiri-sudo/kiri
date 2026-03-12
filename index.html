@@ -481,10 +481,8 @@ header {
 .mhome-dashboard {
   height: calc(100dvh - 54px - 76px);
   display: flex; flex-direction: column;
-  background: var(--surface); overflow-y: auto; overflow-x: hidden;
-  scrollbar-width: none;
+  background: var(--surface); overflow: hidden;
 }
-.mhome-dashboard::-webkit-scrollbar { display: none; }
 
 /* ── HERO: forma gráfica + número enorme ─────────────────────── */
 .mhome-dash-hero {
@@ -623,37 +621,149 @@ header {
 .mhome-metric-negative { color: #aa2a2a !important; }
 
 /* ── PROYECTOS — GRID DE CUADRANTES ─────────────────────────── */
-.mproj-wrap {
+/* ── SPLIT SCREEN ─────────────────────────────────────────────── */
+.mscreen-split {
   height: calc(100dvh - 54px - 76px);
   display: flex; flex-direction: column;
-  background: var(--surface);
+  overflow: hidden;
 }
-.mproj-topbar {
-  padding: 20px 18px 14px;
-  display: flex; align-items: baseline; justify-content: space-between;
+.mproj-wrap {
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column;
+  background: var(--surface);
+  border-bottom: 2px solid var(--border);
+  overflow: hidden;
+  transition: flex 0.32s cubic-bezier(0.4,0,0.2,1);
+}
+.mproj-wrap.sec-collapsed { flex: 0 0 auto; }
+.mcot-wrap {
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column;
+  background: var(--bg);
+  overflow: hidden;
+  transition: flex 0.32s cubic-bezier(0.4,0,0.2,1);
+}
+.mcot-wrap.sec-collapsed { flex: 0 0 auto; }
+
+.mproj-topbar, .mcot-topbar {
+  padding: 10px 14px;
+  display: flex; align-items: center; justify-content: space-between;
   flex-shrink: 0; border-bottom: 1px solid var(--border);
 }
-.mproj-title {
-  font-size: 11px; font-weight: 700; letter-spacing: 3px;
+.mproj-title, .mcot-title {
+  font-size: 10px; font-weight: 700; letter-spacing: 3px;
   text-transform: uppercase; color: var(--ink);
 }
 .mproj-count {
   font-size: 8px; font-weight: 500; letter-spacing: 2px;
-  text-transform: uppercase; color: var(--muted);
-  font-family: 'DM Mono', monospace;
+  text-transform: uppercase; color: var(--muted); font-family: 'DM Mono', monospace;
+}
+/* Botón colapso sección */
+.msec-collapse-btn {
+  background: none; border: 1px solid var(--border); cursor: pointer;
+  padding: 3px 8px; color: var(--muted); font-size: 10px; line-height: 1;
+  border-radius: 3px; -webkit-tap-highlight-color: transparent;
+  font-family: 'DM Sans', sans-serif; font-weight: 600;
+  transition: background 0.15s;
+}
+.msec-collapse-btn:active { background: var(--border); }
+
+/* Cuerpos de sección — se ocultan al colapsar */
+.mproj-body, .mcot-body {
+  flex: 1; min-height: 0; overflow: hidden;
+  transition: opacity 0.2s ease;
+}
+.mproj-wrap.sec-collapsed .mproj-body,
+.mcot-wrap.sec-collapsed .mcot-body {
+  opacity: 0; pointer-events: none; height: 0;
 }
 
-/* Grid fijo: 2 col × 3 filas = 6 slots 1×1, sin scroll */
+/* Grid fijo: 2×2 = 4 slots 1×1 */
 .mproj-grid {
-  flex: 1;
-  overflow: hidden;
-  padding: 10px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: repeat(3, 1fr);
-  gap: 8px;
-  min-height: 0;
+  height: 100%; overflow: hidden; padding: 8px; box-sizing: border-box;
+  display: grid; grid-template-columns: 1fr 1fr;
+  grid-template-rows: repeat(2, 1fr); gap: 7px;
 }
+
+/* ── COTIZACIONES ─────────────────────────────────────────────── */
+.mcot-add-btn {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 10px; font-weight: 700; letter-spacing: 1px;
+  color: var(--kiri); background: none; border: none;
+  cursor: pointer; padding: 4px 8px; border-radius: 4px;
+  font-family: 'DM Sans', sans-serif; -webkit-tap-highlight-color: transparent;
+}
+.mcot-list {
+  height: 100%; box-sizing: border-box;
+  overflow-x: auto; overflow-y: hidden;
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.mcot-list::-webkit-scrollbar { display: none; }
+.mcot-card {
+  flex-shrink: 0; width: 130px; background: var(--surface);
+  border-radius: 8px; border: 1px solid var(--border);
+  display: flex; flex-direction: column; padding: 10px 11px 9px;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: transform 0.12s ease; position: relative;
+  animation: cardIn 0.3s ease both; overflow: hidden;
+}
+.mcot-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--kiri);
+}
+.mcot-card:active { transform: scale(0.96); }
+.mcot-client {
+  font-size: 10px; font-weight: 700; color: var(--ink);
+  text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.1; margin-top: 5px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.mcot-desc { font-size: 9px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mcot-total { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 700; color: var(--kiri); margin-top: auto; padding-top: 8px; }
+.mcot-date { font-family: 'DM Mono', monospace; font-size: 8px; color: var(--muted); margin-top: 2px; }
+.mcot-empty {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 6px; color: var(--muted); font-size: 11px;
+}
+.mcot-empty svg { opacity: 0.3; }
+
+/* Modal cotización */
+#modal-quote .modal-body { padding: 0 18px 20px; }
+.quote-row { display: flex; gap: 10px; margin-bottom: 12px; }
+.quote-row > * { flex: 1; }
+.quote-extras-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+.quote-extra-row { display: flex; gap: 6px; align-items: center; }
+.quote-extra-row input { flex: 1; }
+.quote-extra-row button { background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; padding: 0 4px; line-height: 1; }
+.quote-total-preview {
+  background: var(--kiri); color: #fff; border-radius: 6px; padding: 12px 14px;
+  display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px;
+}
+.quote-total-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; opacity: 0.7; }
+.quote-total-num { font-family: 'DM Mono', monospace; font-size: 22px; font-weight: 700; letter-spacing: -1px; }
+
+/* ── SECCIONES COLAPSABLES DENTRO DEL PROYECTO ───────────────── */
+.mprojsec { border-bottom: 1px solid var(--border); flex-shrink: 0; overflow: hidden; }
+.mprojsec-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 16px; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  user-select: none; background: var(--surface);
+}
+.mprojsec-label { font-size: 9px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--muted); }
+.mprojsec-toggle { font-size: 11px; color: var(--muted); transition: transform 0.22s ease; line-height: 1; }
+.mprojsec.sec-collapsed .mprojsec-toggle { transform: rotate(-90deg); }
+.mprojsec-body {
+  overflow: hidden;
+  max-height: 1200px;
+  transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.2s ease;
+  opacity: 1;
+}
+.mprojsec.sec-collapsed .mprojsec-body { max-height: 0; opacity: 0; }
+
+/* Proyecto sin scroll: fixed sections */
+.mproj-content-fixed {
+  flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column;
+}
+
 
 /* Card base — siempre 1×1 */
 .mproj-card {
@@ -2379,6 +2489,55 @@ header {
   </div>
 </div>
 
+<!-- MODAL COTIZACIÓN -->
+<div class="overlay" id="modal-quote" onclick="overlayClick(event,'quote')">
+  <div class="modal">
+    <div class="modal-title" id="quote-modal-title">Nueva cotización</div>
+    <div class="field">
+      <label>Cliente *</label>
+      <input id="q-client" type="text" placeholder="Nombre del cliente">
+      <div class="field-error" id="err-qclient">Ingresá un cliente</div>
+    </div>
+    <div class="field">
+      <label>Descripción del trabajo</label>
+      <input id="q-desc" type="text" placeholder="Ej: Cocina modular con isla">
+    </div>
+    <div class="quote-row">
+      <div class="field" style="margin:0">
+        <label>Mano de obra ($)</label>
+        <input id="q-mo" type="number" placeholder="0" min="0" oninput="updateQuotePreview()">
+      </div>
+      <div class="field" style="margin:0">
+        <label>Materiales ($)</label>
+        <input id="q-mat" type="number" placeholder="0" min="0" oninput="updateQuotePreview()">
+      </div>
+    </div>
+    <div class="field">
+      <label>Adicionales <span style="font-weight:400;color:var(--muted)">(flete, instalación…)</span></label>
+      <div id="q-extras-list" class="quote-extras-list"></div>
+      <button class="btn btn-light btn-sm" onclick="addQuoteExtra()" type="button" style="align-self:flex-start">+ Agregar</button>
+    </div>
+    <div class="field">
+      <label>Notas para el cliente</label>
+      <textarea id="q-notes" rows="2" placeholder="Condiciones, plazos, etc." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:12px;color:var(--ink);background:var(--surface);resize:none;outline:none;box-sizing:border-box"></textarea>
+    </div>
+    <div class="quote-total-preview">
+      <span class="quote-total-label">Total cotización</span>
+      <span class="quote-total-num" id="q-total-preview">$0</span>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-light" onclick="closeModal('quote')">Cancelar</button>
+      <button class="btn btn-primary" id="q-save-btn" onclick="saveQuote()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALLE COTIZACIÓN -->
+<div class="overlay" id="modal-quote-detail" onclick="overlayClick(event,'quote-detail')">
+  <div class="modal" id="quote-detail-body">
+  </div>
+</div>
+
 <!-- MODAL DISTRIBUCIÓN MO -->
 <div class="overlay" id="modal-mo" onclick="overlayClick(event,'mo')">
   <div class="modal">
@@ -2700,6 +2859,7 @@ header {
 const S_DEFAULT = {
   people: ['Agustín', 'Martín', 'Julia'],
   projects: [],
+  quotes: [],
   active: null,
   selPeople: []
 };
@@ -2832,6 +2992,7 @@ async function initCloudSync() {
     const cloudProjects = cloudData.projects.length;
     if (cloudProjects >= localProjects) {
       Object.assign(S, cloudData);
+      S.quotes = S.quotes || []; // migración: estado viejo no tenía quotes
       if (isMobile()) S.active = null; // en mobile siempre arrancar en home
       saveState();
       render();
@@ -3361,19 +3522,71 @@ function renderMobileHome(el, tab) {
     );
   }).join('');
 
-  // Grid fijo: siempre 2 columnas × 3 filas = 6 slots de 1×1
+  // Grid fijo: siempre 2 columnas × 2 filas = 4 slots de 1×1
   // Los slots vacíos quedan como espacio muerto
 
+  // ── Renderizar cotizaciones ──────────────────────────────────
+  S.quotes = S.quotes || [];
+  const cotHTML = S.quotes.length === 0
+    ? '<div class="mcot-empty">' +
+        '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="15" x2="12" y2="15"/></svg>' +
+        '<span>Sin cotizaciones</span>' +
+      '</div>'
+    : S.quotes.map((q, qi) => {
+        const total = (q.mat||0) + (q.mo||0) + (q.extras||[]).reduce((s,e)=>s+(e.monto||0),0);
+        const fecha = q.createdAt ? q.createdAt.split('-').reverse().slice(0,2).join('/') : '';
+        return (
+          '<div class="mcot-card" onclick="openQuoteDetail(' + qi + ')">' +
+            '<div class="mcot-client">' + esc(q.client||'Sin nombre') + '</div>' +
+            (q.desc ? '<div class="mcot-desc">' + esc(q.desc) + '</div>' : '') +
+            '<div class="mcot-total">$' + fmt(total) + '</div>' +
+            '<div class="mcot-date">' + fecha + '</div>' +
+          '</div>'
+        );
+      }).join('');
+
   el.innerHTML =
-    '<div class="mproj-wrap">' +
-      '<div class="mproj-topbar">' +
-        '<span class="mproj-title">Proyectos</span>' +
-        '<span class="mproj-count">' + n + ' ' + (n === 1 ? 'proyecto' : 'proyectos') + '</span>' +
+    '<div class="mscreen-split">' +
+      '<div class="mproj-wrap" id="msplit-proj">' +
+        '<div class="mproj-topbar">' +
+          '<span class="mproj-title">Proyectos</span>' +
+          '<div style="display:flex;align-items:center;gap:8px">' +
+            '<span class="mproj-count">' + n + (n === 1 ? ' proy.' : ' proy.') + '</span>' +
+            '<button class="msec-collapse-btn" id="btn-collapse-proj" onclick="toggleSplitSection(\'proj\')" title="Minimizar">▾</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="mproj-body">' +
+          '<div class="mproj-grid" id="mproj-grid-outer">' + cardsHTML + '</div>' +
+        '</div>' +
       '</div>' +
-      '<div class="mproj-grid" id="mproj-grid-outer">' +
-        cardsHTML +
+      '<div class="mcot-wrap" id="msplit-cot">' +
+        '<div class="mcot-topbar">' +
+          '<span class="mcot-title">Cotizaciones</span>' +
+          '<div style="display:flex;align-items:center;gap:8px">' +
+            '<button class="mcot-add-btn" onclick="openModal(\'quote\')">' +
+              '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
+              'Nueva' +
+            '</button>' +
+            '<button class="msec-collapse-btn" id="btn-collapse-cot" onclick="toggleSplitSection(\'cot\')" title="Minimizar">▾</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="mcot-body">' +
+          '<div class="mcot-list">' + cotHTML + '</div>' +
+        '</div>' +
       '</div>' +
     '</div>';
+
+  // Restaurar estado de colapso guardado
+  if (window._splitCollapsed) {
+    if (window._splitCollapsed.proj) {
+      document.getElementById('msplit-proj').classList.add('sec-collapsed');
+      document.getElementById('btn-collapse-proj').textContent = '▸';
+    }
+    if (window._splitCollapsed.cot) {
+      document.getElementById('msplit-cot').classList.add('sec-collapsed');
+      document.getElementById('btn-collapse-cot').textContent = '▸';
+    }
+  }
 
   requestAnimationFrame(() => runPostRenderAnimations());
 }
@@ -3689,125 +3902,148 @@ function renderMobileProject(el) {
     <!-- BANNER FECHA ENTREGA -->
     ${dueBannerHTML}
 
-    <!-- SCROLL CONTENT -->
-    <div style="flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch" id="mproj-scroll">
+    <!-- CONTENIDO: secciones colapsables sin scroll -->
+    <div class="mproj-content-fixed" id="mproj-content">
 
-      <!-- HERO CARD con fill -->
-      <div style="background:${heroColor};position:relative;overflow:hidden;padding:22px 20px 18px">
-        <!-- fill visual del % cobrado -->
-
-        <div style="position:absolute;left:0;right:0;bottom:0;height:${pct.toFixed(1)}%;background:rgba(255,255,255,0.15);pointer-events:none;transition:height .6s"></div>
-        <div style="position:relative;z-index:1">
-          <div style="font-size:8px;letter-spacing:3px;color:rgba(255,255,255,0.5);text-transform:uppercase;margin-bottom:14px">Presupuesto del proyecto</div>
-          <div style="font-family:'DM Mono',monospace;font-size:36px;font-weight:700;color:#fff;letter-spacing:-1px;line-height:1">${p.budget>0?'$'+fmt(p.budget):'Sin definir'}</div>
-          ${p.budget>0?`
-          <div style="display:grid;grid-template-columns:1fr 1fr${(p.extras||[]).length?' 1fr':''};gap:8px;margin-top:16px">
-            <div style="background:rgba(0,0,0,0.2);border-radius:4px;padding:10px">
-              <div style="font-size:7px;letter-spacing:2px;color:rgba(255,255,255,0.45);margin-bottom:4px;text-transform:uppercase">Mano de obra</div>
-              <div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:600;color:#fff">$${fmt(p.budgetMO||0)}</div>
-            </div>
-            <div style="background:rgba(0,0,0,0.2);border-radius:4px;padding:10px">
-              <div style="font-size:7px;letter-spacing:2px;color:rgba(255,255,255,0.45);margin-bottom:4px;text-transform:uppercase">Materiales</div>
-              <div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:600;color:#fff">$${fmt(p.budgetMat||0)}</div>
-            </div>
-            ${(p.extras||[]).map(ex=>`
-            <div style="background:rgba(0,0,0,0.2);border-radius:4px;padding:10px">
-              <div style="font-size:7px;letter-spacing:2px;color:rgba(255,255,255,0.45);margin-bottom:4px;text-transform:uppercase">${esc(ex.nombre||'Extra')}</div>
-              <div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:600;color:#fff">$${fmt(ex.monto||0)}</div>
-            </div>`).join('')}
+      <!-- PRESUPUESTO (siempre visible, compacto) -->
+      <div style="background:${heroColor};position:relative;overflow:hidden;padding:14px 16px;flex-shrink:0">
+        <div style="position:absolute;left:0;right:0;bottom:0;height:${pct.toFixed(1)}%;background:rgba(255,255,255,0.15);pointer-events:none"></div>
+        <div style="position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:12px">
+          <div>
+            <div style="font-size:7px;letter-spacing:3px;color:rgba(255,255,255,0.5);text-transform:uppercase;margin-bottom:4px">Presupuesto</div>
+            <div style="font-family:'DM Mono',monospace;font-size:26px;font-weight:700;color:#fff;letter-spacing:-1px;line-height:1">${p.budget>0?'$'+fmt(p.budget):'Sin definir'}</div>
           </div>
-          <div style="margin-top:14px">
-            <div style="height:3px;background:rgba(0,0,0,0.2);border-radius:2px;overflow:hidden;margin-bottom:5px">
-              <div style="height:100%;background:rgba(255,255,255,0.75);width:${pct}%"></div>
+          <div style="text-align:right">
+            <div style="font-size:7px;letter-spacing:2px;color:rgba(255,255,255,0.5);margin-bottom:4px">COBRADO</div>
+            <div style="font-family:'DM Mono',monospace;font-size:18px;font-weight:700;color:#fff">${pct.toFixed(0)}%</div>
+            <div style="height:3px;background:rgba(0,0,0,0.2);border-radius:2px;overflow:hidden;width:80px;margin-top:4px">
+              <div style="height:100%;background:rgba(255,255,255,0.8);width:${pct}%"></div>
             </div>
-            <div style="display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,0.55)">
-              <span>cobrado</span><span>${pct.toFixed(1)}%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACCIONES rápidas -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0">
+        <button onclick="openModal('pago')" style="background:#2a6a2a;color:#fff;border:none;border-radius:5px;padding:9px 0;font-size:10px;font-weight:700;letter-spacing:0.5px;font-family:'DM Sans',sans-serif;cursor:pointer">↓ Cobro</button>
+        <button onclick="openModal('exp')" style="background:var(--kiri);color:#fff;border:none;border-radius:5px;padding:9px 0;font-size:10px;font-weight:700;letter-spacing:0.5px;font-family:'DM Sans',sans-serif;cursor:pointer">↑ Gasto</button>
+        <button onclick="openModal('transferencia')" style="background:var(--ink);color:#fff;border:none;border-radius:5px;padding:9px 0;font-size:10px;font-weight:700;letter-spacing:0.5px;font-family:'DM Sans',sans-serif;cursor:pointer">⇄ Transf.</button>
+      </div>
+
+      <!-- MÉTRICAS (colapsable) -->
+      <div class="mprojsec" id="mprojsec-metricas">
+        <div class="mprojsec-header" onclick="toggleMprojSec('metricas')">
+          <span class="mprojsec-label">Métricas · Fondo: $${fmt(Math.abs(fondoRestante))}</span>
+          <span class="mprojsec-toggle">▾</span>
+        </div>
+        <div class="mprojsec-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border)">
+            <div style="background:var(--surface);padding:11px 14px">
+              <div style="font-size:7px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Cobrado</div>
+              <div style="font-family:'DM Mono',monospace;font-size:15px;font-weight:600;color:#2a6a2a">$${fmt(totalPagado)}</div>
             </div>
-          </div>` : ''}
+            <div style="background:var(--surface);padding:11px 14px">
+              <div style="font-size:7px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Falta cobrar</div>
+              <div style="font-family:'DM Mono',monospace;font-size:15px;font-weight:600;color:${faltaPagar>0?'var(--kiri)':'#2a6a2a'}">${faltaPagar>0?'$'+fmt(faltaPagar):'✓ Ok'}</div>
+            </div>
+            <div style="background:var(--surface);padding:11px 14px">
+              <div style="font-size:7px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Gastos</div>
+              <div style="font-family:'DM Mono',monospace;font-size:15px;font-weight:600;color:var(--ink)">$${fmt(totalGastos)}</div>
+            </div>
+            <div style="background:var(--surface);padding:11px 14px">
+              <div style="font-size:7px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:4px">${fondoLabel}</div>
+              <div style="font-family:'DM Mono',monospace;font-size:15px;font-weight:600;color:${fondoClass==='ok'?'#2a6a2a':fondoClass==='warn'?'var(--sun)':'var(--kiri)'}">$${fmt(Math.abs(fondoRestante))}</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-top:1px solid var(--border)">
+            <div style="flex:1">
+              <div style="font-size:7px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Tesorero</div>
+              <div style="font-size:12px;font-weight:600;color:var(--ink)">${p.tesorero?esc(p.tesorero):'Sin definir'}</div>
+            </div>
+            <button onclick="openModal('tesorero')" style="background:none;border:1px solid var(--border);border-radius:4px;padding:5px 10px;font-size:10px;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif">Cambiar</button>
+          </div>
         </div>
       </div>
 
-      <!-- MÉTRICAS rápidas en 2x2 -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border)">
-        <div style="background:var(--surface);padding:14px 16px">
-          <div style="font-size:7px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:5px">Cobrado</div>
-          <div style="font-family:'DM Mono',monospace;font-size:18px;font-weight:600;color:#2a6a2a">$${fmt(totalPagado)}</div>
+      <!-- HONORARIOS (colapsable) -->
+      ${p.budgetMO>0 ? `
+      <div class="mprojsec" id="mprojsec-honorarios">
+        <div class="mprojsec-header" onclick="toggleMprojSec('honorarios')">
+          <span class="mprojsec-label">Honorarios</span>
+          <span class="mprojsec-toggle">▾</span>
         </div>
-        <div style="background:var(--surface);padding:14px 16px">
-          <div style="font-size:7px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:5px">Falta cobrar</div>
-          <div style="font-family:'DM Mono',monospace;font-size:18px;font-weight:600;color:${faltaPagar>0?'var(--kiri)':'#2a6a2a'}">${faltaPagar>0?'$'+fmt(faltaPagar):'✓ Completo'}</div>
+        <div class="mprojsec-body"><div style="padding:0 14px">${honSection.replace(/<div class="mproj-section">|<\/div>$|<div class="mproj-section-title">Honorarios<\/div>/g,'')}</div></div>
+      </div>` : ''}
+
+      <!-- LIQUIDACIÓN (colapsable) -->
+      ${debts.length>0 ? `
+      <div class="mprojsec" id="mprojsec-liquid">
+        <div class="mprojsec-header" onclick="toggleMprojSec('liquid')">
+          <span class="mprojsec-label">Liquidación interna</span>
+          <span class="mprojsec-toggle">▾</span>
         </div>
-        <div style="background:var(--surface);padding:14px 16px">
-          <div style="font-size:7px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:5px">Total gastos</div>
-          <div style="font-family:'DM Mono',monospace;font-size:18px;font-weight:600;color:var(--ink)">$${fmt(totalGastos)}</div>
+        <div class="mprojsec-body"><div style="padding:0 14px">${debtSection.replace(/<div class="mproj-section">|<\/div>$|<div class="mproj-section-title">Liquidación interna<\/div>/g,'')}</div></div>
+      </div>` : ''}
+
+      <!-- INGRESOS (colapsable) -->
+      <div class="mprojsec" id="mprojsec-ingresos">
+        <div class="mprojsec-header" onclick="toggleMprojSec('ingresos')">
+          <span class="mprojsec-label">Ingresos <span style="background:var(--bg);border-radius:2px;padding:1px 6px;font-size:8px;margin-left:4px">${p.pagos.length}</span></span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button onclick="event.stopPropagation();openModal('pago')" style="font-size:10px;color:var(--kiri);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;padding:2px 0">+ Agregar</button>
+            <span class="mprojsec-toggle">▾</span>
+          </div>
         </div>
-        <div style="background:var(--surface);padding:14px 16px">
-          <div style="font-size:7px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:5px">${fondoLabel}</div>
-          <div style="font-family:'DM Mono',monospace;font-size:18px;font-weight:600;color:${fondoClass==='ok'?'#2a6a2a':fondoClass==='warn'?'var(--sun)':'var(--kiri)'}">$${fmt(Math.abs(fondoRestante))}</div>
+        <div class="mprojsec-body">
+          <div style="padding:0 14px">
+            ${p.pagos.length===0
+              ?'<div style="text-align:center;padding:16px;color:var(--muted);font-size:12px">Sin ingresos</div>'
+              :pagoRows}
+          </div>
         </div>
       </div>
 
-      <!-- BOTONES DE ACCIÓN -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:14px 16px;border-bottom:1px solid var(--border)">
-        <button onclick="openModal('pago')" style="background:#2a6a2a;color:#fff;border:none;border-radius:6px;padding:12px 0;font-size:11px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;cursor:pointer">↓ Cobro</button>
-        <button onclick="openModal('exp')" style="background:var(--kiri);color:#fff;border:none;border-radius:6px;padding:12px 0;font-size:11px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;cursor:pointer">↑ Gasto</button>
-        <button onclick="openModal('transferencia')" style="background:var(--ink);color:#fff;border:none;border-radius:6px;padding:12px 0;font-size:11px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;cursor:pointer">⇄ Transf.</button>
-      </div>
-
-      <!-- TESORERO -->
-      <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border)">
-        <div style="flex:1">
-          <div style="font-size:8px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:3px">Tesorero</div>
-          <div style="font-size:13px;font-weight:600;color:var(--ink)">${p.tesorero?esc(p.tesorero):'Sin definir'}</div>
+      <!-- GASTOS (colapsable) -->
+      <div class="mprojsec" id="mprojsec-gastos">
+        <div class="mprojsec-header" onclick="toggleMprojSec('gastos')">
+          <span class="mprojsec-label">Gastos <span style="background:var(--bg);border-radius:2px;padding:1px 6px;font-size:8px;margin-left:4px">${p.expenses.length}</span></span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button onclick="event.stopPropagation();openModal('exp')" style="font-size:10px;color:var(--kiri);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;padding:2px 0">+ Agregar</button>
+            <span class="mprojsec-toggle">▾</span>
+          </div>
         </div>
-        <button onclick="openModal('tesorero')" style="background:none;border:1px solid var(--border);border-radius:4px;padding:6px 12px;font-size:11px;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif">Cambiar</button>
-      </div>
-
-      <!-- HONORARIOS -->
-      ${honSection}
-
-      <!-- LIQUIDACIÓN -->
-      ${debtSection}
-
-      <!-- INGRESOS DEL CLIENTE -->
-      <div class="mproj-section">
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <div class="mproj-section-title" style="margin-bottom:0">Ingresos <span style="font-size:9px;background:var(--bg);border-radius:2px;padding:1px 6px;color:var(--muted);margin-left:6px">${p.pagos.length}</span></div>
-          <button onclick="openModal('pago')" style="font-size:11px;color:var(--kiri);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">+ Agregar</button>
+        <div class="mprojsec-body">
+          <div style="padding:0 14px">
+            ${p.expenses.length===0
+              ?'<div style="text-align:center;padding:16px;color:var(--muted);font-size:12px">Sin gastos</div>'
+              :expenseRows}
+          </div>
         </div>
-        ${p.pagos.length===0
-          ?'<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">Sin ingresos registrados</div>'
-          :pagoRows}
       </div>
 
-      <!-- GASTOS -->
-      <div class="mproj-section">
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <div class="mproj-section-title" style="margin-bottom:0">Gastos <span style="font-size:9px;background:var(--bg);border-radius:2px;padding:1px 6px;color:var(--muted);margin-left:6px">${p.expenses.length}</span></div>
-          <button onclick="openModal('exp')" style="font-size:11px;color:var(--kiri);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">+ Agregar</button>
+      <!-- OPCIONES (colapsable) -->
+      <div class="mprojsec" id="mprojsec-opciones">
+        <div class="mprojsec-header sec-collapsed" onclick="toggleMprojSec('opciones')">
+          <span class="mprojsec-label">Opciones del proyecto</span>
+          <span class="mprojsec-toggle" style="transform:rotate(-90deg)">▾</span>
         </div>
-        ${p.expenses.length===0
-          ?'<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">Sin gastos registrados</div>'
-          :expenseRows}
-      </div>
-
-      <!-- OPCIONES DESTRUCTIVAS -->
-      <div style="padding:16px;margin-top:4px;display:flex;flex-direction:column;gap:8px">
-        <!-- Foto render del proyecto -->
-        <div style="display:flex;align-items:center;gap:8px">
-          <label style="flex:1;padding:12px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-            ${p.renderImg ? 'Cambiar foto render' : 'Agregar foto render'}
-            <input type="file" accept="image/*" style="display:none" onchange="setProjectRenderImg(${S.active}, this)">
-          </label>
-          ${p.renderImg ? `<button onclick="removeProjectRenderImg(${S.active})" style="padding:12px 14px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:14px;cursor:pointer;-webkit-tap-highlight-color:transparent" title="Quitar foto">✕</button>` : ''}
+        <div class="mprojsec-body" style="max-height:0;opacity:0">
+          <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <label style="flex:1;padding:10px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:11px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                ${p.renderImg ? 'Cambiar foto' : 'Agregar foto render'}
+                <input type="file" accept="image/*" style="display:none" onchange="setProjectRenderImg(${S.active}, this)">
+              </label>
+              ${p.renderImg ? `<button onclick="removeProjectRenderImg(${S.active})" style="padding:10px 12px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:13px;cursor:pointer;-webkit-tap-highlight-color:transparent">✕</button>` : ''}
+            </div>
+            ${!p.confirmedAt ? `<button onclick="openModal('editbudget')" style="width:100%;padding:10px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:11px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">+ Agregar fecha de confirmación</button>` : ''}
+            ${!isDelivered ? `<button onclick="confirmDelivery(${S.active})" style="width:100%;padding:10px;background:var(--sage);border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer">✓ Confirmar entrega</button>` : `<div style="text-align:center;font-size:11px;color:var(--sage);font-weight:600;padding:6px 0">✓ Entregado el ${p.deliveredAt.split('-').reverse().join('/')}</div>`}
+            <button onclick="deleteProject()" style="width:100%;padding:10px;background:none;border:1px solid #d9a0a0;border-radius:6px;color:var(--kiri);font-size:11px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">Eliminar proyecto</button>
+          </div>
         </div>
-        ${!p.confirmedAt ? `<button onclick="openModal('editbudget')" style="width:100%;padding:12px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">+ Agregar fecha de confirmación</button>` : ''}
-        ${!isDelivered ? `<button onclick="confirmDelivery(${S.active})" style="width:100%;padding:12px;background:var(--sage);border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer">✓ Confirmar entrega del proyecto</button>` : `<div style="text-align:center;font-size:11px;color:var(--sage);font-weight:600;padding:8px 0">✓ Entregado el ${p.deliveredAt.split('-').reverse().join('/')}</div>`}
-        <button onclick="deleteProject()" style="width:100%;padding:12px;background:none;border:1px solid #d9a0a0;border-radius:6px;color:var(--kiri);font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;letter-spacing:0.5px">Eliminar proyecto</button>
       </div>
 
-      <div style="height:88px"></div>
     </div>
   </div>`;
 }
@@ -4322,6 +4558,9 @@ function openModal(id) {
   }
   if (id === 'voice') {
     resetVoiceModal();
+  }
+  if (id === 'quote') {
+    openModal_quote();
   }
   if (id === 'proj') {
     _pExtras = [];
@@ -6937,8 +7176,262 @@ function daysUntilDue(p) {
   var today = new Date(); today.setHours(0,0,0,0);
   return Math.round((due - today) / (1000 * 60 * 60 * 24));
 }
-// ── FOTO RENDER DEL PROYECTO ──────────────────────────────────────────────────
-function setProjectRenderImg(idx, input) {
+// ── COLLAPSE / EXPAND SECCIONES ───────────────────────────────────────────────
+
+window._splitCollapsed = window._splitCollapsed || { proj: false, cot: false };
+
+function toggleSplitSection(which) {
+  const projEl = document.getElementById('msplit-proj');
+  const cotEl  = document.getElementById('msplit-cot');
+  const btnP   = document.getElementById('btn-collapse-proj');
+  const btnC   = document.getElementById('btn-collapse-cot');
+  if (!projEl || !cotEl) return;
+
+  window._splitCollapsed[which] = !window._splitCollapsed[which];
+
+  if (which === 'proj') {
+    projEl.classList.toggle('sec-collapsed', window._splitCollapsed.proj);
+    if (btnP) btnP.textContent = window._splitCollapsed.proj ? '▸' : '▾';
+  } else {
+    cotEl.classList.toggle('sec-collapsed', window._splitCollapsed.cot);
+    if (btnC) btnC.textContent = window._splitCollapsed.cot ? '▸' : '▾';
+  }
+}
+
+window._mprojCollapsed = window._mprojCollapsed || {};
+
+function toggleMprojSec(id) {
+  const sec = document.getElementById('mprojsec-' + id);
+  if (!sec) return;
+  const isNowCollapsed = !sec.classList.contains('sec-collapsed');
+  sec.classList.toggle('sec-collapsed', isNowCollapsed);
+  window._mprojCollapsed[id] = isNowCollapsed;
+  const toggle = sec.querySelector('.mprojsec-toggle');
+  if (toggle) toggle.style.transform = isNowCollapsed ? 'rotate(-90deg)' : 'rotate(0)';
+  const header = sec.querySelector('.mprojsec-header');
+  if (header) header.classList.toggle('sec-collapsed', isNowCollapsed);
+}
+
+// ── FIN COLLAPSE ──────────────────────────────────────────────────────────────
+
+// ── COTIZACIONES ──────────────────────────────────────────────────────────────
+
+let _editingQuoteIdx = null;
+let _quoteExtras = []; // [{nombre, monto}]
+
+function openModal_quote() {
+  _editingQuoteIdx = null;
+  _quoteExtras = [];
+  document.getElementById('quote-modal-title').textContent = 'Nueva cotización';
+  document.getElementById('q-save-btn').textContent = 'Guardar';
+  document.getElementById('q-client').value = '';
+  document.getElementById('q-desc').value = '';
+  document.getElementById('q-mo').value = '';
+  document.getElementById('q-mat').value = '';
+  document.getElementById('q-notes').value = '';
+  renderQuoteExtras();
+  updateQuotePreview();
+}
+
+function addQuoteExtra() {
+  _quoteExtras.push({ nombre: '', monto: 0 });
+  renderQuoteExtras();
+}
+
+function removeQuoteExtra(i) {
+  _quoteExtras.splice(i, 1);
+  renderQuoteExtras();
+  updateQuotePreview();
+}
+
+function renderQuoteExtras() {
+  const el = document.getElementById('q-extras-list');
+  if (!el) return;
+  el.innerHTML = _quoteExtras.map((e, i) =>
+    '<div class="quote-extra-row">' +
+      '<input type="text" placeholder="Concepto" value="' + esc(e.nombre) + '" ' +
+        'oninput="_quoteExtras[' + i + '].nombre=this.value" ' +
+        'style="flex:2;padding:7px 10px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:12px;background:var(--surface);outline:none">' +
+      '<input type="number" placeholder="$0" value="' + (e.monto||'') + '" min="0" ' +
+        'oninput="_quoteExtras[' + i + '].monto=parseFloat(this.value)||0;updateQuotePreview()" ' +
+        'style="flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:12px;background:var(--surface);outline:none">' +
+      '<button onclick="removeQuoteExtra(' + i + ')">✕</button>' +
+    '</div>'
+  ).join('');
+}
+
+function updateQuotePreview() {
+  const mo  = parseFloat(document.getElementById('q-mo')?.value)  || 0;
+  const mat = parseFloat(document.getElementById('q-mat')?.value) || 0;
+  const ext = _quoteExtras.reduce((s, e) => s + (e.monto || 0), 0);
+  const total = mo + mat + ext;
+  const el = document.getElementById('q-total-preview');
+  if (el) el.textContent = '$' + fmt(total);
+}
+
+function saveQuote() {
+  const client = document.getElementById('q-client').value.trim();
+  if (!client) {
+    document.getElementById('err-qclient').style.display = 'block';
+    return;
+  }
+  document.getElementById('err-qclient').style.display = 'none';
+
+  const q = {
+    id: _editingQuoteIdx !== null ? S.quotes[_editingQuoteIdx].id : Date.now(),
+    client,
+    desc:   document.getElementById('q-desc').value.trim(),
+    mo:     parseFloat(document.getElementById('q-mo').value)  || 0,
+    mat:    parseFloat(document.getElementById('q-mat').value) || 0,
+    extras: _quoteExtras.map(e => ({ nombre: e.nombre, monto: e.monto || 0 })),
+    notes:  document.getElementById('q-notes').value.trim(),
+    createdAt: _editingQuoteIdx !== null ? S.quotes[_editingQuoteIdx].createdAt
+               : new Date().toISOString().slice(0, 10)
+  };
+
+  S.quotes = S.quotes || [];
+  if (_editingQuoteIdx !== null) {
+    S.quotes[_editingQuoteIdx] = q;
+  } else {
+    S.quotes.push(q);
+  }
+  render();
+  closeModal('quote');
+}
+
+function openQuoteDetail(qi) {
+  const q = S.quotes[qi];
+  if (!q) return;
+  const total = (q.mo||0) + (q.mat||0) + (q.extras||[]).reduce((s,e)=>s+(e.monto||0),0);
+
+  const extrasRows = (q.extras||[]).length
+    ? (q.extras||[]).map(e =>
+        '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">' +
+          '<span style="font-size:12px;color:var(--muted)">' + esc(e.nombre) + '</span>' +
+          '<span style="font-family:\'DM Mono\',monospace;font-size:12px">$' + fmt(e.monto) + '</span>' +
+        '</div>'
+      ).join('')
+    : '';
+
+  document.getElementById('quote-detail-body').innerHTML =
+    '<div style="padding:20px 18px 4px;display:flex;align-items:flex-start;justify-content:space-between">' +
+      '<div>' +
+        '<div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Cotización</div>' +
+        '<div style="font-size:18px;font-weight:800;text-transform:uppercase;color:var(--ink)">' + esc(q.client) + '</div>' +
+        (q.desc ? '<div style="font-size:11px;color:var(--muted);margin-top:2px">' + esc(q.desc) + '</div>' : '') +
+      '</div>' +
+      '<button onclick="closeModal(\'quote-detail\')" style="background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;padding:0 4px;line-height:1">✕</button>' +
+    '</div>' +
+    '<div class="modal-body" style="padding:12px 18px 8px">' +
+      '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)">' +
+        '<span style="font-size:12px;color:var(--muted)">Mano de obra</span>' +
+        '<span style="font-family:\'DM Mono\',monospace;font-size:12px">$' + fmt(q.mo||0) + '</span>' +
+      '</div>' +
+      '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)">' +
+        '<span style="font-size:12px;color:var(--muted)">Materiales</span>' +
+        '<span style="font-family:\'DM Mono\',monospace;font-size:12px">$' + fmt(q.mat||0) + '</span>' +
+      '</div>' +
+      extrasRows +
+      '<div style="display:flex;justify-content:space-between;padding:10px 0;margin-top:4px">' +
+        '<span style="font-size:13px;font-weight:700;color:var(--ink)">Total</span>' +
+        '<span style="font-family:\'DM Mono\',monospace;font-size:18px;font-weight:700;color:var(--kiri)">$' + fmt(total) + '</span>' +
+      '</div>' +
+      (q.notes ? '<div style="background:var(--bg);border-radius:6px;padding:10px 12px;font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5">' + esc(q.notes) + '</div>' : '') +
+    '</div>' +
+    '<div style="padding:0 18px 20px;display:flex;flex-direction:column;gap:8px">' +
+      '<button onclick="exportQuotePDF(' + qi + ')" style="width:100%;padding:12px;background:var(--kiri);border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:700;font-family:\'DM Sans\',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">' +
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>' +
+        'Compartir cotización' +
+      '</button>' +
+      '<button onclick="editQuote(' + qi + ')" style="width:100%;padding:12px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--ink);font-size:12px;font-weight:600;font-family:\'DM Sans\',sans-serif;cursor:pointer">Editar</button>' +
+      '<button onclick="deleteQuote(' + qi + ')" style="width:100%;padding:12px;background:none;border:1px solid #d9a0a0;border-radius:6px;color:var(--kiri);font-size:12px;font-weight:600;font-family:\'DM Sans\',sans-serif;cursor:pointer">Eliminar cotización</button>' +
+    '</div>';
+
+  document.getElementById('modal-quote-detail').style.display = 'flex';
+}
+
+function editQuote(qi) {
+  const q = S.quotes[qi];
+  if (!q) return;
+  closeModal('quote-detail');
+  _editingQuoteIdx = qi;
+  _quoteExtras = (q.extras || []).map(e => ({ ...e }));
+  document.getElementById('quote-modal-title').textContent = 'Editar cotización';
+  document.getElementById('q-save-btn').textContent = 'Actualizar';
+  document.getElementById('q-client').value = q.client || '';
+  document.getElementById('q-desc').value   = q.desc   || '';
+  document.getElementById('q-mo').value     = q.mo     || '';
+  document.getElementById('q-mat').value    = q.mat    || '';
+  document.getElementById('q-notes').value  = q.notes  || '';
+  renderQuoteExtras();
+  updateQuotePreview();
+  document.getElementById('modal-quote').style.display = 'flex';
+}
+
+function deleteQuote(qi) {
+  if (!confirm('¿Eliminar esta cotización?')) return;
+  S.quotes.splice(qi, 1);
+  closeModal('quote-detail');
+  render();
+}
+
+async function exportQuotePDF(qi) {
+  const q = S.quotes[qi];
+  if (!q) return;
+  const total = (q.mo||0) + (q.mat||0) + (q.extras||[]).reduce((s,e)=>s+(e.monto||0),0);
+  const fecha = new Date().toLocaleDateString('es-AR', { day:'2-digit', month:'long', year:'numeric' });
+
+  const extrasRows = (q.extras||[]).length
+    ? q.extras.map(e =>
+        '<tr><td style="padding:10px 0;border-bottom:1px solid #eee;color:#666;font-size:14px">' + esc(e.nombre) + '</td>' +
+        '<td style="padding:10px 0;border-bottom:1px solid #eee;text-align:right;font-family:monospace;font-size:14px">$' + fmt(e.monto) + '</td></tr>'
+      ).join('')
+    : '';
+
+  const htmlContent = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">' +
+    '<style>' +
+    'body{font-family:Arial,Helvetica,sans-serif;color:#1a1512;max-width:620px;margin:0 auto;padding:40px 32px;background:#fff}' +
+    '.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px;padding-bottom:24px;border-bottom:3px solid #7a2f2f}' +
+    '.brand{font-size:28px;font-weight:900;letter-spacing:4px;color:#7a2f2f}' +
+    '.brand-sub{font-size:9px;letter-spacing:3px;color:#8a827a;text-transform:uppercase;margin-top:2px}' +
+    '.meta{text-align:right;font-size:12px;color:#8a827a;line-height:1.6}' +
+    'h1{font-size:22px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin:0 0 6px}' +
+    '.desc{font-size:13px;color:#8a827a;margin-bottom:32px}' +
+    'table{width:100%;border-collapse:collapse}' +
+    'th{text-align:left;padding:0 0 10px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#8a827a;border-bottom:2px solid #1a1512}' +
+    'th:last-child{text-align:right}' +
+    'td{padding:12px 0;border-bottom:1px solid #eee;font-size:14px}' +
+    'td:last-child{text-align:right;font-family:monospace}' +
+    '.total-row td{border-bottom:none;padding-top:20px;font-size:18px;font-weight:800}' +
+    '.total-row td:last-child{color:#7a2f2f;font-size:22px}' +
+    '.notes{margin-top:32px;padding:16px 20px;background:#f5f0e8;border-radius:6px;font-size:13px;color:#666;line-height:1.6}' +
+    '.notes-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#8a827a;margin-bottom:8px;font-weight:700}' +
+    '.footer{margin-top:48px;padding-top:20px;border-top:1px solid #eee;font-size:11px;color:#aaa;text-align:center}' +
+    '</style></head><body>' +
+    '<div class="header">' +
+      '<div><div class="brand">桐 KIRI</div><div class="brand-sub">Muebles a medida</div></div>' +
+      '<div class="meta"><div>Cotización</div><div>' + fecha + '</div></div>' +
+    '</div>' +
+    '<h1>' + esc(q.client) + '</h1>' +
+    (q.desc ? '<div class="desc">' + esc(q.desc) + '</div>' : '') +
+    '<table><thead><tr><th>Concepto</th><th>Monto</th></tr></thead><tbody>' +
+    '<tr><td style="padding:12px 0;border-bottom:1px solid #eee">Mano de obra</td><td style="padding:12px 0;border-bottom:1px solid #eee;text-align:right;font-family:monospace">$' + fmt(q.mo||0) + '</td></tr>' +
+    '<tr><td style="padding:12px 0;border-bottom:1px solid #eee">Materiales</td><td style="padding:12px 0;border-bottom:1px solid #eee;text-align:right;font-family:monospace">$' + fmt(q.mat||0) + '</td></tr>' +
+    extrasRows +
+    '<tr class="total-row"><td>Total</td><td>$' + fmt(total) + '</td></tr>' +
+    '</tbody></table>' +
+    (q.notes ? '<div class="notes"><div class="notes-label">Observaciones</div>' + esc(q.notes) + '</div>' : '') +
+    '<div class="footer">Esta cotización tiene validez de 30 días · Kiri Muebles</div>' +
+    '</body></html>';
+
+  closeModal('quote-detail');
+  const filename = 'kiri-cotizacion-' + (q.client || 'cliente').toLowerCase().replace(/\s+/g, '-') + '.html';
+  await mobileShareOrPrint(htmlContent, filename);
+}
+
+// ── FIN COTIZACIONES ──────────────────────────────────────────────────────────
+
+function confirmDelivery(idx) {
   const file = input && input.files && input.files[0];
   if (!file || !S.projects[idx]) return;
 
