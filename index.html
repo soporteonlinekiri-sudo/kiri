@@ -622,192 +622,145 @@ header {
 .mhome-metric-positive { color: #2a6a2a !important; }
 .mhome-metric-negative { color: #aa2a2a !important; }
 
-/* ── PROYECTOS — CARRUSEL SNAP ──────────────────────────────── */
-/* ── DECK DE CARTAS APILADAS (estilo Wallet) ────────────────── */
-.mhome-carousel-wrap {
-  height: calc(100dvh - 50px - 76px);
+/* ── PROYECTOS — GRID DE CUADRANTES ─────────────────────────── */
+.mproj-wrap {
+  height: calc(100dvh - 54px - 76px);
   display: flex; flex-direction: column;
-  background: var(--bg); overflow: hidden;
-  position: relative;
+  background: var(--surface);
 }
-.mhome-carousel-topbar {
-  padding: 20px 22px 0px;
-  display: flex; align-items: center; justify-content: space-between;
-  flex-shrink: 0; position: relative; z-index: 2;
+.mproj-topbar {
+  padding: 20px 18px 14px;
+  display: flex; align-items: baseline; justify-content: space-between;
+  flex-shrink: 0; border-bottom: 1px solid var(--border);
 }
-.mhome-carousel-title {
-  font-size: 22px; font-weight: 300; letter-spacing: 0px;
-  text-transform: none; color: var(--ink);
+.mproj-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--ink);
 }
-.mhome-carousel-subtitle {
-  font-size: 10px; font-weight: 300; letter-spacing: 3px;
-  color: var(--muted); display: block; margin-top: 2px;
-  text-transform: lowercase;
+.mproj-count {
+  font-size: 8px; font-weight: 500; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--muted);
+  font-family: 'DM Mono', monospace;
 }
-.mhome-add-btn {
-  background: none; color: var(--muted); border: none;
-  border-radius: 8px; padding: 7px 4px;
-  font-size: 10px; font-weight: 400; letter-spacing: 2px;
-  font-family: 'DM Sans', sans-serif; cursor: pointer;
+
+/* Grid de cuadrantes — 2 columnas, filas auto */
+.mproj-grid {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  padding: 12px; scrollbar-width: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: calc((100dvh - 54px - 76px - 60px - 24px) / 3);
+  gap: 8px;
+  align-content: start;
+}
+.mproj-grid::-webkit-scrollbar { display: none; }
+
+/* Tamaños según cuadrantes */
+.mproj-card[data-size="4"] { grid-column: span 2; grid-row: span 2; }
+.mproj-card[data-size="2w"] { grid-column: span 2; grid-row: span 1; }
+.mproj-card[data-size="2h"] { grid-column: span 1; grid-row: span 2; }
+.mproj-card[data-size="1"] { grid-column: span 1; grid-row: span 1; }
+
+/* Card base */
+.mproj-card {
+  border-radius: 6px; overflow: hidden;
+  cursor: pointer; position: relative;
+  display: flex; flex-direction: column;
   -webkit-tap-highlight-color: transparent;
-  text-transform: lowercase;
+  transition: transform 0.12s, filter 0.12s;
+  min-height: 0;
 }
+.mproj-card:active { transform: scale(0.97); filter: brightness(0.92); }
 
-/* Contenedor del mazo — perspectiva 3D, cartas centradas */
-.mhome-deck-wrap {
-  flex: 1; position: relative;
-  margin: 0 14px;
-  margin-top: 16px;
-  perspective: 900px;
-  perspective-origin: 50% 50%;
-  touch-action: none;
-  overscroll-behavior: none;
+/* Fill visual del % cobrado — sube desde abajo */
+.mproj-fill {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  background: rgba(255,255,255,0.18);
+  transition: height 0.6s cubic-bezier(0.4,0,0.2,1);
+  pointer-events: none;
 }
+.mproj-fill.done { background: rgba(255,255,255,0.28); }
 
-/* Cada carta centrada absolutamente, sin transform-origin especial */
-.mhome-card {
-  position: absolute;
-  left: 0; right: 0;
-  top: 50%; margin-top: -185px;   /* centrado vertical: mitad de max-height */
-  height: min(calc(100dvh - 50px - 76px - 200px), 370px);
-  border-radius: 20px; overflow: hidden;
-  cursor: pointer; -webkit-tap-highlight-color: transparent;
-  transform-origin: center center;
-  transition: transform 0.48s cubic-bezier(0.4,0,0.2,1),
-              box-shadow 0.35s ease,
-              opacity 0.32s ease,
-              filter 0.32s ease;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.25);
-  will-change: transform;
-  user-select: none;
-  backface-visibility: hidden;
-}
-.mhome-card:active { filter: brightness(0.93); }
-
-/* ── CARD body — layout en dos bloques ─────────────── */
-.mhome-card-body {
-  height: 100%; box-sizing: border-box;
-  display: flex; flex-direction: column;
-}
-
-/* Bloque superior: nombre + número */
-.mhome-card-top-block {
-  flex: 1;
-  padding: 24px 24px 20px;
-  display: flex; flex-direction: column;
+/* Contenido de la card */
+.mproj-inner {
+  position: relative; z-index: 1;
+  flex: 1; display: flex; flex-direction: column;
+  padding: 14px 14px 12px;
   justify-content: space-between;
 }
-.mhome-card-header {
-  display: flex; justify-content: space-between; align-items: flex-start;
+
+/* Nombre del proyecto */
+.mproj-name {
+  font-weight: 700; color: #fff;
+  text-transform: uppercase; line-height: 1.05;
+  letter-spacing: 0.5px;
 }
-.mhome-card-num {
+.mproj-card[data-size="4"] .mproj-name { font-size: 22px; }
+.mproj-card[data-size="2w"] .mproj-name { font-size: 17px; }
+.mproj-card[data-size="2h"] .mproj-name { font-size: 15px; }
+.mproj-card[data-size="1"] .mproj-name { font-size: 12px; line-height: 1.1; }
+
+.mproj-desc {
+  font-size: 8px; color: rgba(255,255,255,0.5);
+  letter-spacing: 1.5px; margin-top: 3px; text-transform: lowercase;
+}
+.mproj-card[data-size="1"] .mproj-desc { display: none; }
+
+/* Porcentaje — hero number visual */
+.mproj-pct-wrap { display: flex; align-items: flex-end; justify-content: space-between; }
+.mproj-pct {
+  font-family: 'DM Mono', monospace; font-weight: 700;
+  color: #fff; line-height: 1; letter-spacing: -1px;
+}
+.mproj-card[data-size="4"] .mproj-pct { font-size: 56px; }
+.mproj-card[data-size="2w"] .mproj-pct { font-size: 36px; }
+.mproj-card[data-size="2h"] .mproj-pct { font-size: 32px; }
+.mproj-card[data-size="1"] .mproj-pct { font-size: 24px; }
+
+.mproj-pct-sym {
+  font-size: 0.45em; opacity: 0.7; vertical-align: super;
+  font-weight: 400; letter-spacing: 0;
+}
+.mproj-budget {
   font-family: 'DM Mono', monospace;
-  font-size: 9px; color: rgba(255,255,255,0.45); letter-spacing: 3px;
-  font-weight: 400;
+  color: rgba(255,255,255,0.6); font-weight: 400;
+  text-align: right; line-height: 1;
 }
-.mhome-card-status {
-  font-size: 8px; font-weight: 600; letter-spacing: 2px;
-  padding: 3px 8px; border-radius: 20px;
-  text-transform: uppercase;
+.mproj-card[data-size="4"] .mproj-budget { font-size: 13px; }
+.mproj-card[data-size="2w"] .mproj-budget { font-size: 11px; }
+.mproj-card[data-size="2h"] .mproj-budget { font-size: 10px; }
+.mproj-card[data-size="1"] .mproj-budget { display: none; }
+
+/* Badge estado */
+.mproj-badge {
+  font-size: 7px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; padding: 3px 7px; border-radius: 2px;
+  display: inline-block; margin-bottom: 6px;
 }
-.mhome-card-status.active {
-  background: rgba(255,255,255,0.2); color: rgba(255,255,255,0.9);
+.mproj-badge.done { background: rgba(255,255,255,0.25); color: #fff; }
+.mproj-badge.active { background: rgba(0,0,0,0.2); color: rgba(255,255,255,0.7); }
+.mproj-card[data-size="1"] .mproj-badge { display: none; }
+
+/* Barra fina en la parte inferior */
+.mproj-bar {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+  background: rgba(0,0,0,0.2);
 }
-.mhome-card-status.done {
-  background: rgba(0,0,0,0.2); color: rgba(255,255,255,0.5);
-}
-.mhome-card-name {
-  font-size: 26px; font-weight: 600;
-  color: #fff; text-transform: uppercase;
-  letter-spacing: 1px; line-height: 1.05;
-  margin-top: 12px;
-}
-.mhome-card-desc {
-  font-size: 9px; color: rgba(255,255,255,0.45);
-  text-transform: lowercase; letter-spacing: 2px; margin-top: 4px;
+.mproj-bar-fill {
+  height: 100%; background: rgba(255,255,255,0.7);
+  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
 }
 
-/* Bloque inferior oscuro: cifras */
-.mhome-card-bottom-block {
-  background: rgba(0,0,0,0.28);
-  padding: 16px 24px 18px;
-  display: flex; flex-direction: column; gap: 10px;
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.96); }
+  to   { opacity: 1; transform: none; }
 }
-.mhome-card-amount-row {
-  display: flex; justify-content: space-between; align-items: baseline;
-}
-.mhome-card-amount-lbl {
-  font-size: 8px; letter-spacing: 2px; color: rgba(255,255,255,0.45);
-  text-transform: uppercase; font-weight: 500;
-}
-.mhome-card-amount {
-  font-family: 'DM Mono', monospace;
-  font-size: 20px; font-weight: 400;
-  color: #fff; letter-spacing: -0.5px;
-}
-.mhome-card-amount.hidden { letter-spacing: 2px; }
-.mhome-card-eye {
-  background: none; border: none; padding: 0;
-  cursor: pointer; display: flex; align-items: center;
-  opacity: 0.5;
-  -webkit-tap-highlight-color: transparent;
-}
-.mhome-card-eye:active { opacity: 0.9; }
-
-/* Barra de progreso */
-.mhome-card-progress-row {
-  display: flex; flex-direction: column; gap: 5px;
-}
-.mhome-card-bar {
-  height: 2px; background: rgba(255,255,255,0.15); border-radius: 1px;
-  overflow: hidden;
-}
-.mhome-card-bar-fill { height: 100%; background: rgba(255,255,255,0.7); }
-.mhome-card-bar-labels {
-  display: flex; justify-content: space-between;
-}
-.mhome-card-bar-lbl {
-  font-size: 7px; color: rgba(255,255,255,0.4);
-  font-family: 'DM Mono', monospace; letter-spacing: 1px;
-}
-.mhome-card-pct {
-  font-family: 'DM Mono', monospace;
-  font-size: 7px; color: rgba(255,255,255,0.6);
-}
-.mhome-card-date {
-  display: none; /* ya no se usa */
-}
-
-/* Dots indicadores */
-.mhome-carousel-dots {
-  display: flex; justify-content: center; gap: 5px;
-  padding: 10px 0 6px; flex-shrink: 0; position: relative; z-index: 2;
-}
-.mhome-cdot {
-  width: 4px; height: 4px; border-radius: 50%;
-  background: var(--border2); transition: background 0.25s, transform 0.25s;
-}
-.mhome-cdot.active { background: var(--kiri); transform: scale(1.5); }
-
-/* Hint swipe */
-.mhome-swipe-hint {
-  text-align: center; padding-bottom: 4px;
-  font-size: 7px; letter-spacing: 3px; color: var(--border2);
-  text-transform: lowercase; flex-shrink: 0;
-}
-
-@keyframes deckIn {
-  from { opacity: 0; transform: translateY(60px) scale(0.9); }
-  to   { opacity: 1; }
-}
-@keyframes fadeDown {
-  from { opacity: 0; transform: translateY(-8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes cardSlideIn {
-  from { opacity: 0; transform: translateY(28px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
+.mproj-card { animation: cardIn 0.3s ease both; }
+.mproj-card:nth-child(1) { animation-delay: 0ms; }
+.mproj-card:nth-child(2) { animation-delay: 40ms; }
+.mproj-card:nth-child(3) { animation-delay: 80ms; }
+.mproj-card:nth-child(4) { animation-delay: 120ms; }
+.mproj-card:nth-child(5) { animation-delay: 160ms; }
 
 /* Empty state */
 .mhome-empty {
@@ -815,9 +768,6 @@ header {
   align-items: center; justify-content: center;
   padding: 40px 32px; text-align: center; gap: 12px;
 }
-.mhome-empty-kanji {
-  font-family: 'Noto Sans JP', sans-serif;
-  font-size: 64px; color: var(--border2); line-height: 1; margin-bottom: 8px;
 }
 .mhome-empty-text { font-size: 13px; color: var(--muted); line-height: 1.6; }
 .mhome-new-btn {
@@ -3029,93 +2979,82 @@ function renderMobileHome(el, tab) {
     return;
   }
 
-  // ── TAB PROYECTOS: deck apilado estilo Wallet ────────────────
+  // ── TAB PROYECTOS: grid de cuadrantes ───────────────────────
+  const projColors = ['#7a2f2f','#4e6450','#c8773a','#4a6a9a','#7a5a8a','#3a6a6a'];
   if (!window._cardPriceVisible) window._cardPriceVisible = {};
-
-  const eyeIcon = (vis) => vis
-    ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
-    : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
 
   if (!n) {
     el.innerHTML =
-      '<div class="mhome-carousel-wrap">' +
-        '<div class="mhome-carousel-topbar">' +
-          '<div><span class="mhome-carousel-title">Proyectos</span>' +
-          '<span class="mhome-carousel-subtitle">ninguno todavía</span></div>' +
+      '<div class="mproj-wrap">' +
+        '<div class="mproj-topbar">' +
+          '<span class="mproj-title">Proyectos</span>' +
+          '<span class="mproj-count">ninguno</span>' +
         '</div>' +
         '<div class="mhome-empty">' +
-          '<div class="mhome-empty-kanji" style="font-family:sans-serif;font-size:40px;font-weight:800;letter-spacing:8px;color:var(--border2)">KIRI</div>' +
+          '<div style="font-size:36px;font-weight:800;letter-spacing:8px;color:var(--border)">KIRI</div>' +
           '<div class="mhome-empty-text">Todavía no hay proyectos.<br>Usá el + para crear el primero.</div>' +
         '</div>' +
       '</div>';
     return;
   }
 
-  const dots = S.projects.map((_,i) =>
-    '<div class="mhome-cdot" id="mcdot-' + i + '"></div>'
-  ).join('');
+  // ── Calcular tamaño de cada card en el grid ──────────────────
+  // Asignar cuadrantes según presupuesto relativo al máximo
+  const maxBudget = Math.max(...S.projects.map(p => p.budget || 0), 1);
 
-  const cardsHTML = S.projects.map((p,i) => {
-    const color = cardColors[i % cardColors.length];
-    const pagado = p.pagos.reduce((s,pg)=>s+pg.amount,0);
-    const pct = p.budget > 0 ? Math.min(100,(pagado/p.budget)*100) : 0;
-    const visible = !!window._cardPriceVisible[i];
+  function getCardSize(budget) {
+    const ratio = (budget || 0) / maxBudget;
+    if (ratio >= 0.65) return '4';   // 2×2 — proyecto grande
+    if (ratio >= 0.35) return '2w';  // 2×1 — proyecto medio
+    if (ratio >= 0.15) return '2h';  // 1×2 — proyecto mediano-chico
+    return '1';                       // 1×1 — proyecto chico
+  }
+
+  const cardsHTML = S.projects.map((p, i) => {
+    const color  = projColors[i % projColors.length];
+    const pagado = p.pagos.reduce((s, pg) => s + pg.amount, 0);
+    const pct    = p.budget > 0 ? Math.min(100, (pagado / p.budget) * 100) : 0;
     const isDone = pct >= 100;
-    const statusLabel = isDone ? 'completado' : 'activo';
-    const statusClass = isDone ? 'done' : 'active';
-    const numStr = String(i+1).padStart(2,'0');
-    return '<div class="mhome-card" data-idx="' + i + '" style="background:' + color + '">' +
-      '<div class="mhome-card-body">' +
-        '<div class="mhome-card-top-block">' +
-          '<div class="mhome-card-header">' +
-            '<span class="mhome-card-num">' + numStr + '</span>' +
-            '<span class="mhome-card-status ' + statusClass + '">' + statusLabel + '</span>' +
-          '</div>' +
+    const size   = getCardSize(p.budget);
+    const visible = !!window._cardPriceVisible[i];
+
+    // La altura del fill = pct% de la card
+    const fillH  = pct.toFixed(1) + '%';
+
+    return (
+      '<div class="mproj-card" data-size="' + size + '" data-idx="' + i + '" ' +
+          'style="background:' + color + '" onclick="selectMobileProject(' + i + ')">' +
+        // Fill visual desde abajo
+        '<div class="mproj-fill' + (isDone ? ' done' : '') + '" style="height:' + fillH + '"></div>' +
+        // Barra fina en la base
+        '<div class="mproj-bar"><div class="mproj-bar-fill" style="width:' + pct + '%"></div></div>' +
+        // Contenido
+        '<div class="mproj-inner">' +
           '<div>' +
-            '<div class="mhome-card-name">' + esc(p.name) + '</div>' +
-            (p.desc ? '<div class="mhome-card-desc">' + esc(p.desc) + '</div>' : '') +
+            '<div class="mproj-badge ' + (isDone ? 'done' : 'active') + '">' + (isDone ? '✓ cobrado' : 'activo') + '</div>' +
+            '<div class="mproj-name">' + esc(p.name) + '</div>' +
+            (p.desc ? '<div class="mproj-desc">' + esc(p.desc) + '</div>' : '') +
           '</div>' +
-        '</div>' +
-        '<div class="mhome-card-bottom-block">' +
-          '<div class="mhome-card-amount-row">' +
-            '<div>' +
-              '<div class="mhome-card-amount-lbl">presupuesto</div>' +
-              '<div class="mhome-card-amount' + (visible ? '' : ' hidden') + '">' + (visible ? '$'+fmt(p.budget) : '••••••') + '</div>' +
-            '</div>' +
-            '<button class="mhome-card-eye" onclick="event.stopPropagation();toggleCardPrice(' + i + ')">' +
-              eyeIcon(visible) +
-            '</button>' +
-          '</div>' +
-          '<div class="mhome-card-progress-row">' +
-            '<div class="mhome-card-bar"><div class="mhome-card-bar-fill" style="width:' + pct + '%"></div></div>' +
-            '<div class="mhome-card-bar-labels">' +
-              '<span class="mhome-card-bar-lbl">cobrado</span>' +
-              '<span class="mhome-card-pct">' + pct.toFixed(0) + '%</span>' +
+          '<div class="mproj-pct-wrap">' +
+            '<div class="mproj-pct"><span class="mproj-pct-sym">%</span>' + pct.toFixed(0) + '</div>' +
+            '<div class="mproj-budget">' +
+              (visible ? '$' + fmt(p.budget) : '$ ···') + '<br>' +
+              '<span style="font-size:0.75em;opacity:0.5">cobrado</span>' +
             '</div>' +
           '</div>' +
         '</div>' +
-      '</div>' +
-    '</div>';
+      '</div>'
+    );
   }).join('');
 
   el.innerHTML =
-    '<div class="mhome-carousel-wrap" id="deck-wrap">' +
-      '<div class="mhome-carousel-topbar">' +
-        '<div><span class="mhome-carousel-title">Proyectos</span>' +
-        '<span class="mhome-carousel-subtitle">' + n + ' ' + (n===1?'proyecto':'proyectos') + '</span></div>' +
+    '<div class="mproj-wrap">' +
+      '<div class="mproj-topbar">' +
+        '<span class="mproj-title">Proyectos</span>' +
+        '<span class="mproj-count">' + n + ' ' + (n === 1 ? 'proyecto' : 'proyectos') + '</span>' +
       '</div>' +
-      '<div class="mhome-deck-wrap" id="mhome-deck"></div>' +
-      '<div class="mhome-carousel-dots" id="deck-dots">' + dots + '</div>' +
-      '<div class="mhome-swipe-hint">deslizá para ver más</div>' +
+      '<div class="mproj-grid">' + cardsHTML + '</div>' +
     '</div>';
-
-  // Insertar cards en el deck
-  const deckEl = document.getElementById('mhome-deck');
-  if (!deckEl) return;
-  deckEl.innerHTML = cardsHTML;
-
-  // ── DECK ENGINE ──────────────────────────────────────────────
-  initDeck(deckEl, n);
 }
 
 function initDeck(deckEl, total) {
