@@ -2223,6 +2223,7 @@ header {
 
     <div class="modal-actions">
       <button class="btn btn-light" onclick="closeModal('apikey')">Cancelar</button>
+      <button class="btn btn-light" onclick="forceCloudUpload()" title="Sobrescribir la nube con los datos locales actuales" style="color:var(--sun);border-color:var(--sun)">↑ Forzar subida</button>
       <button class="btn btn-primary" onclick="saveApiKey()">Guardar</button>
     </div>
   </div>
@@ -2991,7 +2992,10 @@ function loadState() {
 }
 
 function saveState() {
-  try { localStorage.setItem('kiri_state', JSON.stringify(S)); } catch(e) {}
+  try {
+    S._updatedAt = Date.now(); // marca de tiempo en cada guardado local
+    localStorage.setItem('kiri_state', JSON.stringify(S));
+  } catch(e) {}
   // Debounce cloud save: esperar 1.5s de inactividad antes de guardar en la nube
   if (_jsonbinKey) {
     if (_cloudSaveTimer) clearTimeout(_cloudSaveTimer);
@@ -3027,17 +3031,20 @@ async function initCloudSync() {
 
   const cloudData = await cloudLoad();
   if (cloudData && cloudData.projects) {
-    const localProjects = S.projects.length;
-    const cloudProjects = cloudData.projects.length;
-    if (cloudProjects >= localProjects) {
+    const localTs  = S._updatedAt  || 0;
+    const cloudTs  = cloudData._updatedAt || 0;
+
+    if (cloudTs > localTs) {
+      // La nube es más reciente → tomar datos de la nube
       Object.assign(S, cloudData);
-      S.quotes = S.quotes || []; // migración: estado viejo no tenía quotes
-      if (isMobile()) S.active = null; // en mobile siempre arrancar en home
-      saveState();
+      S.quotes    = S.quotes    || [];
+      S._updatedAt = cloudTs;
+      if (isMobile()) S.active = null;
+      try { localStorage.setItem('kiri_state', JSON.stringify(S)); } catch(e) {}
       render();
       setCloudStatus('☁ sincronizado', 'var(--sage)');
     } else {
-      // Local tiene más datos — subir a la nube
+      // Local es más reciente (o igual) → subir local a la nube
       await cloudSave(S);
       setCloudStatus('☁ sincronizado', 'var(--sage)');
     }
@@ -6488,6 +6495,16 @@ function updateApiKeyBtn() {
   const hasAI    = !!_apiKey;
   if (dot) dot.className = 'apikey-dot' + (hasAI || hasCloud ? ' ok' : '');
   if (btn) btn.title = [hasCloud?'☁ nube configurada':'☁ sin nube', hasAI?'🤖 IA configurada':''].filter(Boolean).join(' · ') || 'Configurar conexión';
+}
+
+async function forceCloudUpload() {
+  if (!_jsonbinKey) { alert('Configurá primero la JSONBin Key.'); return; }
+  S._updatedAt = Date.now();
+  try { localStorage.setItem('kiri_state', JSON.stringify(S)); } catch(e) {}
+  setCloudStatus('↑ subiendo…', 'var(--sun)');
+  await cloudSave(S);
+  setCloudStatus('☁ subido', 'var(--sage)');
+  closeModal('apikey');
 }
 
 function saveApiKey() {
