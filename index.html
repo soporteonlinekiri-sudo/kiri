@@ -4872,35 +4872,120 @@ function exportCSV() {
   a.click();
 }
 
-// ── EXPORT PDF ────────────────────────────────────────────────────────────────
-// ── COMPARTIR / IMPRIMIR ─────────────────────────────────────────────────────
-// En mobile: Web Share API con archivo HTML (abre el selector nativo)
-// En desktop: ventana nueva + diálogo de impresión
+// ── PDF GENERATION + SHARE ────────────────────────────────────────────────────
+// Genera un PDF real en el browser y lo comparte via Web Share API nativa
+
+let _html2pdfLoaded = false;
+
+async function loadHtml2Pdf() {
+  if (_html2pdfLoaded || window.html2pdf) { _html2pdfLoaded = true; return true; }
+  return new Promise(resolve => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+    s.onload  = () => { _html2pdfLoaded = true; resolve(true); };
+    s.onerror = () => resolve(false);
+    document.head.appendChild(s);
+  });
+}
+
+// Prepara el HTML para renderizado offline (reemplaza Google Fonts con fuentes del sistema)
+function prepareHtmlForPdf(htmlContent) {
+  return htmlContent
+    .replace(/<link[^>]*fonts\.googleapis[^>]*>/gi, '')
+    .replace(/<link[^>]*fonts\.gstatic[^>]*>/gi, '')
+    .replace(/font-family:\s*['"]?DM Sans['"]?,?[^;'"}]*/g,
+      "font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif")
+    .replace(/font-family:\s*['"]?DM Mono['"]?,?[^;'"}]*/g,
+      "font-family: 'Courier New', Courier, monospace")
+    .replace(/font-family:\s*['"]?Noto Sans JP['"]?,?[^;'"}]*/g,
+      "font-family: -apple-system, sans-serif");
+}
+
+// Extrae solo el body+estilos del HTML para inyectar en el DOM
+function extractBodyContent(htmlContent) {
+  const bodyMatch = htmlContent.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+  const styleMatches = htmlContent.match(/<style[^>]*>([\s\S]*?)<\/style>/gi) || [];
+  return styleMatches.join('\n') + (bodyMatch ? bodyMatch[1] : htmlContent);
+}
+
+async function generatePdfBlob(htmlContent) {
+  const loaded = await loadHtml2Pdf();
+  if (!loaded) throw new Error('html2pdf no disponible');
+
+  const prepared = prepareHtmlForPdf(htmlContent);
+  const content  = extractBodyContent(prepared);
+
+  const container = document.createElement('div');
+  container.style.cssText = [
+    'position:fixed', 'top:-9999px', 'left:0',
+    'width:210mm', 'background:white',
+    'font-size:14px', 'line-height:1.5',
+    'color:#1c1714', 'z-index:-999'
+  ].join(';');
+  container.innerHTML = content;
+  document.body.appendChild(container);
+
+  try {
+    const blob = await window.html2pdf()
+      .from(container)
+      .set({
+        margin:      [12, 14, 12, 14],
+        html2canvas: { scale: 2, useCORS: false, logging: false, allowTaint: true },
+        jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      })
+      .outputPdf('blob');
+    return blob;
+  } finally {
+    if (document.body.contains(container)) document.body.removeChild(container);
+  }
+}
+
 async function mobileShareOrPrint(htmlContent, filename) {
-  const file = new File([htmlContent], filename, { type: 'text/html;charset=utf-8' });
+  const pdfFilename = filename.replace(/\.html?$/i, '.pdf');
 
-  // Mostrar toast de carga en mobile
-  if (isMobile()) showMobileToast('Preparando documento…', 0);
-
-  // Intento 1: Web Share API con archivo (iOS Safari 15+, Chrome Android)
-  if (isMobile() && navigator.canShare && navigator.canShare({ files: [file] })) {
-    hideMobileToast();
-    try {
-      await navigator.share({ files: [file], title: filename.replace(/-/g,' ').replace('.html','') });
-      return;
-    } catch(err) {
-      if (err.name !== 'AbortError') console.warn('Share API error:', err);
-      else return; // usuario canceló
-    }
+  if (!isMobile()) {
+    // Desktop: abrir en ventana nueva + diálogo de impresión
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+    const url  = URL.createObjectURL(blob);
+    const win  = window.open(url, '_blank');
+    if (win) win.onload = () => { win.print(); URL.revokeObjectURL(url); };
+    return;
   }
 
-  hideMobileToast();
-  // Fallback: abrir en ventana nueva y print
-  const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
-  const url  = URL.createObjectURL(blob);
-  const win  = window.open(url, '_blank');
-  if (win) win.onload = () => { win.print(); URL.revokeObjectURL(url); };
-  else { URL.revokeObjectURL(url); }
+  // Mobile: generar PDF real y compartir
+  showMobileToast('Generando PDF…', 0);
+
+  try {
+    const pdfBlob = await generatePdfBlob(htmlContent);
+    hideMobileToast();
+
+    const pdfFile = new File([pdfBlob], pdfFilename, { type: 'application/pdf' });
+
+    // Web Share API con archivo PDF — WhatsApp, Telegram, Email, etc.
+    if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+      await navigator.share({
+        files: [pdfFile],
+        title:  pdfFilename.replace(/-/g, ' ').replace('.pdf', '')
+      });
+      return;
+    }
+
+    // Fallback: descarga directa
+    const url = URL.createObjectURL(pdfBlob);
+    const a = Object.assign(document.createElement('a'), { href: url, download: pdfFilename });
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+  } catch (err) {
+    hideMobileToast();
+    if (err.name === 'AbortError') return; // usuario canceló el share sheet
+    console.error('PDF share error:', err);
+    // Último fallback: abrir HTML en nueva pestaña
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+    window.open(URL.createObjectURL(blob), '_blank');
+  }
 }
 
 // Toast de feedback mobile
@@ -4910,10 +4995,17 @@ function showMobileToast(msg, duration) {
   if (!toast) {
     toast = document.createElement('div');
     toast.id = 'kiri-toast';
-    toast.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(28,23,20,0.92);color:#fff;padding:10px 18px;border-radius:20px;font-size:12px;font-weight:600;font-family:"DM Sans",sans-serif;z-index:9999;pointer-events:none;transition:opacity 0.2s;white-space:nowrap;letter-spacing:0.5px';
+    toast.style.cssText = [
+      'position:fixed', 'bottom:90px', 'left:50%', 'transform:translateX(-50%)',
+      'background:rgba(28,23,20,0.92)', 'color:#fff', 'padding:11px 20px',
+      'border-radius:20px', 'font-size:12px', 'font-weight:600',
+      'font-family:"DM Sans",sans-serif', 'z-index:9999', 'pointer-events:none',
+      'transition:opacity 0.25s', 'white-space:nowrap', 'letter-spacing:0.5px',
+      'display:flex', 'align-items:center', 'gap:8px'
+    ].join(';');
     document.body.appendChild(toast);
   }
-  toast.textContent = msg;
+  toast.innerHTML = '<span style="display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0"></span>' + msg;
   toast.style.opacity = '1';
   clearTimeout(_toastTimer);
   if (duration > 0) _toastTimer = setTimeout(hideMobileToast, duration);
@@ -4924,10 +5016,9 @@ function hideMobileToast() {
   clearTimeout(_toastTimer);
 }
 
-// Versión con ventana de carga previa (para flujo con IA)
-// Devuelve { win, url } para que el llamador pueda reemplazar cuando llegue la IA
+// Para flujo con IA: abre ventana de carga en desktop, no hace nada en mobile
 function openLoadingWindow(htmlContent) {
-  if (isMobile()) return { win: null, url: null }; // en mobile no abrimos ventana
+  if (isMobile()) return { win: null, url: null };
   const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
   const url  = URL.createObjectURL(blob);
   const win  = window.open(url, '_blank');
@@ -4935,13 +5026,14 @@ function openLoadingWindow(htmlContent) {
 }
 
 async function finalizeAndShare(htmlContent, filename, loadingCtx) {
+  hideMobileToast();
   if (isMobile()) {
     await mobileShareOrPrint(htmlContent, filename);
     return;
   }
-  // Desktop: reemplazar contenido de la ventana abierta
+  // Desktop: reemplazar contenido de la ventana de loading
   const { win, url: oldUrl } = loadingCtx || {};
-  URL.revokeObjectURL(oldUrl);
+  if (oldUrl) URL.revokeObjectURL(oldUrl);
   const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
   const url  = URL.createObjectURL(blob);
   if (win && !win.closed) {
@@ -4952,6 +5044,7 @@ async function finalizeAndShare(htmlContent, filename, loadingCtx) {
     if (w2) w2.onload = () => { w2.print(); URL.revokeObjectURL(url); };
   }
 }
+
 
 
 async function exportPDF() {
