@@ -477,111 +477,150 @@ header {
 .welcome h2 { font-size: 22px; font-weight: 700; color: var(--ink); letter-spacing: -0.3px; }
 .welcome p { color: var(--muted); font-size: 13px; max-width: 280px; line-height: 1.7; }
 
-/* ── MOBILE DASHBOARD (tab INICIO) ──────────────────────────── */
+/* ── MOBILE DASHBOARD (tab INICIO) — editorial bold ─────────── */
 .mhome-dashboard {
   height: calc(100dvh - 54px - 76px);
   display: flex; flex-direction: column;
-  background: var(--bg); overflow: hidden;
+  background: var(--surface); overflow-y: auto; overflow-x: hidden;
+  scrollbar-width: none;
 }
+.mhome-dashboard::-webkit-scrollbar { display: none; }
+
+/* ── HERO: forma gráfica + número enorme ─────────────────────── */
 .mhome-dash-hero {
-  background: var(--kiri); padding: 32px 26px 24px;
-  position: relative; overflow: hidden; flex-shrink: 0;
-}
-.mhome-dash-hero::after {
-  content: '';
-  position: absolute; right: -8px; top: -16px;
-  font-family: 'Noto Sans JP', sans-serif;
-  font-size: 110px; line-height: 1;
-  color: rgba(255,255,255,0.06);
-  pointer-events: none; user-select: none;
+  background: var(--surface);
+  padding: 24px 22px 0;
+  position: relative; flex-shrink: 0;
 }
 .mhome-dash-eyebrow {
-  font-size: 7px; font-weight: 500; letter-spacing: 4px;
-  text-transform: lowercase; color: rgba(255,255,255,0.55); margin-bottom: 10px;
+  font-size: 8px; font-weight: 600; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 4px;
+}
+
+/* Formas geométricas tipo referencia — 3 círculos/elipses de color */
+.mhome-dash-shapes {
+  display: flex; gap: -8px;
+  height: 96px; align-items: center;
+  margin: 0 -22px; padding: 0 14px;
+  overflow: hidden; flex-shrink: 0;
+}
+.mhome-dash-shape {
+  width: 100px; height: 100px; border-radius: 50%; flex-shrink: 0;
+  margin-right: -20px;
+}
+.mhome-dash-shape:nth-child(1) { background: var(--kiri); }
+.mhome-dash-shape:nth-child(2) { background: #b84040; width: 80px; height: 80px; }
+.mhome-dash-shape:nth-child(3) { background: #8a2828; width: 60px; height: 60px; }
+.mhome-dash-shape:nth-child(4) {
+  margin-left: auto; margin-right: 0;
+  background: transparent;
+  border: 2px solid var(--border);
+  width: 44px; height: 44px;
+}
+
+/* Número hero enorme */
+.mhome-dash-amount-wrap {
+  padding: 12px 0 4px;
+}
+.mhome-dash-amount-label {
+  font-size: 9px; letter-spacing: 2px; color: var(--muted);
+  text-transform: uppercase; font-weight: 500; margin-bottom: 6px;
 }
 .mhome-dash-amount {
   font-family: 'DM Mono', monospace;
-  font-size: 32px; font-weight: 300;
-  color: #fff; letter-spacing: -1px; line-height: 1; margin-bottom: 22px;
+  font-size: 42px; font-weight: 600;
+  color: var(--ink); letter-spacing: -2px; line-height: 1;
 }
-.mhome-dash-row3 {
-  display: grid; grid-template-columns: 1fr 1fr 1fr;
-  border-top: 1px solid rgba(255,255,255,0.2); padding-top: 16px;
+.mhome-dash-amount .amount-cents {
+  font-size: 24px; font-weight: 400; color: var(--muted); letter-spacing: -1px;
 }
-.mhome-dash-stat { display: flex; flex-direction: column; gap: 3px; }
-.mhome-dash-stat + .mhome-dash-stat {
-  border-left: 1px solid rgba(255,255,255,0.18); padding-left: 12px;
+.mhome-dash-amount-sign {
+  font-size: 20px; font-weight: 400; color: var(--muted);
+  vertical-align: super; letter-spacing: 0;
 }
+
+/* Línea divisoria elegante */
+.mhome-dash-divider {
+  height: 1px; background: var(--border);
+  margin: 16px 0 0;
+}
+
+/* ── STATS ROW horizontal ─────────────────────────────────────── */
+.mhome-dash-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.mhome-dash-stat {
+  padding: 14px 0 14px 18px;
+  display: flex; flex-direction: column; gap: 4px;
+  border-right: 1px solid var(--border);
+}
+.mhome-dash-stat:last-child { border-right: none; }
 .mhome-dash-stat-val {
   font-family: 'DM Mono', monospace;
-  font-size: 11px; color: rgba(255,255,255,0.95); line-height: 1; font-weight: 400;
+  font-size: 13px; color: var(--ink); font-weight: 500; line-height: 1;
 }
 .mhome-dash-stat-lbl {
-  font-size: 7px; font-weight: 400; letter-spacing: 2px;
-  text-transform: lowercase; color: rgba(255,255,255,0.55);
+  font-size: 7px; font-weight: 500; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--muted);
 }
+
+/* ── GRID DE MÉTRICAS ─────────────────────────────────────────── */
 .mhome-dash-body {
-  flex: 1; padding: 12px 14px 0;
+  flex: 1; padding: 16px 16px 20px;
   display: grid; grid-template-columns: 1fr 1fr;
-  gap: 10px; align-content: start; overflow: hidden;
+  gap: 10px; align-content: start;
 }
-/* Tarjeta grande de ancho completo */
 .mhome-metric {
-  background: var(--surface); border-radius: 10px;
+  background: var(--surface); border-radius: 4px;
   border: 1px solid var(--border);
   display: flex; flex-direction: column;
-  overflow: hidden; position: relative;
+  overflow: hidden;
 }
 .mhome-metric.full { grid-column: 1 / -1; }
 
-/* Bloque de color sólido arriba — el número protagonista */
 .mhome-metric-top {
-  padding: 18px 18px 14px;
-  flex: 1;
-  display: flex; flex-direction: column; justify-content: space-between;
+  padding: 16px 16px 12px;
+  flex: 1; display: flex; flex-direction: column; gap: 10px;
 }
 .mhome-metric-lbl {
-  font-size: 8px; font-weight: 600; letter-spacing: 2.5px;
-  text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+  font-size: 8px; font-weight: 600; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--muted);
 }
 .mhome-metric-val {
   font-family: 'DM Mono', monospace;
-  font-size: 22px; font-weight: 500; color: var(--ink);
-  letter-spacing: -1px; line-height: 1;
+  font-size: 20px; font-weight: 500; color: var(--ink);
+  letter-spacing: -0.5px; line-height: 1;
 }
-.mhome-metric-val.big {
-  font-size: 28px;
-}
-/* Franja inferior con color */
+.mhome-metric-val.big { font-size: 26px; letter-spacing: -1px; }
+.mhome-metric-val.positive { color: #2a6a2a; }
+.mhome-metric-val.negative { color: #aa2a2a; }
+
+/* Franja de color — footer de la card */
 .mhome-metric-bottom {
-  padding: 8px 18px;
-  font-size: 9px; letter-spacing: 1.5px; font-weight: 500;
-  text-transform: lowercase;
+  padding: 7px 16px;
+  font-size: 8px; letter-spacing: 1.5px; font-weight: 600;
+  text-transform: uppercase; border-top: 1px solid var(--border);
 }
-.mhome-metric-sub {
-  font-size: 10px; color: var(--muted); margin-top: 6px;
-}
-/* colores de acento */
-.mhome-metric.accent-green .mhome-metric-bottom { background: #e8f0e8; color: #3a6e3a; }
-.mhome-metric.accent-red .mhome-metric-bottom { background: #f0e8e8; color: #9a3a3a; }
-.mhome-metric.accent-orange .mhome-metric-bottom { background: #f0ece4; color: #7a5020; }
-.mhome-metric.accent-neutral .mhome-metric-bottom { background: var(--bg); color: var(--muted); }
+.mhome-metric.c-green .mhome-metric-bottom { background: #2a6a2a; color: #fff; }
+.mhome-metric.c-red   .mhome-metric-bottom { background: #aa2a2a; color: #fff; }
+.mhome-metric.c-amber .mhome-metric-bottom { background: #c8773a; color: #fff; }
+.mhome-metric.c-ink   .mhome-metric-bottom { background: var(--ink); color: #fff; }
+.mhome-metric.c-muted .mhome-metric-bottom { background: var(--bg); color: var(--muted); }
 
-.mhome-metric-positive { color: #2d6a2d !important; }
-.mhome-metric-negative { color: #b03030 !important; }
-
-/* barra de progreso dentro de métrica */
-.mhome-metric-bar-wrap { padding: 0 18px 14px; }
+/* Barra progreso */
+.mhome-metric-bar-wrap { padding: 0 16px 14px; display: flex; flex-direction: column; gap: 6px; }
 .mhome-metric-bar {
-  height: 4px; background: var(--border); border-radius: 2px;
-  overflow: hidden; margin-bottom: 4px;
+  height: 3px; background: var(--border); border-radius: 1px; overflow: hidden;
 }
-.mhome-metric-bar-fill { height: 100%; background: var(--kiri); border-radius: 2px; transition: width 0.5s; }
+.mhome-metric-bar-fill { height: 100%; background: var(--kiri); }
 .mhome-metric-bar-lbl {
   display: flex; justify-content: space-between;
-  font-size: 8px; color: var(--muted);
-  font-family: 'DM Mono', monospace;
+  font-size: 8px; color: var(--muted); font-family: 'DM Mono', monospace;
 }
+.mhome-metric-positive { color: #2a6a2a !important; }
+.mhome-metric-negative { color: #aa2a2a !important; }
 
 /* ── PROYECTOS — CARRUSEL SNAP ──────────────────────────────── */
 /* ── DECK DE CARTAS APILADAS (estilo Wallet) ────────────────── */
@@ -2889,61 +2928,102 @@ function renderMobileHome(el, tab) {
 
   // ── TAB INICIO: dashboard ────────────────────────────────────
   if (activeTab === 'home') {
-    const ganSign = gananciaActual >= 0 ? '' : '−';
+    const ganSign    = gananciaActual >= 0;
+    const ganClass   = gananciaActual >= 0 ? 'c-green' : 'c-red';
+    const proyClass  = gananciaProyec >= 0 ? 'c-green' : 'c-red';
+    const ganValCls  = gananciaActual >= 0 ? 'positive' : 'negative';
+    const proyValCls = gananciaProyec >= 0 ? 'positive' : 'negative';
+
+    // Formatear número hero: parte entera / decimales separados
+    const ganAbsStr  = fmt(Math.abs(gananciaActual));
+    const prefixSign = gananciaActual < 0 ? '−' : '';
+
     el.innerHTML =
       '<div class="mhome-dashboard">' +
+
+        // HERO: eyebrow + formas + número grande
         '<div class="mhome-dash-hero">' +
-          '<div class="mhome-dash-eyebrow">Ganancia acumulada</div>' +
-          '<div class="mhome-dash-amount">' + ganSign + '$' + fmt(Math.abs(gananciaActual)) + '</div>' +
-          '<div class="mhome-dash-row3">' +
-            '<div class="mhome-dash-stat">' +
-              '<div class="mhome-dash-stat-val">$' + fmt(totalPresup) + '</div>' +
-              '<div class="mhome-dash-stat-lbl">Presupuestado</div>' +
+          '<div class="mhome-dash-eyebrow">Resumen general</div>' +
+
+          // 3 círculos superpuestos (inspirados en la referencia)
+          '<div class="mhome-dash-shapes">' +
+            '<div class="mhome-dash-shape"></div>' +
+            '<div class="mhome-dash-shape"></div>' +
+            '<div class="mhome-dash-shape"></div>' +
+            '<div class="mhome-dash-shape"></div>' +
+          '</div>' +
+
+          '<div class="mhome-dash-amount-wrap">' +
+            '<div class="mhome-dash-amount-label">Ganancia acumulada</div>' +
+            '<div class="mhome-dash-amount">' +
+              (gananciaActual < 0 ? '<span class="mhome-dash-amount-sign">−</span>' : '') +
+              '<span class="amount-sign">$</span>' + ganAbsStr +
             '</div>' +
-            '<div class="mhome-dash-stat">' +
-              '<div class="mhome-dash-stat-val">$' + fmt(totalCobrado) + '</div>' +
-              '<div class="mhome-dash-stat-lbl">Cobrado</div>' +
-            '</div>' +
-            '<div class="mhome-dash-stat">' +
-              '<div class="mhome-dash-stat-val">' + n + '</div>' +
-              '<div class="mhome-dash-stat-lbl">Proyectos</div>' +
-            '</div>' +
+          '</div>' +
+          '<div class="mhome-dash-divider"></div>' +
+        '</div>' +
+
+        // STATS ROW: 3 cifras en grid
+        '<div class="mhome-dash-stats">' +
+          '<div class="mhome-dash-stat">' +
+            '<div class="mhome-dash-stat-val">$' + fmt(totalPresup) + '</div>' +
+            '<div class="mhome-dash-stat-lbl">Presupuestado</div>' +
+          '</div>' +
+          '<div class="mhome-dash-stat">' +
+            '<div class="mhome-dash-stat-val">$' + fmt(totalCobrado) + '</div>' +
+            '<div class="mhome-dash-stat-lbl">Cobrado</div>' +
+          '</div>' +
+          '<div class="mhome-dash-stat">' +
+            '<div class="mhome-dash-stat-val">' + n + '</div>' +
+            '<div class="mhome-dash-stat-lbl">Proyectos</div>' +
           '</div>' +
         '</div>' +
+
+        // GRID de métricas
         '<div class="mhome-dash-body">' +
-          '<div class="mhome-metric full ' + (gananciaProyec>=0?'accent-green':'accent-red') + '">' +
+
+          // Ganancia proyectada — full width
+          '<div class="mhome-metric full ' + proyClass + '">' +
             '<div class="mhome-metric-top">' +
               '<div class="mhome-metric-lbl">Ganancia proyectada</div>' +
-              '<div class="mhome-metric-val big ' + (gananciaProyec>=0?'mhome-metric-positive':'mhome-metric-negative') + '">' +
-                (gananciaProyec>=0?'':'-') + '$' + fmt(Math.abs(gananciaProyec)) +
+              '<div class="mhome-metric-val big ' + proyValCls + '">' +
+                (gananciaProyec < 0 ? '−' : '') + '$' + fmt(Math.abs(gananciaProyec)) +
               '</div>' +
             '</div>' +
-            '<div class="mhome-metric-bottom">si se cobra todo lo pendiente</div>' +
+            '<div class="mhome-metric-bottom">si se cobra todo</div>' +
           '</div>' +
-          '<div class="mhome-metric accent-orange">' +
+
+          // Falta cobrar
+          '<div class="mhome-metric c-amber">' +
             '<div class="mhome-metric-top">' +
               '<div class="mhome-metric-lbl">Falta cobrar</div>' +
-              '<div class="mhome-metric-val">' + '$' + fmt(faltaCobrar) + '</div>' +
+              '<div class="mhome-metric-val">$' + fmt(faltaCobrar) + '</div>' +
             '</div>' +
-            '<div class="mhome-metric-bottom">pendiente del cliente</div>' +
+            '<div class="mhome-metric-bottom">del cliente</div>' +
           '</div>' +
-          '<div class="mhome-metric accent-neutral">' +
+
+          // Total gastos
+          '<div class="mhome-metric c-ink">' +
             '<div class="mhome-metric-top">' +
               '<div class="mhome-metric-lbl">Total gastos</div>' +
-              '<div class="mhome-metric-val">' + '$' + fmt(totalGastos) + '</div>' +
+              '<div class="mhome-metric-val">$' + fmt(totalGastos) + '</div>' +
             '</div>' +
             '<div class="mhome-metric-bottom">todos los proyectos</div>' +
           '</div>' +
-          '<div class="mhome-metric accent-neutral">' +
+
+          // % Cobrado con barra
+          '<div class="mhome-metric full c-muted">' +
             '<div class="mhome-metric-top">' +
-              '<div class="mhome-metric-lbl">Cobrado</div>' +
-              '<div class="mhome-metric-val">' + pctCobrado.toFixed(0) + '%</div>' +
+              '<div class="mhome-metric-lbl">Porcentaje cobrado</div>' +
+              '<div class="mhome-metric-val">' + pctCobrado.toFixed(1) + '%</div>' +
             '</div>' +
             '<div class="mhome-metric-bar-wrap">' +
               '<div class="mhome-metric-bar"><div class="mhome-metric-bar-fill" style="width:' + pctCobrado + '%"></div></div>' +
-              '<div class="mhome-metric-bar-lbl"><span>cobrado</span><span>' + pctCobrado.toFixed(0) + '%</span></div>' +
+              '<div class="mhome-metric-bar-lbl"><span>$0</span><span>$' + fmt(totalPresup) + '</span></div>' +
             '</div>' +
+            '<div class="mhome-metric-bottom">sobre el total presupuestado</div>' +
           '</div>' +
+
         '</div>' +
       '</div>';
     return;
