@@ -774,6 +774,142 @@ header {
 .mproj-card:nth-child(4) { animation-delay: 120ms; }
 .mproj-card:nth-child(5) { animation-delay: 160ms; }
 
+/* ── SISTEMA DE ANIMACIONES KIRI ─────────────────────────────── */
+
+/* Fade + slide genérico */
+@keyframes kFadeUp {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes kFadeDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes kScaleIn {
+  from { opacity: 0; transform: scale(0.88); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes kSlideRight {
+  from { opacity: 0; transform: translateX(-28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes kSlideLeft {
+  from { opacity: 0; transform: translateX(28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes kProjOpen {
+  from { opacity: 0; transform: translateY(100%); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes kProjClose {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(100%); }
+}
+@keyframes kCountUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes kShimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+@keyframes kFillGrow {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+@keyframes kPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+@keyframes kBounceIn {
+  0%   { transform: scale(0.7); opacity: 0; }
+  60%  { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); }
+}
+@keyframes kTabSlideIn {
+  from { opacity: 0; transform: translateX(var(--slide-dir, 32px)); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes kTabSlideOut {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(var(--slide-out-dir, -32px)); }
+}
+
+/* Clases de utilidad */
+.anim-fade-up   { animation: kFadeUp   0.35s cubic-bezier(0.4,0,0.2,1) both; }
+.anim-fade-down { animation: kFadeDown 0.3s  cubic-bezier(0.4,0,0.2,1) both; }
+.anim-scale-in  { animation: kScaleIn  0.3s  cubic-bezier(0.34,1.56,0.64,1) both; }
+.anim-slide-r   { animation: kSlideRight 0.3s cubic-bezier(0.4,0,0.2,1) both; }
+.anim-slide-l   { animation: kSlideLeft  0.3s cubic-bezier(0.4,0,0.2,1) both; }
+.anim-bounce-in { animation: kBounceIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both; }
+
+/* Stagger helpers */
+.anim-d1  { animation-delay: 40ms !important; }
+.anim-d2  { animation-delay: 80ms !important; }
+.anim-d3  { animation-delay: 120ms !important; }
+.anim-d4  { animation-delay: 160ms !important; }
+.anim-d5  { animation-delay: 200ms !important; }
+.anim-d6  { animation-delay: 240ms !important; }
+.anim-d7  { animation-delay: 280ms !important; }
+.anim-d8  { animation-delay: 320ms !important; }
+
+/* Proyecto abriendo */
+.mproj-entering {
+  animation: kProjOpen 0.42s cubic-bezier(0.32,0.72,0,1) both;
+}
+
+/* Tab transition wrapper */
+.tab-transitioning {
+  animation: kTabSlideIn 0.28s cubic-bezier(0.4,0,0.2,1) both;
+}
+
+/* Metric cards en INICIO */
+.mhome-metric {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.mhome-metric:active {
+  transform: scale(0.97);
+}
+
+/* Project cards — tap feedback mejorado */
+.mproj-card {
+  transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1),
+              filter 0.15s ease;
+}
+.mproj-card:active {
+  transform: scale(0.95) !important;
+  filter: brightness(0.9);
+}
+
+/* Fill bar — origin from bottom */
+.mproj-fill {
+  transform-origin: bottom center;
+}
+.mproj-fill.anim-fill {
+  animation: kFillGrow 0.8s cubic-bezier(0.4,0,0.2,1) both;
+}
+
+/* Número hero INICIO — shimmer de carga */
+.mhome-dash-amount.loading {
+  background: linear-gradient(90deg, var(--ink) 30%, var(--muted) 50%, var(--ink) 70%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: kShimmer 1.2s ease infinite;
+}
+
+/* Badge vencido — pulso */
+.mproj-badge.overdue {
+  animation: kPulse 1.8s ease infinite;
+}
+
+/* Bottom nav indicator — transición mejorada */
+#mnav-indicator {
+  transition: left 0.3s cubic-bezier(0.34,1.56,0.64,1),
+              width 0.3s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
+
+
 /* Empty state */
 .mhome-empty {
   flex: 1; display: flex; flex-direction: column;
@@ -2750,7 +2886,13 @@ function renderChartsHTML(p, resolved, totalAbonado, gastosFondo, gastosPersonal
 }
 
 
-function render() { saveState(); renderSidebar(); renderMain(); updatePDFBtn(); if (typeof updateMobileNav === 'function' && isMobile()) updateMobileNav(S.active !== null ? 'projects' : (window._mobileTab || 'home')); }
+function render() {
+  saveState(); renderSidebar(); renderMain(); updatePDFBtn();
+  if (typeof updateMobileNav === 'function' && isMobile()) {
+    updateMobileNav(S.active !== null ? 'projects' : (window._mobileTab || 'home'));
+    requestAnimationFrame(runPostRenderAnimations);
+  }
+}
 
 function renderSidebar() {
   const aside = document.querySelector('.sidebar');
@@ -2915,7 +3057,7 @@ function renderMobileHome(el, tab) {
       '<div class="mhome-dashboard">' +
 
         // HERO: eyebrow + formas + número grande
-        '<div class="mhome-dash-hero">' +
+        '<div class="mhome-dash-hero anim-fade-down">' +
           '<div class="mhome-dash-eyebrow">Resumen general</div>' +
 
           // 3 círculos superpuestos (inspirados en la referencia)
@@ -2928,7 +3070,7 @@ function renderMobileHome(el, tab) {
 
           '<div class="mhome-dash-amount-wrap">' +
             '<div class="mhome-dash-amount-label">Ganancia acumulada</div>' +
-            '<div class="mhome-dash-amount">' +
+            '<div class="mhome-dash-amount" id="hero-amount" data-value="' + gananciaActual + '">' +
               (gananciaActual < 0 ? '<span class="mhome-dash-amount-sign">−</span>' : '') +
               '<span class="amount-sign">$</span>' + ganAbsStr +
             '</div>' +
@@ -2937,7 +3079,7 @@ function renderMobileHome(el, tab) {
         '</div>' +
 
         // STATS ROW: 3 cifras en grid
-        '<div class="mhome-dash-stats">' +
+        '<div class="mhome-dash-stats anim-fade-up anim-d1">' +
           '<div class="mhome-dash-stat">' +
             '<div class="mhome-dash-stat-val">$' + fmt(totalPresup) + '</div>' +
             '<div class="mhome-dash-stat-lbl">Presupuestado</div>' +
@@ -2956,7 +3098,7 @@ function renderMobileHome(el, tab) {
         '<div class="mhome-dash-body">' +
 
           // Ganancia proyectada — full width
-          '<div class="mhome-metric full ' + proyClass + '">' +
+          '<div class="mhome-metric full ' + proyClass + ' anim-fade-up anim-d2">' +
             '<div class="mhome-metric-top">' +
               '<div class="mhome-metric-lbl">Ganancia proyectada</div>' +
               '<div class="mhome-metric-val big ' + proyValCls + '">' +
@@ -2967,7 +3109,7 @@ function renderMobileHome(el, tab) {
           '</div>' +
 
           // Falta cobrar
-          '<div class="mhome-metric c-amber">' +
+          '<div class="mhome-metric c-amber anim-fade-up anim-d3">' +
             '<div class="mhome-metric-top">' +
               '<div class="mhome-metric-lbl">Falta cobrar</div>' +
               '<div class="mhome-metric-val">$' + fmt(faltaCobrar) + '</div>' +
@@ -2976,7 +3118,7 @@ function renderMobileHome(el, tab) {
           '</div>' +
 
           // Total gastos
-          '<div class="mhome-metric c-ink">' +
+          '<div class="mhome-metric c-ink anim-fade-up anim-d4">' +
             '<div class="mhome-metric-top">' +
               '<div class="mhome-metric-lbl">Total gastos</div>' +
               '<div class="mhome-metric-val">$' + fmt(totalGastos) + '</div>' +
@@ -2985,13 +3127,13 @@ function renderMobileHome(el, tab) {
           '</div>' +
 
           // % Cobrado con barra
-          '<div class="mhome-metric full c-muted">' +
+          '<div class="mhome-metric full c-muted anim-fade-up anim-d5">' +
             '<div class="mhome-metric-top">' +
               '<div class="mhome-metric-lbl">Porcentaje cobrado</div>' +
               '<div class="mhome-metric-val">' + pctCobrado.toFixed(1) + '%</div>' +
             '</div>' +
             '<div class="mhome-metric-bar-wrap">' +
-              '<div class="mhome-metric-bar"><div class="mhome-metric-bar-fill" style="width:' + pctCobrado + '%"></div></div>' +
+              '<div class="mhome-metric-bar"><div class="mhome-metric-bar-fill" id="main-bar-fill" style="width:0%" data-target="' + pctCobrado + '"></div></div>' +
               '<div class="mhome-metric-bar-lbl"><span>$0</span><span>$' + fmt(totalPresup) + '</span></div>' +
             '</div>' +
             '<div class="mhome-metric-bottom">sobre el total presupuestado</div>' +
@@ -3096,7 +3238,7 @@ function renderMobileHome(el, tab) {
     const dueDateStr = due ? formatDateShort(due) : null;
 
     return (
-      '<div class="mproj-card" data-size="' + size + '" data-idx="' + origIdx + '" ' +
+      '<div class="mproj-card anim-fade-up anim-d' + Math.min(sortedIdx + 1, 8) + '" data-size="' + size + '" data-idx="' + origIdx + '" ' +
           'style="background:' + color + '" onclick="selectMobileProject(' + origIdx + ')">' +
         '<div class="mproj-fill' + (isPagoComplete ? ' done' : '') + '" style="height:' + fillH + '"></div>' +
         '<div class="mproj-bar"><div class="mproj-bar-fill" style="width:' + pct + '%"></div></div>' +
@@ -3389,7 +3531,7 @@ function renderMobileProject(el) {
   }
 
   el.innerHTML = `
-  <div style="height:100%;display:flex;flex-direction:column;background:var(--surface);overflow:hidden">
+  <div style="height:100%;display:flex;flex-direction:column;background:var(--surface);overflow:hidden" class="mproj-entering">
 
     <!-- TOPBAR CON BACK -->
     <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface)">
@@ -6373,18 +6515,22 @@ function closeFab() {
 
 function mobileNavHome() {
   closeMobileMenu();
+  window._prevMobileTab = window._mobileTab;
   window._mobileTab = 'home';
   S.active = null;
   renderMobileHome(document.getElementById('main'), 'home');
   updateMobileNav('home');
+  runPostRenderAnimations();
 }
 
 function mobileNavProjects() {
   closeMobileMenu();
+  window._prevMobileTab = window._mobileTab;
   window._mobileTab = 'projects';
   S.active = null;
   renderMobileHome(document.getElementById('main'), 'projects');
   updateMobileNav('projects');
+  runPostRenderAnimations();
 }
 
 function updateMobileNav(active) {
@@ -6406,6 +6552,83 @@ function updateMobileNav(active) {
     indicator.style.opacity = '1';
     indicator.style.left = (btnRect.left - navRect.left) + 'px';
     indicator.style.width = btnRect.width + 'px';
+  });
+}
+
+// ── Animaciones post-render ──────────────────────────────────────
+function runPostRenderAnimations() {
+  // 1. Barra de progreso en INICIO — anima desde 0 hasta el target
+  const barFill = document.getElementById('main-bar-fill');
+  if (barFill) {
+    const target = parseFloat(barFill.dataset.target) || 0;
+    barFill.style.width = '0%';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        barFill.style.transition = 'width 0.9s cubic-bezier(0.4,0,0.2,1)';
+        barFill.style.width = target + '%';
+      });
+    });
+  }
+
+  // 2. Fills de cards de proyecto — animan desde 0
+  document.querySelectorAll('.mproj-fill').forEach(fill => {
+    const targetH = fill.style.height;
+    fill.style.height = '0%';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        fill.style.transition = 'height 0.9s cubic-bezier(0.4,0,0.2,1)';
+        fill.style.height = targetH;
+      });
+    });
+  });
+
+  // 3. Counter del número hero — cuenta desde 0 hasta el valor final
+  const heroEl = document.getElementById('hero-amount');
+  if (heroEl) {
+    const rawVal = parseFloat(heroEl.dataset.value) || 0;
+    const isNeg = rawVal < 0;
+    const absVal = Math.abs(rawVal);
+    const duration = 800;
+    const start = performance.now();
+    const sign = heroEl.querySelector('.mhome-dash-amount-sign');
+    const signHTML = sign ? sign.outerHTML : '';
+    function tick(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // Ease out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = absVal * eased;
+      heroEl.innerHTML = signHTML +
+        '<span class="amount-sign">$</span>' +
+        fmt(current);
+      if (progress < 1) requestAnimationFrame(tick);
+      else heroEl.innerHTML = signHTML + '<span class="amount-sign">$</span>' + fmt(absVal);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  // 4. Spring tap en cards de proyecto
+  document.querySelectorAll('.mproj-card').forEach(card => {
+    card.addEventListener('touchstart', () => {
+      card.style.transform = 'scale(0.95)';
+      card.style.transition = 'transform 0.12s ease';
+    }, { passive: true });
+    card.addEventListener('touchend', () => {
+      card.style.transform = 'scale(1)';
+      card.style.transition = 'transform 0.35s cubic-bezier(0.34,1.56,0.64,1)';
+    }, { passive: true });
+  });
+
+  // 5. Spring tap en metric cards de INICIO
+  document.querySelectorAll('.mhome-metric').forEach(card => {
+    card.addEventListener('touchstart', () => {
+      card.style.transform = 'scale(0.97)';
+      card.style.transition = 'transform 0.1s ease';
+    }, { passive: true });
+    card.addEventListener('touchend', () => {
+      card.style.transform = 'scale(1)';
+      card.style.transition = 'transform 0.28s cubic-bezier(0.34,1.56,0.64,1)';
+    }, { passive: true });
   });
 }
 
