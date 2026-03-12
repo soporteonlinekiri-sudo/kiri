@@ -3077,6 +3077,8 @@ async function cloudSave(state) {
         body: JSON.stringify(state)
       });
       if (!res.ok) throw new Error('Error guardando: ' + res.status);
+      // Actualizar _lastCloudTs para que el polling no re-aplique este cambio al propio dispositivo
+      _lastCloudTs = state._updatedAt || Date.now();
       setCloudStatus('☁ sincronizado', 'var(--sage)');
     }
   } catch(e) {
@@ -3089,8 +3091,11 @@ async function cloudSave(state) {
 async function cloudLoad() {
   if (!_jsonbinKey || !_jsonbinBin) return null;
   try {
-    const res = await fetch('https://api.jsonbin.io/v3/b/' + _jsonbinBin + '/latest', {
-      headers: { 'X-Master-Key': _jsonbinKey }
+    // cache: 'no-store' es crítico — sin esto el browser devuelve respuestas cacheadas
+    // y los cambios de otro dispositivo nunca se ven
+    const res = await fetch('https://api.jsonbin.io/v3/b/' + _jsonbinBin + '/latest?_=' + Date.now(), {
+      headers: { 'X-Master-Key': _jsonbinKey },
+      cache: 'no-store'
     });
     if (!res.ok) { console.error('CloudLoad HTTP:', res.status); return null; }
     const data = await res.json();
@@ -3130,12 +3135,13 @@ const S = loadState();
 S.trash = S.trash || [];
 
 // Purgar papelera: eliminar definitivo si tiene >5 días
+// IMPORTANTE: NO llama saveState() aquí — se llama al inicio antes de initCloudSync
+// y saveState() actualizaría _updatedAt haciendo que local parezca más nuevo que la nube
 function purgeTrash() {
   const FIVE_DAYS = 5 * 24 * 60 * 60 * 1000;
   const cutoff = Date.now() - FIVE_DAYS;
-  const before = S.trash.length;
   S.trash = S.trash.filter(t => t.deletedAt > cutoff);
-  if (S.trash.length < before) saveState();
+  // No llamar saveState() aquí — la nube se carga en initCloudSync primero
 }
 purgeTrash();
 
@@ -3203,10 +3209,18 @@ async function initCloudSync() {
       // La nube es igual o más reciente → SIEMPRE tomar de la nube
       console.log('[kiri] init: tomando nube (cloud=' + cloudTs + ' local=' + localTs + ')');
       Object.assign(S, cloudData);
+      S.trash  = S.trash  || [];
       S.quotes = S.quotes || [];
-      if (isMobile()) S.active = null;
+      S.active = null;
+      // Purgar papelera DESPUÉS de cargar la nube (no antes, para no pisar timestamp)
+      const FIVE_DAYS = 5 * 24 * 60 * 60 * 1000;
+      const cutoff = Date.now() - FIVE_DAYS;
+      const trashBefore = S.trash.length;
+      S.trash = S.trash.filter(t => t.deletedAt > cutoff);
       try { localStorage.setItem('kiri_state', JSON.stringify(S)); } catch(e) {}
       render();
+      // Si la purga eliminó items, subir a la nube
+      if (S.trash.length < trashBefore) await cloudSave(S);
     } else {
       // Local realmente más nuevo → subir
       console.log('[kiri] init: subiendo local (local=' + localTs + ' cloud=' + cloudTs + ')');
