@@ -3531,16 +3531,48 @@ function renderMobileProject(el) {
   }
 
   el.innerHTML = `
-  <div style="height:100%;display:flex;flex-direction:column;background:var(--surface);overflow:hidden" class="mproj-entering">
+  <div style="height:100%;display:flex;flex-direction:column;background:var(--surface);overflow:hidden;position:relative" class="mproj-entering">
 
     <!-- TOPBAR CON BACK -->
-    <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface)">
+    <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface)">
       <button onclick="S.active=null;window._mobileTab='projects';render()" style="background:none;border:none;padding:4px 8px 4px 0;font-size:22px;color:var(--ink);cursor:pointer;line-height:1">‹</button>
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.name)}</div>
         ${p.desc?'<div style="font-size:9px;color:var(--muted);letter-spacing:1px">'+esc(p.desc)+'</div>':''}
       </div>
-      <button onclick="openModal('editbudget')" style="background:none;border:1px solid var(--border);border-radius:4px;padding:5px 10px;font-size:11px;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif">✎ Editar</button>
+      <button onclick="openModal('editbudget')" style="background:none;border:1px solid var(--border);border-radius:4px;padding:5px 10px;font-size:11px;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif">✎</button>
+      <button onclick="toggleMprojExportMenu()" id="mproj-export-btn" style="background:var(--kiri);border:none;border-radius:4px;padding:6px 12px;font-size:11px;font-weight:700;color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;position:relative;-webkit-tap-highlight-color:transparent">
+        ↑ PDF
+      </button>
+    </div>
+
+    <!-- EXPORT DROPDOWN (mobile project) -->
+    <div id="mproj-export-menu" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;z-index:900;pointer-events:none">
+      <div onclick="closeMprojExportMenu()" style="position:absolute;inset:0;background:rgba(0,0,0,0.4);pointer-events:all"></div>
+      <div style="position:absolute;top:54px;right:12px;background:var(--surface);border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,0.2);overflow:hidden;min-width:220px;pointer-events:all;animation:kScaleIn 0.2s cubic-bezier(0.34,1.56,0.64,1) both;transform-origin:top right">
+        <div style="padding:10px 14px 6px;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted)">Exportar proyecto</div>
+
+        <button onclick="closeMprojExportMenu();exportPDF()" style="width:100%;display:flex;align-items:center;gap:12px;padding:12px 16px;background:none;border:none;border-top:1px solid var(--border);cursor:pointer;font-family:'DM Sans',sans-serif;-webkit-tap-highlight-color:transparent">
+          <div style="width:32px;height:32px;background:var(--ink);border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </div>
+          <div style="text-align:left">
+            <div style="font-size:12px;font-weight:600;color:var(--ink)">PDF interno</div>
+            <div style="font-size:10px;color:var(--muted)">Balance completo del equipo</div>
+          </div>
+        </button>
+
+        <button onclick="closeMprojExportMenu();exportClientPDF()" style="width:100%;display:flex;align-items:center;gap:12px;padding:12px 16px;background:none;border:none;border-top:1px solid var(--border);cursor:pointer;font-family:'DM Sans',sans-serif;-webkit-tap-highlight-color:transparent">
+          <div style="width:32px;height:32px;background:var(--kiri);border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div style="text-align:left">
+            <div style="font-size:12px;font-weight:600;color:var(--ink)">PDF cliente <span style="font-size:9px;background:#f0e8e8;color:var(--kiri);padding:1px 6px;border-radius:2px;margin-left:4px">✦ IA</span></div>
+            <div style="font-size:10px;color:var(--muted)">Estado de cuenta con mensaje personalizado</div>
+          </div>
+        </button>
+
+      </div>
     </div>
 
     <!-- BANNER FECHA ENTREGA -->
@@ -6676,6 +6708,19 @@ function selectMobileProject(i) {
   render();
   closeMobileDrawer();
   updateMobileNav('projects');
+}
+
+function toggleMprojExportMenu() {
+  const menu = document.getElementById('mproj-export-menu');
+  if (!menu) return;
+  const isOpen = menu.style.display !== 'none';
+  menu.style.display = isOpen ? 'none' : 'block';
+  menu.style.pointerEvents = isOpen ? 'none' : 'all';
+}
+
+function closeMprojExportMenu() {
+  const menu = document.getElementById('mproj-export-menu');
+  if (menu) { menu.style.display = 'none'; menu.style.pointerEvents = 'none'; }
 }
 
 function openMobileMenu() {
