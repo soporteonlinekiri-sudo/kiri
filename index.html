@@ -2635,6 +2635,25 @@ header {
 </div>
 
 <!-- MODAL DISTRIBUCIÓN MO -->
+<!-- MODAL CONFIRM PERSONALIZADO -->
+<div class="overlay" id="modal-confirm" style="z-index:2100">
+  <div class="modal" style="max-width:320px;padding:24px 22px 20px">
+    <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:16px">
+      <div id="confirm-icon" style="width:38px;height:38px;border-radius:50%;background:#fde8e8;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      </div>
+      <div>
+        <div id="confirm-title" style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:5px;line-height:1.2"></div>
+        <div id="confirm-msg" style="font-size:12px;color:var(--muted);line-height:1.5"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-light" style="min-width:80px" onclick="closeModal('confirm');_confirmReject&&_confirmReject()">Cancelar</button>
+      <button id="confirm-ok-btn" class="btn btn-primary" style="min-width:80px;background:#c0392b;border-color:#c0392b" onclick="closeModal('confirm');_confirmResolve&&_confirmResolve()">Eliminar</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="modal-mo" onclick="overlayClick(event,'mo')">
   <div class="modal">
     <div class="modal-title">Distribución de mano de obra</div>
@@ -2960,6 +2979,22 @@ const S_DEFAULT = {
   selPeople: []
 };
 
+// ── CONFIRM DIALOG PERSONALIZADO ─────────────────────────────────────────────
+let _confirmResolve = null;
+let _confirmReject  = null;
+
+function kiriConfirm(title, msg, okLabel) {
+  return new Promise((resolve, reject) => {
+    _confirmResolve = resolve;
+    _confirmReject  = reject;
+    document.getElementById('confirm-title').textContent = title;
+    document.getElementById('confirm-msg').textContent   = msg || '';
+    const okBtn = document.getElementById('confirm-ok-btn');
+    if (okBtn) okBtn.textContent = okLabel || 'Eliminar';
+    document.getElementById('modal-confirm').style.display = 'flex';
+  });
+}
+
 // ── CLOUD SYNC (JSONBin) ─────────────────────────────────────────────────────
 // ── Keys embebidas — se usan si no hay nada en localStorage ──────────────────
 const EMBEDDED_JSONBIN_KEY = '$2a$10$l0XZxDH.bx1WeMoidoxN/eln.6.JasDZzJMTMGZVqlGAIbsJfTrfa';
@@ -3062,12 +3097,39 @@ function saveState() {
 
 const S = loadState();
 
-// Al iniciar: intentar cargar desde la nube si hay key configurada
+// ── Polling periódico para detectar cambios remotos ───────────────────────────
+let _lastCloudTs = 0;
+let _pollTimer   = null;
+
+function startCloudPolling() {
+  if (_pollTimer) clearInterval(_pollTimer);
+  _pollTimer = setInterval(async () => {
+    if (!_jsonbinKey || !_jsonbinBin) return;
+    try {
+      const cloudData = await cloudLoad();
+      if (!cloudData || !cloudData.projects) return;
+      const cloudTs = cloudData._updatedAt || 0;
+      // Solo aplicar si la nube es más nueva que lo que ya cargamos
+      if (cloudTs > _lastCloudTs && cloudTs > (S._updatedAt || 0)) {
+        _lastCloudTs = cloudTs;
+        Object.assign(S, cloudData);
+        S.quotes = S.quotes || [];
+        if (isMobile()) S.active = null;
+        try { localStorage.setItem('kiri_state', JSON.stringify(S)); } catch(e) {}
+        render();
+        setCloudStatus('☁ actualizado', 'var(--sage)');
+        console.log('[kiri] Poll: cambio remoto aplicado ts=' + cloudTs);
+      }
+    } catch(e) { /* silencioso */ }
+  }, 30000); // cada 30 segundos
+}
+
+// Al iniciar: SIEMPRE tomar la nube como fuente de verdad
 async function initCloudSync() {
   if (!_jsonbinKey) return;
-  setCloudStatus('↓ buscando…', 'var(--sun)');
+  setCloudStatus('↓ sincronizando…', 'var(--sun)');
 
-  // Si no tenemos bin ID guardado, buscar en JSONBin
+  // Si no tenemos bin ID, buscarlo
   if (!_jsonbinBin) {
     try {
       const res = await fetch('https://api.jsonbin.io/v3/b', {
@@ -3075,7 +3137,6 @@ async function initCloudSync() {
       });
       if (res.ok) {
         const bins = await res.json();
-        // Tomar el bin más reciente que tenga datos de kiri
         const kBin = bins.find(b => b.record && b.record.projects);
         if (kBin) {
           _jsonbinBin = kBin.id || kBin.record?.id || kBin.metadata?.id;
@@ -3087,26 +3148,31 @@ async function initCloudSync() {
 
   const cloudData = await cloudLoad();
   if (cloudData && cloudData.projects) {
-    const localTs  = S._updatedAt  || 0;
-    const cloudTs  = cloudData._updatedAt || 0;
+    const cloudTs = cloudData._updatedAt || 0;
+    const localTs = S._updatedAt || 0;
+    _lastCloudTs  = cloudTs;
 
-    if (cloudTs > localTs) {
-      // La nube es más reciente → tomar datos de la nube
+    if (cloudTs >= localTs) {
+      // La nube es igual o más reciente → SIEMPRE tomar de la nube
+      console.log('[kiri] init: tomando nube (cloud=' + cloudTs + ' local=' + localTs + ')');
       Object.assign(S, cloudData);
-      S.quotes    = S.quotes    || [];
-      S._updatedAt = cloudTs;
+      S.quotes = S.quotes || [];
       if (isMobile()) S.active = null;
       try { localStorage.setItem('kiri_state', JSON.stringify(S)); } catch(e) {}
       render();
-      setCloudStatus('☁ sincronizado', 'var(--sage)');
     } else {
-      // Local es más reciente (o igual) → subir local a la nube
+      // Local realmente más nuevo → subir
+      console.log('[kiri] init: subiendo local (local=' + localTs + ' cloud=' + cloudTs + ')');
       await cloudSave(S);
-      setCloudStatus('☁ sincronizado', 'var(--sage)');
     }
+    setCloudStatus('☁ sincronizado', 'var(--sage)');
   } else {
-    setCloudStatus(_jsonbinBin ? '☁ listo' : '☁ sin bin aún', 'var(--sage)');
+    // Sin datos en nube → subir el estado local
+    if (_jsonbinBin) await cloudSave(S);
+    setCloudStatus('☁ listo', 'var(--sage)');
   }
+
+  startCloudPolling();
 }
 
 // ── RENDER ────────────────────────────────────────────────────────────────────
@@ -4931,14 +4997,15 @@ function updateEBTotal() {
   if (el) el.textContent = '$' + fmt(mo + mat + extrasSum);
 }
 
-function deleteProjectAt(i) {
+async function deleteProjectAt(i) {
   const p = S.projects[i];
-  if (!confirm('¿Eliminar "' + p.name + '"? Esta acción no se puede deshacer.')) return;
+  try {
+    await kiriConfirm('Eliminar "' + p.name + '"', 'Esta acción no se puede deshacer.', 'Eliminar');
+  } catch { return; }
   S.projects.splice(i, 1);
   if (S.active === i) S.active = S.projects.length > 0 ? 0 : null;
   else if (typeof S.active === 'number' && S.active > i) S.active--;
   saveState();
-  // Forzar subida inmediata a la nube (sin esperar el debounce)
   if (_jsonbinKey) {
     if (_cloudSaveTimer) { clearTimeout(_cloudSaveTimer); _cloudSaveTimer = null; }
     cloudSave(S);
@@ -6267,11 +6334,11 @@ function importarDatos(input) {
   const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = e => {
+  reader.onload = async e => {
     try {
       const parsed = JSON.parse(e.target.result);
       if (!parsed.projects) throw new Error('Formato inválido');
-      if (!confirm('¿Importar ' + parsed.projects.length + ' proyectos? Esto va a reemplazar los datos actuales.')) return;
+      try { await kiriConfirm('Importar ' + parsed.projects.length + ' proyectos', 'Esto va a reemplazar los datos actuales.', 'Importar'); } catch { return; }
       Object.assign(S, parsed);
       saveState();
       render();
@@ -7015,8 +7082,8 @@ function imSkip() {
   imShowCurrent();
 }
 
-function resetApp() {
-  if (!confirm('¿Borrar todos los proyectos y datos? Esta acción no se puede deshacer.')) return;
+async function resetApp() {
+  try { await kiriConfirm('Borrar todo', '¿Borrar todos los proyectos y datos? Esta acción no se puede deshacer.', 'Borrar todo'); } catch { return; }
   localStorage.removeItem('kiri_state');
   Object.assign(S, JSON.parse(JSON.stringify(S_DEFAULT)));
   S.selPeople = [];
@@ -7254,8 +7321,10 @@ function editQuote(qi) {
   document.getElementById('modal-quote').style.display = 'flex';
 }
 
-function deleteQuote(qi) {
-  if (!confirm('¿Eliminar esta cotización?')) return;
+async function deleteQuote(qi) {
+  try {
+    await kiriConfirm('Eliminar cotización', '¿Seguro que querés eliminarla?', 'Eliminar');
+  } catch { return; }
   S.quotes.splice(qi, 1);
   saveState();
   if (_jsonbinKey) {
@@ -7267,10 +7336,12 @@ function deleteQuote(qi) {
   showMobileToast('Cotización eliminada');
 }
 
-function deleteQuoteDirect(qi) {
+async function deleteQuoteDirect(qi) {
   const q = S.quotes[qi];
   if (!q) return;
-  if (!confirm('¿Eliminar cotización de "' + q.client + '"?')) return;
+  try {
+    await kiriConfirm('Eliminar cotización de "' + q.client + '"', 'Esta acción no se puede deshacer.', 'Eliminar');
+  } catch { return; }
   S.quotes.splice(qi, 1);
   saveState();
   if (_jsonbinKey) {
@@ -7491,9 +7562,9 @@ function removeProjectRenderImg(idx) {
   render();
 }
 
-function confirmDelivery(idx) {
+async function confirmDelivery(idx) {
   var proj = S.projects[idx]; if (!proj) return;
-  if (!confirm('¿Confirmar entrega del proyecto? Esto no cierra los pagos pendientes.')) return;
+  try { await kiriConfirm('Confirmar entrega', 'Esto no cierra los pagos pendientes.', 'Confirmar'); } catch { return; }
   proj.deliveredAt = new Date().toISOString().slice(0,10);
   render();
 }
