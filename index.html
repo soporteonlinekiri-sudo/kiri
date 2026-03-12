@@ -495,25 +495,34 @@ header {
   text-transform: uppercase; color: var(--muted); margin-bottom: 4px;
 }
 
-/* Formas geométricas tipo referencia — 3 círculos/elipses de color */
-.mhome-dash-shapes {
-  display: flex; gap: -8px;
-  height: 96px; align-items: center;
-  margin: 0 -22px; padding: 0 14px;
-  overflow: hidden; flex-shrink: 0;
+/* Hero visual — barras proporcionales de estado financiero */
+.mhome-dash-bars {
+  display: flex; flex-direction: column; gap: 7px;
+  margin: 10px 0 6px;
 }
-.mhome-dash-shape {
-  width: 100px; height: 100px; border-radius: 50%; flex-shrink: 0;
-  margin-right: -20px;
+.mhome-dash-bar-row {
+  display: flex; align-items: center; gap: 8px;
 }
-.mhome-dash-shape:nth-child(1) { background: var(--kiri); }
-.mhome-dash-shape:nth-child(2) { background: #b84040; width: 80px; height: 80px; }
-.mhome-dash-shape:nth-child(3) { background: #8a2828; width: 60px; height: 60px; }
-.mhome-dash-shape:nth-child(4) {
-  margin-left: auto; margin-right: 0;
-  background: transparent;
-  border: 2px solid var(--border);
-  width: 44px; height: 44px;
+.mhome-dash-bar-label {
+  font-size: 8px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--muted);
+  width: 66px; flex-shrink: 0; text-align: right;
+}
+.mhome-dash-bar-track {
+  flex: 1; height: 7px; background: var(--border);
+  border-radius: 4px; overflow: hidden;
+}
+.mhome-dash-bar-fill {
+  height: 100%; border-radius: 4px; width: 0%;
+  transition: width 0.9s cubic-bezier(0.4,0,0.2,1);
+}
+.bar-cobrado { background: var(--kiri); }
+.bar-falta   { background: var(--sun); }
+.bar-gastos  { background: var(--sage); }
+.mhome-dash-bar-val {
+  font-size: 9px; font-family: 'DM Mono', monospace;
+  color: var(--ink); opacity: 0.6;
+  width: 56px; flex-shrink: 0; white-space: nowrap;
 }
 
 /* Número hero enorme */
@@ -3421,13 +3430,30 @@ function renderMobileHome(el, tab) {
         '<div class="mhome-dash-hero anim-fade-down">' +
           '<div class="mhome-dash-eyebrow">Resumen general</div>' +
 
-          // 3 círculos superpuestos (inspirados en la referencia)
-          '<div class="mhome-dash-shapes">' +
-            '<div class="mhome-dash-shape"></div>' +
-            '<div class="mhome-dash-shape"></div>' +
-            '<div class="mhome-dash-shape"></div>' +
-            '<div class="mhome-dash-shape"></div>' +
-          '</div>' +
+          // Barras proporcionales: cobrado / falta cobrar / gastos
+          (function(){
+            const _max = Math.max(totalCobrado, faltaCobrar, totalGastos, 1);
+            const _pctC = Math.min(100, (totalCobrado / _max) * 100).toFixed(1);
+            const _pctF = Math.min(100, (faltaCobrar  / _max) * 100).toFixed(1);
+            const _pctG = Math.min(100, (totalGastos  / _max) * 100).toFixed(1);
+            return '<div class="mhome-dash-bars">' +
+              '<div class="mhome-dash-bar-row">' +
+                '<div class="mhome-dash-bar-label">Cobrado</div>' +
+                '<div class="mhome-dash-bar-track"><div class="mhome-dash-bar-fill bar-cobrado" data-w="' + _pctC + '%" style="width:0"></div></div>' +
+                '<div class="mhome-dash-bar-val">$' + fmt(totalCobrado) + '</div>' +
+              '</div>' +
+              '<div class="mhome-dash-bar-row">' +
+                '<div class="mhome-dash-bar-label">Por cobrar</div>' +
+                '<div class="mhome-dash-bar-track"><div class="mhome-dash-bar-fill bar-falta" data-w="' + _pctF + '%" style="width:0"></div></div>' +
+                '<div class="mhome-dash-bar-val">$' + fmt(faltaCobrar) + '</div>' +
+              '</div>' +
+              '<div class="mhome-dash-bar-row">' +
+                '<div class="mhome-dash-bar-label">Gastos</div>' +
+                '<div class="mhome-dash-bar-track"><div class="mhome-dash-bar-fill bar-gastos" data-w="' + _pctG + '%" style="width:0"></div></div>' +
+                '<div class="mhome-dash-bar-val">$' + fmt(totalGastos) + '</div>' +
+              '</div>' +
+            '</div>';
+          })() +
 
           '<div class="mhome-dash-amount-wrap">' +
             '<div class="mhome-dash-amount-label">Ganancia acumulada</div>' +
@@ -7602,6 +7628,15 @@ function updateMobileNav(active) {
 
 // ── Animaciones post-render ──────────────────────────────────────
 function runPostRenderAnimations() {
+  // 0. Barras proporcionales del hero — animan desde 0
+  document.querySelectorAll('.mhome-dash-bar-fill').forEach(bar => {
+    const target = bar.dataset.w || '0%';
+    bar.style.width = '0%';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      bar.style.width = target;
+    }));
+  });
+
   // 1. Barra de progreso en INICIO — anima desde 0 hasta el target
   const barFill = document.getElementById('main-bar-fill');
   if (barFill) {
