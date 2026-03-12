@@ -91,18 +91,18 @@ header {
 }
 .logo-name {
   font-family: 'DM Sans', sans-serif;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 300;
   letter-spacing: 8px;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.95);
-  text-indent: 8px; /* compensa letter-spacing visual */
+  color: rgba(255,255,255,0.97);
+  text-indent: 8px;
 }
 .logo-sub {
   font-family: 'DM Sans', sans-serif;
-  font-size: 7px;
+  font-size: 8px;
   font-weight: 400;
-  color: rgba(255,255,255,0.3);
+  color: rgba(255,255,255,0.55);
   letter-spacing: 3px;
   text-transform: lowercase;
   text-indent: 8px;
@@ -491,7 +491,7 @@ header {
   position: relative; flex-shrink: 0;
 }
 .mhome-dash-eyebrow {
-  font-size: 8px; font-weight: 600; letter-spacing: 3px;
+  font-size: 10px; font-weight: 600; letter-spacing: 3px;
   text-transform: uppercase; color: var(--muted); margin-bottom: 4px;
 }
 
@@ -504,9 +504,9 @@ header {
   display: flex; align-items: center; gap: 8px;
 }
 .mhome-dash-bar-label {
-  font-size: 8px; font-weight: 700; letter-spacing: 1.5px;
+  font-size: 10px; font-weight: 700; letter-spacing: 1px;
   text-transform: uppercase; color: var(--muted);
-  width: 66px; flex-shrink: 0; text-align: right;
+  width: 72px; flex-shrink: 0; text-align: right;
 }
 .mhome-dash-bar-track {
   flex: 1; height: 7px; background: var(--border);
@@ -520,9 +520,9 @@ header {
 .bar-falta   { background: var(--sun); }
 .bar-gastos  { background: var(--sage); }
 .mhome-dash-bar-val {
-  font-size: 9px; font-family: 'DM Mono', monospace;
-  color: var(--ink); opacity: 0.6;
-  width: 56px; flex-shrink: 0; white-space: nowrap;
+  font-size: 11px; font-family: 'DM Mono', monospace;
+  color: var(--ink); opacity: 0.65;
+  width: 62px; flex-shrink: 0; white-space: nowrap;
 }
 
 /* Número hero enorme */
@@ -530,7 +530,7 @@ header {
   padding: 12px 0 4px;
 }
 .mhome-dash-amount-label {
-  font-size: 9px; letter-spacing: 2px; color: var(--muted);
+  font-size: 11px; letter-spacing: 2px; color: var(--muted);
   text-transform: uppercase; font-weight: 500; margin-bottom: 6px;
 }
 .mhome-dash-amount {
@@ -569,7 +569,7 @@ header {
   font-size: 13px; color: var(--ink); font-weight: 500; line-height: 1;
 }
 .mhome-dash-stat-lbl {
-  font-size: 7px; font-weight: 500; letter-spacing: 1.5px;
+  font-size: 9px; font-weight: 500; letter-spacing: 1px;
   text-transform: uppercase; color: var(--muted);
 }
 
@@ -592,7 +592,7 @@ header {
   flex: 1; display: flex; flex-direction: column; gap: 10px;
 }
 .mhome-metric-lbl {
-  font-size: 8px; font-weight: 600; letter-spacing: 2px;
+  font-size: 10px; font-weight: 600; letter-spacing: 1.5px;
   text-transform: uppercase; color: var(--muted);
 }
 .mhome-metric-val {
@@ -600,14 +600,14 @@ header {
   font-size: 20px; font-weight: 500; color: var(--ink);
   letter-spacing: -0.5px; line-height: 1;
 }
-.mhome-metric-val.big { font-size: 26px; letter-spacing: -1px; }
+.mhome-metric-val.big { font-size: 28px; letter-spacing: -1px; }
 .mhome-metric-val.positive { color: #2a6a2a; }
 .mhome-metric-val.negative { color: #aa2a2a; }
 
 /* Franja de color — footer de la card */
 .mhome-metric-bottom {
   padding: 7px 16px;
-  font-size: 8px; letter-spacing: 1.5px; font-weight: 600;
+  font-size: 10px; letter-spacing: 1px; font-weight: 600;
   text-transform: uppercase; border-top: 1px solid var(--border);
 }
 .mhome-metric.c-green .mhome-metric-bottom { background: #2a6a2a; color: #fff; }
@@ -660,11 +660,11 @@ header {
   flex-shrink: 0; border-bottom: 1px solid var(--border);
 }
 .mproj-title, .mcot-title {
-  font-size: 10px; font-weight: 700; letter-spacing: 3px;
+  font-size: 12px; font-weight: 700; letter-spacing: 2px;
   text-transform: uppercase; color: var(--ink);
 }
 .mproj-count {
-  font-size: 8px; font-weight: 500; letter-spacing: 2px;
+  font-size: 10px; font-weight: 500; letter-spacing: 1.5px;
   text-transform: uppercase; color: var(--muted); font-family: 'DM Mono', monospace;
 }
 /* Botón colapso sección */
@@ -722,12 +722,12 @@ header {
 }
 .mcot-card:active { transform: scale(0.96); }
 .mcot-client {
-  font-size: 10px; font-weight: 700; color: var(--ink);
+  font-size: 12px; font-weight: 700; color: var(--ink);
   text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.1; margin-top: 5px;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
-.mcot-desc { font-size: 9px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mcot-total { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 700; color: var(--kiri); margin-top: auto; padding-top: 8px; }
+.mcot-desc { font-size: 11px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mcot-total { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 700; color: var(--kiri); margin-top: auto; padding-top: 8px; }
 .mcot-date { font-family: 'DM Mono', monospace; font-size: 8px; color: var(--muted); margin-top: 2px; }
 .mcot-empty {
   flex: 1; display: flex; align-items: center; justify-content: center;
@@ -757,7 +757,7 @@ header {
   padding: 9px 16px; cursor: pointer; -webkit-tap-highlight-color: transparent;
   user-select: none; background: var(--surface);
 }
-.mprojsec-label { font-size: 9px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--muted); }
+.mprojsec-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
 .mprojsec-toggle { font-size: 11px; color: var(--muted); transition: transform 0.22s ease; line-height: 1; }
 .mprojsec.sec-collapsed .mprojsec-toggle { transform: rotate(-90deg); }
 .mprojsec-body {
@@ -851,7 +851,7 @@ header {
 
 /* Nombre */
 .mproj-name {
-  font-weight: 800; color: #fff;
+  font-weight: 800; color: #fff; font-size: 13px;
   text-transform: uppercase; line-height: 1.05;
   letter-spacing: 0.3px;
   font-size: clamp(10px, 2.2vw, 14px);
@@ -1217,7 +1217,7 @@ header {
 
 /* ── FORM ────────────────────────────────────────────────────── */
 .field { margin-bottom: 13px; }
-.field label { display: block; font-size: 9px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 5px; font-family: 'Noto Sans JP', sans-serif; }
+.field label { display: block; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; font-family: 'Noto Sans JP', sans-serif; }
 .field input, .field select { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); color: var(--ink); font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 8px 11px; outline: none; transition: border-color 0.12s; }
 .field input:focus, .field select:focus { border-color: var(--kiri); background: #fff; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -1248,10 +1248,10 @@ header {
   }
 
   /* Header compacto */
-  header { padding: 0 14px; height: 50px; }
+  header { padding: 0 14px; height: 54px; }
   .logo-mark { font-size: 20px; }
-  .logo-name  { font-size: 14px; }
-  .logo-sub   { display: none; }
+  .logo-name  { font-size: 15px; letter-spacing: 7px; }
+  .logo-sub   { display: block; font-size: 8px; color: rgba(255,255,255,0.5); letter-spacing: 2.5px; }
   .cloud-status-wrap { display: none; } /* ocultar en mobile */
 
   /* Ocultar botones secundarios del header en mobile */
