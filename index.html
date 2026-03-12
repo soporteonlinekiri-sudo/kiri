@@ -689,9 +689,19 @@ header {
 
 /* Grid fijo: 2×2 = 4 slots 1×1 */
 .mproj-grid {
-  height: 100%; overflow: hidden; padding: 8px; box-sizing: border-box;
+  height: 100%; overflow: visible; padding: 8px; box-sizing: border-box;
   display: grid; grid-template-columns: 1fr 1fr;
   grid-template-rows: repeat(2, 1fr); gap: 7px;
+}
+/* Wrapper de cada celda del grid: permite overflow del botón de eliminar */
+.mproj-card-wrap {
+  position: relative; display: contents;
+}
+.mproj-card-wrap { display: block; position: relative; }
+.mproj-card-wrap .mproj-card { width: 100%; height: 100%; }
+/* El botón de eliminar se posiciona sobre el wrapper */
+.mproj-card-wrap .mcard-delete-btn {
+  position: absolute; top: -8px; right: -8px; z-index: 20;
 }
 
 /* ── COTIZACIONES ─────────────────────────────────────────────── */
@@ -2242,6 +2252,11 @@ header {
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M8 12l4 4 4-4"/><line x1="12" y1="8" x2="12" y2="16"/></svg>
       <div><div class="mmenu-label">Instalar app</div><div class="mmenu-sub">Agregar a pantalla de inicio</div></div>
     </button>
+    <div style="height:1px;background:var(--border);margin:4px 0"></div>
+    <button class="mmenu-item" onclick="closeMobileMenu();openTrashModal()" id="mmenu-trash-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      <div><div class="mmenu-label">Papelera</div><div class="mmenu-sub" id="mmenu-trash-sub">Proyectos eliminados</div></div>
+    </button>
     <button class="mmenu-cancel" onclick="closeMobileMenuAndRestore()">Cancelar</button>
   </div>
 </div>
@@ -2635,6 +2650,21 @@ header {
 </div>
 
 <!-- MODAL DISTRIBUCIÓN MO -->
+<!-- MODAL PAPELERA -->
+<div class="overlay" id="modal-trash" onclick="overlayClick(event,'trash')" style="z-index:1900">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title" style="display:flex;align-items:center;gap:10px">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--kiri)"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      Papelera
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin:-4px 0 14px;padding:0 2px">Los proyectos eliminados se borran definitivamente después de 5 días.</div>
+    <div id="trash-body" style="max-height:55vh;overflow-y:auto;padding:0 2px"></div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn btn-light" onclick="closeModal('trash')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL CONFIRM PERSONALIZADO -->
 <div class="overlay" id="modal-confirm" style="z-index:2100">
   <div class="modal" style="max-width:320px;padding:24px 22px 20px">
@@ -2975,6 +3005,7 @@ const S_DEFAULT = {
   people: ['Agustín', 'Martín', 'Julia'],
   projects: [],
   quotes: [],
+  trash: [],
   active: null,
   selPeople: []
 };
@@ -3096,6 +3127,17 @@ function saveState() {
 }
 
 const S = loadState();
+S.trash = S.trash || [];
+
+// Purgar papelera: eliminar definitivo si tiene >5 días
+function purgeTrash() {
+  const FIVE_DAYS = 5 * 24 * 60 * 60 * 1000;
+  const cutoff = Date.now() - FIVE_DAYS;
+  const before = S.trash.length;
+  S.trash = S.trash.filter(t => t.deletedAt > cutoff);
+  if (S.trash.length < before) saveState();
+}
+purgeTrash();
 
 // ── Polling periódico para detectar cambios remotos ───────────────────────────
 let _lastCloudTs = 0;
@@ -3109,19 +3151,24 @@ function startCloudPolling() {
       const cloudData = await cloudLoad();
       if (!cloudData || !cloudData.projects) return;
       const cloudTs = cloudData._updatedAt || 0;
-      // Solo aplicar si la nube es más nueva que lo que ya cargamos
-      if (cloudTs > _lastCloudTs && cloudTs > (S._updatedAt || 0)) {
+      // Aplicar si la nube cambió desde la última vez que la cargamos
+      // NO comparar con S._updatedAt — ese valor cambia con cualquier acción local
+      // y bloquearía la recepción de cambios remotos indefinidamente
+      if (cloudTs > _lastCloudTs) {
         _lastCloudTs = cloudTs;
         Object.assign(S, cloudData);
+        S.trash  = S.trash  || [];
         S.quotes = S.quotes || [];
-        if (isMobile()) S.active = null;
+        S.active = null; // resetear selección al recibir cambio remoto
         try { localStorage.setItem('kiri_state', JSON.stringify(S)); } catch(e) {}
         render();
-        setCloudStatus('☁ actualizado', 'var(--sage)');
+        setCloudStatus('☁ sincronizado', 'var(--sage)');
         console.log('[kiri] Poll: cambio remoto aplicado ts=' + cloudTs);
       }
-    } catch(e) { /* silencioso */ }
-  }, 30000); // cada 30 segundos
+    } catch(e) {
+      console.warn('[kiri] Poll error:', e);
+    }
+  }, 15000); // cada 15 segundos
 }
 
 // Al iniciar: SIEMPRE tomar la nube como fuente de verdad
@@ -3400,14 +3447,28 @@ function renderSidebar() {
           <div class="proj-item-top">
             <div class="proj-name">${esc(p.name)}</div>
             <div class="proj-pct-badge">${pct.toFixed(0)}%</div>
-            <button class="proj-delete-btn" onclick="event.stopPropagation();deleteProjectAt(${i})" title="Eliminar">✕</button>
+            <button class="proj-delete-btn" onclick="event.stopPropagation();deleteProjectAt(${i})" title="Mover a papelera">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            </button>
           </div>
           <div class="proj-amount">$${fmt(p.budget)}</div>
           <div class="proj-progress-mini"><div class="proj-progress-mini-fill" style="width:${pct}%"></div></div>
         </div>`;
       }).join('');
 
-  aside.innerHTML = heroHTML + `<div class="sidebar-proj-list">${listHTML}</div>`;
+  const trashCount = (S.trash || []).length;
+  const trashBadge = trashCount > 0
+    ? `<span style="background:var(--kiri);color:#fff;font-size:9px;font-weight:700;border-radius:10px;padding:1px 6px;margin-left:6px">${trashCount}</span>`
+    : '';
+  const trashFooter = `
+    <div style="padding:8px 12px 4px;border-top:1px solid rgba(255,255,255,0.06);margin-top:4px">
+      <button onclick="openTrashModal()" style="display:flex;align-items:center;gap:7px;width:100%;background:none;border:none;color:rgba(255,255,255,0.28);cursor:pointer;padding:6px 4px;border-radius:5px;font-size:11px;font-family:inherit;transition:color 0.15s" onmouseover="this.style.color='rgba(255,255,255,0.6)'" onmouseout="this.style.color='rgba(255,255,255,0.28)'">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        Papelera${trashBadge}
+      </button>
+    </div>`;
+
+  aside.innerHTML = heroHTML + `<div class="sidebar-proj-list">${listHTML}</div>` + trashFooter;
 }
 
 function renderDesktopHome(el) {
@@ -3687,26 +3748,29 @@ function renderMobileHome(el, tab) {
       : '';
 
     return (
-      '<div class="mproj-card" data-idx="' + origIdx + '" ' +
-          'style="background:' + color + '" onclick="selectMobileProject(' + origIdx + ')">' +
-        photoEl + camIcon +
-        '<div class="mproj-fill' + (isPagoComplete ? ' done' : '') + '" style="height:' + fillH + '"></div>' +
-        '<div class="mproj-bar"><div class="mproj-bar-fill" style="width:' + pct + '%"></div></div>' +
-        // Tacho de basura — esquina superior derecha
-        '<button class="mcard-delete-btn" onclick="event.stopPropagation();deleteProjectAt(' + origIdx + ')" title="Eliminar">' +
-          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>' +
-        '</button>' +
-        '<div class="mproj-inner">' +
-          '<div>' +
-            '<div class="mproj-badge ' + badgeClass + '">' + badgeText + '</div>' +
-            '<div class="mproj-name">' + esc(p.name) + '</div>' +
-            (p.desc ? '<div class="mproj-desc">' + esc(p.desc) + '</div>' : '') +
-          '</div>' +
-          '<div class="mproj-pct-wrap">' +
-            '<div class="mproj-pct"><span class="mproj-pct-sym">%</span>' + pct.toFixed(0) + '</div>' +
-            (dueDateStr ? '<div class="mproj-duedate">' + dueDateStr + '</div>' : '') +
+      // Wrapper sin overflow:hidden para que el botón de eliminar no sea recortado
+      '<div class="mproj-card-wrap">' +
+        '<div class="mproj-card" data-idx="' + origIdx + '" ' +
+            'style="background:' + color + '" onclick="selectMobileProject(' + origIdx + ')">' +
+          photoEl + camIcon +
+          '<div class="mproj-fill' + (isPagoComplete ? ' done' : '') + '" style="height:' + fillH + '"></div>' +
+          '<div class="mproj-bar"><div class="mproj-bar-fill" style="width:' + pct + '%"></div></div>' +
+          '<div class="mproj-inner">' +
+            '<div>' +
+              '<div class="mproj-badge ' + badgeClass + '">' + badgeText + '</div>' +
+              '<div class="mproj-name">' + esc(p.name) + '</div>' +
+              (p.desc ? '<div class="mproj-desc">' + esc(p.desc) + '</div>' : '') +
+            '</div>' +
+            '<div class="mproj-pct-wrap">' +
+              '<div class="mproj-pct"><span class="mproj-pct-sym">%</span>' + pct.toFixed(0) + '</div>' +
+              (dueDateStr ? '<div class="mproj-duedate">' + dueDateStr + '</div>' : '') +
+            '</div>' +
           '</div>' +
         '</div>' +
+        // Botón FUERA de la tarjeta (no recortado por overflow:hidden)
+        '<button class="mcard-delete-btn" onclick="deleteProjectAt(' + origIdx + ')" title="Eliminar">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>' +
+        '</button>' +
       '</div>'
     );
   }).join('');
@@ -5000,8 +5064,14 @@ function updateEBTotal() {
 async function deleteProjectAt(i) {
   const p = S.projects[i];
   try {
-    await kiriConfirm('Eliminar "' + p.name + '"', 'Esta acción no se puede deshacer.', 'Eliminar');
+    await kiriConfirm(
+      'Mover a papelera',
+      '"' + p.name + '" se eliminará definitivamente en 5 días.',
+      'Mover a papelera'
+    );
   } catch { return; }
+  S.trash = S.trash || [];
+  S.trash.unshift({ project: JSON.parse(JSON.stringify(p)), deletedAt: Date.now() });
   S.projects.splice(i, 1);
   if (S.active === i) S.active = S.projects.length > 0 ? 0 : null;
   else if (typeof S.active === 'number' && S.active > i) S.active--;
@@ -5011,7 +5081,78 @@ async function deleteProjectAt(i) {
     cloudSave(S);
   }
   render();
-  showMobileToast('Proyecto eliminado');
+  showMobileToast('Movido a papelera · Podés restaurarlo');
+}
+
+function restoreFromTrash(i) {
+  S.trash = S.trash || [];
+  const item = S.trash[i];
+  if (!item) return;
+  S.projects.push(item.project);
+  S.trash.splice(i, 1);
+  saveState();
+  if (_jsonbinKey) {
+    if (_cloudSaveTimer) { clearTimeout(_cloudSaveTimer); _cloudSaveTimer = null; }
+    cloudSave(S);
+  }
+  renderTrashModal();
+  render();
+  showMobileToast('"' + item.project.name + '" restaurado');
+}
+
+async function permanentDelete(i) {
+  S.trash = S.trash || [];
+  const item = S.trash[i];
+  if (!item) return;
+  try {
+    await kiriConfirm(
+      'Eliminar definitivamente',
+      '"' + item.project.name + '" se borrará para siempre.',
+      'Eliminar para siempre'
+    );
+  } catch { return; }
+  S.trash.splice(i, 1);
+  saveState();
+  if (_jsonbinKey) {
+    if (_cloudSaveTimer) { clearTimeout(_cloudSaveTimer); _cloudSaveTimer = null; }
+    cloudSave(S);
+  }
+  renderTrashModal();
+  showMobileToast('Eliminado definitivamente');
+}
+
+function openTrashModal() {
+  renderTrashModal();
+  document.getElementById('modal-trash').style.display = 'flex';
+}
+
+function renderTrashModal() {
+  S.trash = S.trash || [];
+  const FIVE_DAYS = 5 * 24 * 60 * 60 * 1000;
+  const now = Date.now();
+  const body = document.getElementById('trash-body');
+  if (!body) return;
+  if (S.trash.length === 0) {
+    body.innerHTML = '<div style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px">La papelera está vacía.</div>';
+    return;
+  }
+  body.innerHTML = S.trash.map((t, i) => {
+    const daysLeft = Math.ceil((t.deletedAt + FIVE_DAYS - now) / 86400000);
+    const dateStr = new Date(t.deletedAt).toLocaleDateString('es-AR', { day:'2-digit', month:'short' });
+    const urgent = daysLeft <= 1;
+    return '<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(t.project.name) + '</div>' +
+        '<div style="font-size:11px;color:var(--muted);margin-top:2px">Eliminado ' + dateStr + ' · ' +
+          '<span style="color:' + (urgent ? 'var(--kiri)' : 'var(--muted)') + ';font-weight:' + (urgent ? '700' : '400') + '">' +
+          (daysLeft <= 0 ? 'Expira hoy' : daysLeft + (daysLeft === 1 ? ' día restante' : ' días restantes')) +
+          '</span>' +
+        '</div>' +
+      '</div>' +
+      '<button onclick="restoreFromTrash(' + i + ')" style="background:var(--sage);border:none;color:#fff;border-radius:5px;padding:6px 11px;font-size:11px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap">Restaurar</button>' +
+      '<button onclick="permanentDelete(' + i + ')" style="background:none;border:1px solid #d9a0a0;color:var(--kiri);border-radius:5px;padding:6px 9px;font-size:11px;font-weight:700;font-family:inherit;cursor:pointer">✕</button>' +
+    '</div>';
+  }).join('');
 }
 
 function deleteProject() {
@@ -7911,6 +8052,12 @@ function openMobileMenu() {
   const cliente  = document.getElementById('mmenu-pdf-cliente');
   if (interno) interno.style.display = hasPDF ? 'flex' : 'none';
   if (cliente) cliente.style.display = hasPDF ? 'flex' : 'none';
+  // Actualizar contador de papelera
+  const trashSub = document.getElementById('mmenu-trash-sub');
+  if (trashSub) {
+    const tc = (S.trash || []).length;
+    trashSub.textContent = tc > 0 ? tc + (tc === 1 ? ' proyecto eliminado' : ' proyectos eliminados') : 'Proyectos eliminados';
+  }
   document.getElementById('mobile-menu-drawer').classList.add('open');
   updateMobileNav('export');
 }
