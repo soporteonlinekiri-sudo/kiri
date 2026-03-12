@@ -3120,14 +3120,15 @@ function loadState() {
 
 function saveState() {
   try {
-    S._updatedAt = Date.now(); // marca de tiempo en cada guardado local
+    S._updatedAt = Date.now();
     localStorage.setItem('kiri_state', JSON.stringify(S));
   } catch(e) {}
-  // Debounce cloud save: esperar 1.5s de inactividad antes de guardar en la nube
   if (_jsonbinKey) {
     if (_cloudSaveTimer) clearTimeout(_cloudSaveTimer);
     setCloudStatus('…', 'var(--muted)');
-    _cloudSaveTimer = setTimeout(() => cloudSave(S), 1500);
+    // Snapshot del estado AHORA para no subir un estado diferente 1.5s después
+    const snapshot = JSON.parse(JSON.stringify(S));
+    _cloudSaveTimer = setTimeout(() => cloudSave(snapshot), 1500);
   }
 }
 
@@ -3177,7 +3178,8 @@ function startCloudPolling() {
   }, 15000); // cada 15 segundos
 }
 
-// Al iniciar: SIEMPRE tomar la nube como fuente de verdad
+// Al iniciar: la nube es SIEMPRE la fuente de verdad
+// NUNCA subir datos locales al arrancar — eso pisaría cambios de otros dispositivos
 async function initCloudSync() {
   if (!_jsonbinKey) return;
   setCloudStatus('↓ sincronizando…', 'var(--sun)');
@@ -3200,36 +3202,33 @@ async function initCloudSync() {
   }
 
   const cloudData = await cloudLoad();
-  if (cloudData && cloudData.projects) {
-    const cloudTs = cloudData._updatedAt || 0;
-    const localTs = S._updatedAt || 0;
-    _lastCloudTs  = cloudTs;
 
-    if (cloudTs >= localTs) {
-      // La nube es igual o más reciente → SIEMPRE tomar de la nube
-      console.log('[kiri] init: tomando nube (cloud=' + cloudTs + ' local=' + localTs + ')');
-      Object.assign(S, cloudData);
-      S.trash  = S.trash  || [];
-      S.quotes = S.quotes || [];
-      S.active = null;
-      // Purgar papelera DESPUÉS de cargar la nube (no antes, para no pisar timestamp)
-      const FIVE_DAYS = 5 * 24 * 60 * 60 * 1000;
-      const cutoff = Date.now() - FIVE_DAYS;
-      const trashBefore = S.trash.length;
-      S.trash = S.trash.filter(t => t.deletedAt > cutoff);
-      try { localStorage.setItem('kiri_state', JSON.stringify(S)); } catch(e) {}
-      render();
-      // Si la purga eliminó items, subir a la nube
-      if (S.trash.length < trashBefore) await cloudSave(S);
-    } else {
-      // Local realmente más nuevo → subir
-      console.log('[kiri] init: subiendo local (local=' + localTs + ' cloud=' + cloudTs + ')');
-      await cloudSave(S);
-    }
+  if (cloudData && cloudData.projects) {
+    // Hay datos en la nube → usarlos SIEMPRE, sin comparar timestamps
+    // El timestamp solo se usa para el polling, no para decidir en el arranque
+    const cloudTs = cloudData._updatedAt || 0;
+    _lastCloudTs = cloudTs;
+    console.log('[kiri] init: aplicando nube (ts=' + cloudTs + ')');
+    Object.assign(S, cloudData);
+    S.trash  = S.trash  || [];
+    S.quotes = S.quotes || [];
+    S.active = null;
+    // Purgar papelera expirada
+    const FIVE_DAYS = 5 * 24 * 60 * 60 * 1000;
+    const trashBefore = S.trash.length;
+    S.trash = S.trash.filter(t => t.deletedAt > Date.now() - FIVE_DAYS);
+    try { localStorage.setItem('kiri_state', JSON.stringify(S)); } catch(e) {}
+    render();
+    // Si la purga eliminó items, actualizar la nube
+    if (S.trash.length < trashBefore) await cloudSave(S);
     setCloudStatus('☁ sincronizado', 'var(--sage)');
+  } else if (_jsonbinBin) {
+    // Hay bin pero está vacío o falló → subir lo local como primera vez
+    console.log('[kiri] init: nube vacía, subiendo local');
+    await cloudSave(S);
+    setCloudStatus('☁ listo', 'var(--sage)');
   } else {
-    // Sin datos en nube → subir el estado local
-    if (_jsonbinBin) await cloudSave(S);
+    // Sin bin configurado todavía
     setCloudStatus('☁ listo', 'var(--sage)');
   }
 
@@ -5092,13 +5091,14 @@ async function deleteProjectAt(i) {
   saveState();
   if (_jsonbinKey) {
     if (_cloudSaveTimer) { clearTimeout(_cloudSaveTimer); _cloudSaveTimer = null; }
-    cloudSave(S);
+    // Snapshot para garantizar que se sube exactamente este estado
+    await cloudSave(JSON.parse(JSON.stringify(S)));
   }
   render();
   showMobileToast('Movido a papelera · Podés restaurarlo');
 }
 
-function restoreFromTrash(i) {
+async function restoreFromTrash(i) {
   S.trash = S.trash || [];
   const item = S.trash[i];
   if (!item) return;
@@ -5107,7 +5107,7 @@ function restoreFromTrash(i) {
   saveState();
   if (_jsonbinKey) {
     if (_cloudSaveTimer) { clearTimeout(_cloudSaveTimer); _cloudSaveTimer = null; }
-    cloudSave(S);
+    await cloudSave(JSON.parse(JSON.stringify(S)));
   }
   renderTrashModal();
   render();
@@ -5129,7 +5129,7 @@ async function permanentDelete(i) {
   saveState();
   if (_jsonbinKey) {
     if (_cloudSaveTimer) { clearTimeout(_cloudSaveTimer); _cloudSaveTimer = null; }
-    cloudSave(S);
+    await cloudSave(JSON.parse(JSON.stringify(S)));
   }
   renderTrashModal();
   showMobileToast('Eliminado definitivamente');
@@ -7484,7 +7484,7 @@ async function deleteQuote(qi) {
   saveState();
   if (_jsonbinKey) {
     if (_cloudSaveTimer) { clearTimeout(_cloudSaveTimer); _cloudSaveTimer = null; }
-    cloudSave(S);
+    await cloudSave(JSON.parse(JSON.stringify(S)));
   }
   closeModal('quote-detail');
   render();
@@ -7501,7 +7501,7 @@ async function deleteQuoteDirect(qi) {
   saveState();
   if (_jsonbinKey) {
     if (_cloudSaveTimer) { clearTimeout(_cloudSaveTimer); _cloudSaveTimer = null; }
-    cloudSave(S);
+    await cloudSave(JSON.parse(JSON.stringify(S)));
   }
   render();
   showMobileToast('Cotización eliminada');
