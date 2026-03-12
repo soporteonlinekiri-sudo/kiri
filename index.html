@@ -643,14 +643,14 @@ header {
   font-family: 'DM Mono', monospace;
 }
 
-/* Grid de cuadrantes — sin scroll, llena el espacio disponible */
+/* Grid fijo: 2 col × 3 filas = 6 slots 1×1, sin scroll */
 .mproj-grid {
   flex: 1;
   overflow: hidden;
   padding: 10px;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  /* grid-template-rows se setea dinámicamente desde JS */
+  grid-template-rows: repeat(3, 1fr);
   gap: 8px;
   min-height: 0;
 }
@@ -3361,8 +3361,8 @@ function renderMobileHome(el, tab) {
     );
   }).join('');
 
-  // Grid: ceil(n/2) filas para llenar el espacio exacto sin scroll
-  const rows = Math.max(1, Math.ceil(n / 2));
+  // Grid fijo: siempre 2 columnas × 3 filas = 6 slots de 1×1
+  // Los slots vacíos quedan como espacio muerto
 
   el.innerHTML =
     '<div class="mproj-wrap">' +
@@ -3370,7 +3370,7 @@ function renderMobileHome(el, tab) {
         '<span class="mproj-title">Proyectos</span>' +
         '<span class="mproj-count">' + n + ' ' + (n === 1 ? 'proyecto' : 'proyectos') + '</span>' +
       '</div>' +
-      '<div class="mproj-grid" id="mproj-grid-outer" style="grid-template-rows:repeat(' + rows + ',1fr)">' +
+      '<div class="mproj-grid" id="mproj-grid-outer">' +
         cardsHTML +
       '</div>' +
     '</div>';
