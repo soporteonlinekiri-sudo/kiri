@@ -643,17 +643,54 @@ header {
   font-family: 'DM Mono', monospace;
 }
 
-/* Grid de cuadrantes — 2 columnas, filas auto */
+/* Grid de cuadrantes — contenedor con overflow hidden para el auto-scroll */
 .mproj-grid {
-  flex: 1; overflow-y: auto; overflow-x: hidden;
-  padding: 12px; scrollbar-width: none;
+  flex: 1;
+  overflow: hidden;
+  padding: 12px 12px 0;
+  position: relative;
+}
+
+/* Inner scrolling track — contiene las cards duplicadas para loop infinito */
+.mproj-scroll-inner {
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-auto-rows: calc((100dvh - 54px - 76px - 60px - 24px) / 3);
   gap: 8px;
-  align-content: start;
+  will-change: transform;
+  animation: kGridScroll var(--scroll-dur, 20s) linear infinite;
 }
-.mproj-grid::-webkit-scrollbar { display: none; }
+.mproj-scroll-inner.paused {
+  animation-play-state: paused;
+}
+
+@keyframes kGridScroll {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+
+/* Fade masks top y bottom para suavizar bordes */
+.mproj-grid::before,
+.mproj-grid::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  height: 48px;
+  z-index: 10;
+  pointer-events: none;
+}
+.mproj-grid::before {
+  top: 0;
+  background: linear-gradient(to bottom, var(--surface) 0%, transparent 100%);
+}
+.mproj-grid::after {
+  bottom: 0;
+  background: linear-gradient(to top, var(--surface) 0%, transparent 100%);
+}
+
+
+/* Cards en el grid de scroll — sin animación de entrada individual */
+.mproj-scroll-inner .mproj-card { animation: none !important; opacity: 1 !important; transform: none !important; }
 
 /* Tamaños según cuadrantes */
 .mproj-card[data-size="4"] { grid-column: span 2; grid-row: span 2; }
@@ -3378,14 +3415,68 @@ function renderMobileHome(el, tab) {
     );
   }).join('');
 
+  // Duración del scroll proporcional a cantidad de cards
+  // Más proyectos = más lento para que se pueda leer
+  const scrollDur = Math.max(14, n * 5) + 's';
+
+  // Duplicamos las cards para el loop infinito (sin clases de animación en la copia)
+  const cardsDup = cardsHTML.replace(/anim-fade-up anim-d\d+/g, '').replace(/anim-d\d+/g, '');
+
   el.innerHTML =
     '<div class="mproj-wrap">' +
       '<div class="mproj-topbar">' +
         '<span class="mproj-title">Proyectos</span>' +
-        '<span class="mproj-count">' + n + ' ' + (n === 1 ? 'proyecto' : 'proyectos') + '</span>' +
+        '<div style="display:flex;align-items:center;gap:10px">' +
+          '<div id="mproj-live-dot" style="display:flex;align-items:center;gap:5px;font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)">' +
+            '<div style="width:5px;height:5px;border-radius:50%;background:var(--kiri);animation:kPulse 2s ease infinite"></div>' +
+            'LIVE' +
+          '</div>' +
+          '<span class="mproj-count">' + n + ' ' + (n === 1 ? 'proyecto' : 'proyectos') + '</span>' +
+        '</div>' +
       '</div>' +
-      '<div class="mproj-grid">' + cardsHTML + '</div>' +
+      '<div class="mproj-grid" id="mproj-grid-outer">' +
+        '<div class="mproj-scroll-inner" id="mproj-scroll-inner" style="--scroll-dur:' + scrollDur + '">' +
+          cardsHTML + cardsDup +
+        '</div>' +
+      '</div>' +
     '</div>';
+
+  // Touch handlers: pausar al tocar, reanudar al soltar
+  const gridOuter = document.getElementById('mproj-grid-outer');
+  const scrollInner = document.getElementById('mproj-scroll-inner');
+  const liveDot = document.getElementById('mproj-live-dot');
+
+  function setPaused(paused) {
+    if (!scrollInner) return;
+    scrollInner.classList.toggle('paused', paused);
+    if (liveDot) {
+      liveDot.innerHTML = paused
+        ? '<div style="width:5px;height:5px;border-radius:2px;background:var(--muted)"></div>PAUSA'
+        : '<div style="width:5px;height:5px;border-radius:50%;background:var(--kiri);animation:kPulse 2s ease infinite"></div>LIVE';
+    }
+  }
+
+  if (gridOuter && scrollInner) {
+    let _touchStartTime = 0;
+    let _resumeTimer = null;
+
+    gridOuter.addEventListener('touchstart', () => {
+      _touchStartTime = Date.now();
+      clearTimeout(_resumeTimer);
+      setPaused(true);
+    }, { passive: true });
+
+    gridOuter.addEventListener('touchend', () => {
+      const dur = Date.now() - _touchStartTime;
+      clearTimeout(_resumeTimer);
+      _resumeTimer = setTimeout(() => setPaused(false), dur < 250 ? 800 : 300);
+    }, { passive: true });
+
+    gridOuter.addEventListener('touchcancel', () => {
+      clearTimeout(_resumeTimer);
+      _resumeTimer = setTimeout(() => setPaused(false), 400);
+    }, { passive: true });
+  }
 }
 
 function initDeck(deckEl, total) {
@@ -4788,6 +4879,87 @@ function exportCSV() {
 }
 
 // ── EXPORT PDF ────────────────────────────────────────────────────────────────
+// ── COMPARTIR / IMPRIMIR ─────────────────────────────────────────────────────
+// En mobile: Web Share API con archivo HTML (abre el selector nativo)
+// En desktop: ventana nueva + diálogo de impresión
+async function mobileShareOrPrint(htmlContent, filename) {
+  const file = new File([htmlContent], filename, { type: 'text/html;charset=utf-8' });
+
+  // Mostrar toast de carga en mobile
+  if (isMobile()) showMobileToast('Preparando documento…', 0);
+
+  // Intento 1: Web Share API con archivo (iOS Safari 15+, Chrome Android)
+  if (isMobile() && navigator.canShare && navigator.canShare({ files: [file] })) {
+    hideMobileToast();
+    try {
+      await navigator.share({ files: [file], title: filename.replace(/-/g,' ').replace('.html','') });
+      return;
+    } catch(err) {
+      if (err.name !== 'AbortError') console.warn('Share API error:', err);
+      else return; // usuario canceló
+    }
+  }
+
+  hideMobileToast();
+  // Fallback: abrir en ventana nueva y print
+  const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const win  = window.open(url, '_blank');
+  if (win) win.onload = () => { win.print(); URL.revokeObjectURL(url); };
+  else { URL.revokeObjectURL(url); }
+}
+
+// Toast de feedback mobile
+let _toastTimer = null;
+function showMobileToast(msg, duration) {
+  let toast = document.getElementById('kiri-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'kiri-toast';
+    toast.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(28,23,20,0.92);color:#fff;padding:10px 18px;border-radius:20px;font-size:12px;font-weight:600;font-family:"DM Sans",sans-serif;z-index:9999;pointer-events:none;transition:opacity 0.2s;white-space:nowrap;letter-spacing:0.5px';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.style.opacity = '1';
+  clearTimeout(_toastTimer);
+  if (duration > 0) _toastTimer = setTimeout(hideMobileToast, duration);
+}
+function hideMobileToast() {
+  const toast = document.getElementById('kiri-toast');
+  if (toast) toast.style.opacity = '0';
+  clearTimeout(_toastTimer);
+}
+
+// Versión con ventana de carga previa (para flujo con IA)
+// Devuelve { win, url } para que el llamador pueda reemplazar cuando llegue la IA
+function openLoadingWindow(htmlContent) {
+  if (isMobile()) return { win: null, url: null }; // en mobile no abrimos ventana
+  const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const win  = window.open(url, '_blank');
+  return { win, url };
+}
+
+async function finalizeAndShare(htmlContent, filename, loadingCtx) {
+  if (isMobile()) {
+    await mobileShareOrPrint(htmlContent, filename);
+    return;
+  }
+  // Desktop: reemplazar contenido de la ventana abierta
+  const { win, url: oldUrl } = loadingCtx || {};
+  URL.revokeObjectURL(oldUrl);
+  const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  if (win && !win.closed) {
+    win.location.replace(url);
+    win.onload = () => { win.print(); URL.revokeObjectURL(url); };
+  } else {
+    const w2 = window.open(url, '_blank');
+    if (w2) w2.onload = () => { w2.print(); URL.revokeObjectURL(url); };
+  }
+}
+
+
 async function exportPDF() {
   if (S.active === null) return;
   const p = S.projects[S.active];
@@ -5366,11 +5538,10 @@ ${sobranteMat > 0.01 ? `
 
   // ── Análisis con Claude (si hay API key) ─────────────────────
   const apiKey = sessionStorage.getItem('kiri_apikey') || '';
+  const pdfFilename = 'kiri-interno-' + p.name.replace(/\s+/g,'-').toLowerCase() + '.html';
+
   if (!apiKey) {
-    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const win = window.open(url, '_blank');
-    win.onload = () => { win.print(); URL.revokeObjectURL(url); };
+    await mobileShareOrPrint(html, pdfFilename);
     return;
   }
 
@@ -5415,11 +5586,11 @@ ${sobranteMat > 0.01 ? `
     datosInternoStr
   ].join('\n');
 
-  // Mostrar loading mientras Claude analiza
-  const loadingHtml = html.replace('</body>', '<div id="kiri-ai-analysis" style="margin:32px 24px;padding:20px 24px;background:#f5f0e8;border-radius:6px;border-left:4px solid #7a2f2f"><p style="font-size:13px;color:#7a2f2f;font-weight:700">⏳ Generando análisis con Claude…</p></div></body>');
-  const blob0 = new Blob([loadingHtml], { type: 'text/html;charset=utf-8' });
-  const url0 = URL.createObjectURL(blob0);
-  const win = window.open(url0, '_blank');
+  // En mobile: mostrar spinner inline en vez de ventana de carga
+  if (isMobile()) showMobileToast('✦ Generando análisis con IA…', 0);
+  const loadingCtx = openLoadingWindow(
+    html.replace('</body>', '<div id="kiri-ai-analysis" style="margin:32px 24px;padding:20px 24px;background:#f5f0e8;border-radius:6px;border-left:4px solid #7a2f2f"><p style="font-size:13px;color:#7a2f2f;font-weight:700">⏳ Generando análisis con Claude…</p></div></body>')
+  );
 
   try {
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
@@ -5434,7 +5605,6 @@ ${sobranteMat > 0.01 ? `
     const data = await resp.json();
     const analisis = data.content?.[0]?.text || 'No se pudo generar el análisis.';
 
-    // Formatear el texto en HTML limpio
     const analisisHtml = '<div style="margin:32px 24px 0;padding:20px 24px;background:#f5f0e8;border-radius:6px;border-left:4px solid #7a2f2f;page-break-inside:avoid">'
       + '<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#7a2f2f;margin-bottom:14px">Análisis · Generado por Claude</div>'
       + analisis.split('\n').map(line => {
@@ -5448,16 +5618,10 @@ ${sobranteMat > 0.01 ? `
       + '</div>';
 
     const finalHtml = html.replace('</body>', analisisHtml + '</body>');
-    URL.revokeObjectURL(url0);
-    const blob1 = new Blob([finalHtml], { type: 'text/html;charset=utf-8' });
-    const url1 = URL.createObjectURL(blob1);
-    if (win && !win.closed) {
-      win.location.replace(url1);
-      win.onload = () => { win.print(); URL.revokeObjectURL(url1); };
-    }
+    await finalizeAndShare(finalHtml, pdfFilename, loadingCtx);
   } catch(err) {
     console.error('Claude PDF error:', err);
-    if (win && !win.closed) win.print();
+    await finalizeAndShare(html, pdfFilename, loadingCtx);
   }
 }
 
@@ -5890,11 +6054,10 @@ ${cobradoCompleto
 
   // ── Análisis con Claude para cliente ─────────────────────────
   const apiKeyC = sessionStorage.getItem('kiri_apikey') || '';
+  const pdfFilenameC = 'kiri-cliente-' + p.name.replace(/\s+/g,'-').toLowerCase() + '.html';
+
   if (!apiKeyC) {
-    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const win = window.open(url, '_blank');
-    win.onload = () => { win.print(); URL.revokeObjectURL(url); };
+    await mobileShareOrPrint(html, pdfFilenameC);
     return;
   }
 
@@ -5927,10 +6090,10 @@ ${cobradoCompleto
     datosClienteStr
   ].join('\n');
 
-  const loadingHtmlC = html.replace('</body>', '<div style="margin:32px 24px;padding:16px 20px;background:#f5f0e8;border-radius:6px;border-left:4px solid #7a2f2f"><p style="font-size:12px;color:#7a2f2f;font-weight:700">⏳ Preparando mensaje personalizado…</p></div></body>');
-  const blob0C = new Blob([loadingHtmlC], { type: 'text/html;charset=utf-8' });
-  const url0C = URL.createObjectURL(blob0C);
-  const winC = window.open(url0C, '_blank');
+  if (isMobile()) showMobileToast('✦ Generando mensaje con IA…', 0);
+  const loadingCtxC = openLoadingWindow(
+    html.replace('</body>', '<div style="margin:32px 24px;padding:16px 20px;background:#f5f0e8;border-radius:6px;border-left:4px solid #7a2f2f"><p style="font-size:12px;color:#7a2f2f;font-weight:700">⏳ Preparando mensaje personalizado…</p></div></body>')
+  );
 
   try {
     const respC = await fetch('https://api.anthropic.com/v1/messages', {
@@ -5959,18 +6122,11 @@ ${cobradoCompleto
       + '</div>'
     ) : '';
 
-    // Insertar después del header del cliente
     const finalHtmlC = html.replace('<!-- PAGOS -->', analisisHtmlC + '<!-- PAGOS -->');
-    URL.revokeObjectURL(url0C);
-    const blob1C = new Blob([finalHtmlC], { type: 'text/html;charset=utf-8' });
-    const url1C = URL.createObjectURL(blob1C);
-    if (winC && !winC.closed) {
-      winC.location.replace(url1C);
-      winC.onload = () => { winC.print(); URL.revokeObjectURL(url1C); };
-    }
+    await finalizeAndShare(finalHtmlC, pdfFilenameC, loadingCtxC);
   } catch(err) {
     console.error('Claude cliente PDF error:', err);
-    if (winC && !winC.closed) winC.print();
+    await finalizeAndShare(html, pdfFilenameC, loadingCtxC);
   }
 }
 // ── EXPORTAR / IMPORTAR DATOS ────────────────────────────────────────────────
