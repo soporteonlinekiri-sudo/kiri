@@ -1747,149 +1747,126 @@ header {
 }
 
 
-/* ── FAB RADIAL ─────────────────────────────────────────────────── */
-/* ── FAB + NAV (mobile) ─────────────────────────────────────── */
+/* ── FAB + BOTTOM-SHEET (mobile) ─────────────────────────────── */
 #fab-wrap { display: none; }
 
 @media (max-width: 700px) {
 
-  /* Overlay oscuro detrás del menú radial */
   #fab-overlay {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0);
-    z-index: 1050;
-    transition: background 0.3s;
-    pointer-events: none;
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0); z-index: 1050;
+    transition: background 0.3s; pointer-events: none;
   }
   #fab-overlay.visible {
-    display: block;
-    background: rgba(0,0,0,0.45);
-    pointer-events: all;
+    display: block; background: rgba(0,0,0,0.55); pointer-events: all;
   }
 
-  /* Contenedor del FAB — centrado justo sobre el botón inicio */
   #fab-wrap {
-    display: block;
-    position: fixed;
-    bottom: 72px; /* sobre el nav */
-    left: 50%; transform: translateX(-50%);
-    z-index: 1100;
-    width: 0; height: 0; /* solo ancla, no ocupa espacio */
+    display: block; position: fixed;
+    bottom: 72px; left: 50%; transform: translateX(-50%);
+    z-index: 1100; width: 0; height: 0;
   }
-
-  /* Botón "+" pequeño que flota sobre el botón inicio */
   #fab-btn {
-    position: absolute;
-    bottom: 0; left: 50%;
-    transform: translateX(-50%);
-    width: 32px; height: 32px;
-    background: var(--kiri);
-    border: 2px solid rgba(255,255,255,0.25);
-    border-radius: 50%;
+    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 32px; height: 32px; background: var(--kiri);
+    border: 2px solid rgba(255,255,255,0.25); border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 2px 12px rgba(122,47,47,0.6);
-    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1),
-                background 0.2s;
+    cursor: pointer; box-shadow: 0 2px 12px rgba(122,47,47,0.6);
+    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), background 0.2s;
     -webkit-tap-highlight-color: transparent;
   }
   #fab-btn svg { width: 16px; height: 16px; stroke: #fff; stroke-width: 2.5; }
   #fab-btn:active { transform: translateX(-50%) scale(0.85); }
-  #fab-wrap.open #fab-btn {
-    transform: translateX(-50%) rotate(45deg);
-    background: #333;
+  #fab-wrap.open #fab-btn { transform: translateX(-50%) rotate(45deg); background: #333; }
+
+  /* ── BOTTOM SHEET ─── */
+  #fab-sheet {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 1200;
+    background: var(--surface); border-radius: 18px 18px 0 0;
+    padding: 0 0 calc(76px + env(safe-area-inset-bottom));
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.25);
+    transform: translateY(100%);
+    transition: transform 0.32s cubic-bezier(0.4,0,0.2,1);
+    pointer-events: none;
+  }
+  #fab-sheet.open { transform: translateY(0); pointer-events: all; }
+  .fab-sheet-handle {
+    width: 36px; height: 4px; background: var(--border);
+    border-radius: 2px; margin: 14px auto 0;
+  }
+  .fab-step { display: none; padding: 16px 18px 8px; }
+  .fab-step.active { display: block; }
+  .fab-step-title {
+    font-size: 9px; font-weight: 700; letter-spacing: 2.5px;
+    text-transform: uppercase; color: var(--muted);
+    margin-bottom: 14px; text-align: center;
   }
 
-  /* Opciones radiales — parten desde el centro del FAB */
-  .fab-option {
-    position: fixed;
-    bottom: 84px; left: 50%;
-    display: flex; flex-direction: column; align-items: center; gap: 8px;
-    z-index: 1101;
-    opacity: 0; pointer-events: none;
-    /* posición de reposo: todas en el centro */
-    transform: translateX(-50%) translateY(20px) scale(0.7);
-    transition: opacity 0.22s ease,
-                transform 0.35s cubic-bezier(0.34,1.4,0.64,1);
+  /* Paso 1: tipo */
+  .fab-type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 6px; }
+  .fab-type-card {
+    border: 2px solid var(--border); border-radius: 12px;
+    padding: 18px 12px 14px;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    transition: transform 0.12s; text-align: center;
   }
-  #fab-wrap.open .fab-option {
-    opacity: 1; pointer-events: all;
-    transform: translateX(-50%) scale(1);
-  }
-  /* Arco semicircular hacia arriba */
-  #fab-opt-manual    { transition-delay: 0.00s; }
-  #fab-opt-voz       { transition-delay: 0.05s; }
-  #fab-opt-archivo   { transition-delay: 0.10s; }
-
-  #fab-wrap.open #fab-opt-manual  {
-    transform: translateX(calc(-50% - 100px)) translateY(-30px) scale(1);
-  }
-  #fab-wrap.open #fab-opt-voz {
-    transform: translateX(-50%) translateY(-60px) scale(1);
-  }
-  #fab-wrap.open #fab-opt-archivo {
-    transform: translateX(calc(-50% + 100px)) translateY(-30px) scale(1);
-  }
-
-  .fab-opt-icon {
-    width: 52px; height: 52px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 50%;
+  .fab-type-card:active { transform: scale(0.96); }
+  .fab-type-card.type-pres { border-color: var(--ink); background: var(--ink); }
+  .fab-type-card.type-cot  { border-color: var(--kiri); background: var(--kiri); }
+  .fab-type-icon {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(255,255,255,0.15);
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 6px 24px rgba(0,0,0,0.2);
-    transition: transform 0.15s;
   }
-  .fab-opt-icon svg { width: 22px; height: 22px; stroke: var(--ink); }
-  .fab-option:active .fab-opt-icon { transform: scale(0.88); }
-  .fab-opt-label {
-    font-size: 9px; font-weight: 400; letter-spacing: 1.5px;
-    text-transform: lowercase; color: #fff;
-    white-space: nowrap;
-    text-shadow: 0 1px 6px rgba(0,0,0,0.6);
-    background: rgba(0,0,0,0.4);
-    padding: 3px 8px; border-radius: 10px;
-  }
+  .fab-type-icon svg { width: 22px; height: 22px; stroke: #fff; stroke-width: 1.75; }
+  .fab-type-name { font-size: 12px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #fff; }
+  .fab-type-sub { font-size: 10px; color: rgba(255,255,255,0.65); line-height: 1.3; }
 
-  /* ── NAV — 3 botones, pill rojo en el activo ── */
-  #mobile-nav {
-    align-items: center;
-    padding: 0 6px;
-    height: 62px;
-    gap: 4px;
+  /* Paso 2: método */
+  .fab-back-row { display: flex; align-items: center; gap: 6px; margin-bottom: 14px; }
+  .fab-back-btn {
+    background: none; border: none; color: var(--muted); font-size: 18px;
+    cursor: pointer; padding: 0; line-height: 1; -webkit-tap-highlight-color: transparent;
   }
+  .fab-breadcrumb { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+  .fab-breadcrumb.type-pres { color: var(--ink); }
+  .fab-breadcrumb.type-cot  { color: var(--kiri); }
+  .fab-method-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 6px; }
+  .fab-method-card {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 8px 12px;
+    display: flex; flex-direction: column; align-items: center; gap: 7px;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    transition: transform 0.12s, background 0.12s;
+  }
+  .fab-method-card:active { transform: scale(0.94); background: var(--border); }
+  .fab-method-icon {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--surface); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .fab-method-icon svg { width: 18px; height: 18px; stroke: var(--ink); stroke-width: 1.75; }
+  .fab-method-name { font-size: 10px; font-weight: 600; color: var(--ink); text-align: center; line-height: 1.2; }
+  #fab-sheet.type-pres .fab-method-icon { border-color: rgba(26,21,18,0.4); }
+  #fab-sheet.type-cot  .fab-method-icon { border-color: rgba(122,47,47,0.4); }
+
+  /* NAV */
+  #mobile-nav { align-items: center; padding: 0 6px; height: 62px; gap: 4px; }
   #mnav-indicator { display: none; }
-
-  /* Todos los botones iguales */
   .mnav-btn {
-    flex: 1 !important;
-    border-radius: 14px !important;
-    height: 46px !important;
-    margin: 0 !important;
-    box-shadow: none !important;
-    color: rgba(255,255,255,0.4) !important;
-    position: relative;
+    flex: 1 !important; border-radius: 14px !important; height: 46px !important;
+    margin: 0 !important; box-shadow: none !important;
+    color: rgba(255,255,255,0.4) !important; position: relative;
     transition: color 0.2s, background 0.2s !important;
   }
-  /* Pill rojo al activar cualquier tab */
-  .mnav-btn.active {
-    background: var(--kiri) !important;
-    color: #fff !important;
-    box-shadow: 0 2px 12px rgba(122,47,47,0.4) !important;
-  }
-  /* Centro ya no tiene estilo especial propio */
-  .mnav-home-center {
-    flex: 1 !important;
-    color: rgba(255,255,255,0.4) !important;
-    background: none !important;
-    box-shadow: none !important;
-    margin-bottom: 0 !important;
-    height: 46px !important;
-  }
+  .mnav-btn.active { background: var(--kiri) !important; color: #fff !important; box-shadow: 0 2px 12px rgba(122,47,47,0.4) !important; }
+  .mnav-home-center { flex: 1 !important; color: rgba(255,255,255,0.4) !important; background: none !important; box-shadow: none !important; margin-bottom: 0 !important; height: 46px !important; }
   .mnav-home-center::before { display: none !important; }
   .mnav-home-center svg { position: static !important; }
 }
+
 
 </style>
 </head>
@@ -2070,31 +2047,73 @@ header {
 
 <!-- FAB radial -->
 <div id="fab-overlay" onclick="closeFab()"></div>
+
+<!-- BOTTOM SHEET: 2 pasos -->
+<div id="fab-sheet">
+  <div class="fab-sheet-handle"></div>
+
+  <!-- PASO 1: elegir tipo -->
+  <div class="fab-step active" id="fab-step-1">
+    <div class="fab-step-title">¿Qué querés cargar?</div>
+    <div class="fab-type-grid">
+      <div class="fab-type-card type-pres" onclick="fabSelectType('pres')">
+        <div class="fab-type-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+            <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+          </svg>
+        </div>
+        <div class="fab-type-name">Presupuesto</div>
+        <div class="fab-type-sub">Proyecto confirmado con seguimiento de pagos y gastos</div>
+      </div>
+      <div class="fab-type-card type-cot" onclick="fabSelectType('cot')">
+        <div class="fab-type-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/>
+          </svg>
+        </div>
+        <div class="fab-type-name">Cotización</div>
+        <div class="fab-type-sub">Presupuesto para el cliente, exportable como PDF</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASO 2: elegir método -->
+  <div class="fab-step" id="fab-step-2">
+    <div class="fab-back-row">
+      <button class="fab-back-btn" onclick="fabGoBack()">‹</button>
+      <span class="fab-breadcrumb" id="fab-breadcrumb-label">Presupuesto</span>
+      <span style="font-size:10px;color:var(--muted);margin-left:2px">— elegí cómo cargar</span>
+    </div>
+    <div class="fab-method-grid">
+      <div class="fab-method-card" onclick="fabSelectMethod('manual')">
+        <div class="fab-method-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+            <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+        </div>
+        <div class="fab-method-name">Manual</div>
+      </div>
+      <div class="fab-method-card" onclick="fabSelectMethod('voz')">
+        <div class="fab-method-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        </div>
+        <div class="fab-method-name">Por voz</div>
+      </div>
+      <div class="fab-method-card" onclick="fabSelectMethod('imagen')">
+        <div class="fab-method-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+            <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/>
+          </svg>
+        </div>
+        <div class="fab-method-name">Imagen / archivo</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="fab-wrap">
-  <div class="fab-option" id="fab-opt-manual" onclick="closeFab();openModal('proj')">
-    <div class="fab-opt-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round">
-        <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-      </svg>
-    </div>
-    <div class="fab-opt-label">manual</div>
-  </div>
-  <div class="fab-option" id="fab-opt-voz" onclick="closeFab();openModal('voice')">
-    <div class="fab-opt-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round">
-        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
-      </svg>
-    </div>
-    <div class="fab-opt-label">por voz</div>
-  </div>
-  <div class="fab-option" id="fab-opt-archivo" onclick="closeFab();openModal('computo')">
-    <div class="fab-opt-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round">
-        <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/>
-      </svg>
-    </div>
-    <div class="fab-opt-label">imagen / archivo</div>
-  </div>
   <button id="fab-btn" onclick="toggleFab()">
     <svg id="fab-icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
       <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -2493,14 +2512,35 @@ header {
 <div class="overlay" id="modal-quote" onclick="overlayClick(event,'quote')">
   <div class="modal">
     <div class="modal-title" id="quote-modal-title">Nueva cotización</div>
+
+    <!-- DATOS DEL CLIENTE -->
+    <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Datos del cliente</div>
     <div class="field">
-      <label>Cliente *</label>
-      <input id="q-client" type="text" placeholder="Nombre del cliente">
+      <label>Nombre / Empresa *</label>
+      <input id="q-client" type="text" placeholder="Ej: Andrea Homola">
       <div class="field-error" id="err-qclient">Ingresá un cliente</div>
     </div>
+    <div class="quote-row">
+      <div class="field" style="margin:0">
+        <label>Teléfono</label>
+        <input id="q-phone" type="tel" placeholder="+54 351...">
+      </div>
+      <div class="field" style="margin:0">
+        <label>Email</label>
+        <input id="q-email" type="email" placeholder="cliente@mail.com">
+      </div>
+    </div>
     <div class="field">
-      <label>Descripción del trabajo</label>
-      <input id="q-desc" type="text" placeholder="Ej: Cocina modular con isla">
+      <label>Dirección / Localidad</label>
+      <input id="q-address" type="text" placeholder="Ej: Córdoba Capital">
+    </div>
+
+    <!-- DESCRIPCIÓN DEL TRABAJO -->
+    <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:14px 0 10px">Trabajo cotizado</div>
+    <div class="field">
+      <label>Descripción del proyecto *</label>
+      <input id="q-desc" type="text" placeholder="Ej: Cocina modular con isla y alacenas">
+      <div class="field-error" id="err-qdesc">Ingresá una descripción</div>
     </div>
     <div class="quote-row">
       <div class="field" style="margin:0">
@@ -2517,10 +2557,26 @@ header {
       <div id="q-extras-list" class="quote-extras-list"></div>
       <button class="btn btn-light btn-sm" onclick="addQuoteExtra()" type="button" style="align-self:flex-start">+ Agregar</button>
     </div>
-    <div class="field">
-      <label>Notas para el cliente</label>
-      <textarea id="q-notes" rows="2" placeholder="Condiciones, plazos, etc." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:12px;color:var(--ink);background:var(--surface);resize:none;outline:none;box-sizing:border-box"></textarea>
+    <div class="quote-row">
+      <div class="field" style="margin:0">
+        <label>Validez</label>
+        <select id="q-validity" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:12px;background:var(--surface);color:var(--ink);outline:none">
+          <option value="15">15 días</option>
+          <option value="30" selected>30 días</option>
+          <option value="45">45 días</option>
+          <option value="60">60 días</option>
+        </select>
+      </div>
+      <div class="field" style="margin:0">
+        <label>Entrega estimada</label>
+        <input id="q-delivery" type="text" placeholder="Ej: 45 días hábiles">
+      </div>
     </div>
+    <div class="field">
+      <label>Observaciones / condiciones</label>
+      <textarea id="q-notes" rows="2" placeholder="Materiales incluidos, forma de pago, etc." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:12px;color:var(--ink);background:var(--surface);resize:none;outline:none;box-sizing:border-box"></textarea>
+    </div>
+
     <div class="quote-total-preview">
       <span class="quote-total-label">Total cotización</span>
       <span class="quote-total-num" id="q-total-preview">$0</span>
@@ -7224,11 +7280,16 @@ function openModal_quote() {
   _quoteExtras = [];
   document.getElementById('quote-modal-title').textContent = 'Nueva cotización';
   document.getElementById('q-save-btn').textContent = 'Guardar';
-  document.getElementById('q-client').value = '';
-  document.getElementById('q-desc').value = '';
-  document.getElementById('q-mo').value = '';
-  document.getElementById('q-mat').value = '';
-  document.getElementById('q-notes').value = '';
+  document.getElementById('q-client').value   = '';
+  document.getElementById('q-phone').value    = '';
+  document.getElementById('q-email').value    = '';
+  document.getElementById('q-address').value  = '';
+  document.getElementById('q-desc').value     = '';
+  document.getElementById('q-mo').value       = '';
+  document.getElementById('q-mat').value      = '';
+  document.getElementById('q-notes').value    = '';
+  document.getElementById('q-delivery').value = '';
+  document.getElementById('q-validity').value = '30';
   renderQuoteExtras();
   updateQuotePreview();
 }
@@ -7278,15 +7339,21 @@ function saveQuote() {
   document.getElementById('err-qclient').style.display = 'none';
 
   const q = {
-    id: _editingQuoteIdx !== null ? S.quotes[_editingQuoteIdx].id : Date.now(),
+    id:       _editingQuoteIdx !== null ? S.quotes[_editingQuoteIdx].id : Date.now(),
     client,
-    desc:   document.getElementById('q-desc').value.trim(),
-    mo:     parseFloat(document.getElementById('q-mo').value)  || 0,
-    mat:    parseFloat(document.getElementById('q-mat').value) || 0,
-    extras: _quoteExtras.map(e => ({ nombre: e.nombre, monto: e.monto || 0 })),
-    notes:  document.getElementById('q-notes').value.trim(),
-    createdAt: _editingQuoteIdx !== null ? S.quotes[_editingQuoteIdx].createdAt
-               : new Date().toISOString().slice(0, 10)
+    phone:    document.getElementById('q-phone').value.trim(),
+    email:    document.getElementById('q-email').value.trim(),
+    address:  document.getElementById('q-address').value.trim(),
+    desc:     document.getElementById('q-desc').value.trim(),
+    mo:       parseFloat(document.getElementById('q-mo').value)  || 0,
+    mat:      parseFloat(document.getElementById('q-mat').value) || 0,
+    extras:   _quoteExtras.map(e => ({ nombre: e.nombre, monto: e.monto || 0 })),
+    notes:    document.getElementById('q-notes').value.trim(),
+    delivery: document.getElementById('q-delivery').value.trim(),
+    validity: parseInt(document.getElementById('q-validity').value) || 30,
+    createdAt: _editingQuoteIdx !== null
+      ? S.quotes[_editingQuoteIdx].createdAt
+      : new Date().toISOString().slice(0, 10)
   };
 
   S.quotes = S.quotes || [];
@@ -7295,6 +7362,7 @@ function saveQuote() {
   } else {
     S.quotes.push(q);
   }
+  saveState();
   render();
   closeModal('quote');
 }
@@ -7358,11 +7426,16 @@ function editQuote(qi) {
   _quoteExtras = (q.extras || []).map(e => ({ ...e }));
   document.getElementById('quote-modal-title').textContent = 'Editar cotización';
   document.getElementById('q-save-btn').textContent = 'Actualizar';
-  document.getElementById('q-client').value = q.client || '';
-  document.getElementById('q-desc').value   = q.desc   || '';
-  document.getElementById('q-mo').value     = q.mo     || '';
-  document.getElementById('q-mat').value    = q.mat    || '';
-  document.getElementById('q-notes').value  = q.notes  || '';
+  document.getElementById('q-client').value   = q.client   || '';
+  document.getElementById('q-phone').value    = q.phone    || '';
+  document.getElementById('q-email').value    = q.email    || '';
+  document.getElementById('q-address').value  = q.address  || '';
+  document.getElementById('q-desc').value     = q.desc     || '';
+  document.getElementById('q-mo').value       = q.mo       || '';
+  document.getElementById('q-mat').value      = q.mat      || '';
+  document.getElementById('q-notes').value    = q.notes    || '';
+  document.getElementById('q-delivery').value = q.delivery || '';
+  document.getElementById('q-validity').value = q.validity || '30';
   renderQuoteExtras();
   updateQuotePreview();
   document.getElementById('modal-quote').style.display = 'flex';
@@ -7379,53 +7452,176 @@ async function exportQuotePDF(qi) {
   const q = S.quotes[qi];
   if (!q) return;
   const total = (q.mo||0) + (q.mat||0) + (q.extras||[]).reduce((s,e)=>s+(e.monto||0),0);
-  const fecha = new Date().toLocaleDateString('es-AR', { day:'2-digit', month:'long', year:'numeric' });
+  const fechaEmision = new Date().toLocaleDateString('es-AR', { day:'2-digit', month:'long', year:'numeric' });
+  const nroCot = String(qi + 1).padStart(4, '0');
 
-  const extrasRows = (q.extras||[]).length
-    ? q.extras.map(e =>
-        '<tr><td style="padding:10px 0;border-bottom:1px solid #eee;color:#666;font-size:14px">' + esc(e.nombre) + '</td>' +
-        '<td style="padding:10px 0;border-bottom:1px solid #eee;text-align:right;font-family:monospace;font-size:14px">$' + fmt(e.monto) + '</td></tr>'
-      ).join('')
-    : '';
+  // Calcular fecha de vencimiento
+  const validity = q.validity || 30;
+  const vencDate = new Date();
+  vencDate.setDate(vencDate.getDate() + validity);
+  const fechaVenc = vencDate.toLocaleDateString('es-AR', { day:'2-digit', month:'long', year:'numeric' });
 
-  const htmlContent = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">' +
-    '<style>' +
-    'body{font-family:Arial,Helvetica,sans-serif;color:#1a1512;max-width:620px;margin:0 auto;padding:40px 32px;background:#fff}' +
-    '.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px;padding-bottom:24px;border-bottom:3px solid #7a2f2f}' +
-    '.brand{font-size:28px;font-weight:900;letter-spacing:4px;color:#7a2f2f}' +
-    '.brand-sub{font-size:9px;letter-spacing:3px;color:#8a827a;text-transform:uppercase;margin-top:2px}' +
-    '.meta{text-align:right;font-size:12px;color:#8a827a;line-height:1.6}' +
-    'h1{font-size:22px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin:0 0 6px}' +
-    '.desc{font-size:13px;color:#8a827a;margin-bottom:32px}' +
-    'table{width:100%;border-collapse:collapse}' +
-    'th{text-align:left;padding:0 0 10px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#8a827a;border-bottom:2px solid #1a1512}' +
-    'th:last-child{text-align:right}' +
-    'td{padding:12px 0;border-bottom:1px solid #eee;font-size:14px}' +
-    'td:last-child{text-align:right;font-family:monospace}' +
-    '.total-row td{border-bottom:none;padding-top:20px;font-size:18px;font-weight:800}' +
-    '.total-row td:last-child{color:#7a2f2f;font-size:22px}' +
-    '.notes{margin-top:32px;padding:16px 20px;background:#f5f0e8;border-radius:6px;font-size:13px;color:#666;line-height:1.6}' +
-    '.notes-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#8a827a;margin-bottom:8px;font-weight:700}' +
-    '.footer{margin-top:48px;padding-top:20px;border-top:1px solid #eee;font-size:11px;color:#aaa;text-align:center}' +
-    '</style></head><body>' +
-    '<div class="header">' +
-      '<div><div class="brand">桐 KIRI</div><div class="brand-sub">Muebles a medida</div></div>' +
-      '<div class="meta"><div>Cotización</div><div>' + fecha + '</div></div>' +
+  const extrasRows = (q.extras||[]).filter(e => e.monto > 0).map(e =>
+    '<tr>' +
+      '<td class="td-desc">' + esc(e.nombre||'Adicional') + '</td>' +
+      '<td class="td-unit">1</td>' +
+      '<td class="td-amt">$' + fmt(e.monto) + '</td>' +
+      '<td class="td-total">$' + fmt(e.monto) + '</td>' +
+    '</tr>'
+  ).join('');
+
+  const htmlContent = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+  '<style>' +
+  '*{box-sizing:border-box;margin:0;padding:0}' +
+  'body{font-family:Arial,Helvetica,sans-serif;color:#1a1512;background:#fff;padding:32px 28px;max-width:680px;margin:0 auto;font-size:13px}' +
+
+  /* Header */
+  '.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px}' +
+  '.brand-block .brand-name{font-size:26px;font-weight:900;letter-spacing:6px;color:#7a2f2f;line-height:1}' +
+  '.brand-block .brand-kanji{font-size:14px;color:#8a827a;letter-spacing:4px;margin-top:2px}' +
+  '.brand-block .brand-tagline{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#aaa;margin-top:8px}' +
+  '.doc-meta{text-align:right}' +
+  '.doc-type{font-size:22px;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:#1a1512}' +
+  '.doc-num{font-size:11px;color:#8a827a;margin-top:4px;font-family:monospace;letter-spacing:1px}' +
+  '.doc-date{font-size:11px;color:#8a827a;margin-top:2px}' +
+
+  /* Divider */
+  '.divider{border:none;border-top:3px solid #7a2f2f;margin:0 0 24px}' +
+
+  /* Two cols: cliente + empresa */
+  '.parties{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px}' +
+  '.party-label{font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#8a827a;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid #eee}' +
+  '.party-name{font-size:14px;font-weight:700;color:#1a1512;margin-bottom:4px}' +
+  '.party-detail{font-size:11px;color:#666;line-height:1.6}' +
+
+  /* Project info */
+  '.project-banner{background:#f5f0e8;border-left:4px solid #7a2f2f;padding:12px 16px;margin-bottom:28px;border-radius:0 6px 6px 0}' +
+  '.project-label{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#8a827a;margin-bottom:4px}' +
+  '.project-name{font-size:14px;font-weight:700;color:#1a1512}' +
+
+  /* Table */
+  '.items-table{width:100%;border-collapse:collapse;margin-bottom:24px}' +
+  'thead tr{background:#1a1512;color:#fff}' +
+  'thead th{padding:10px 12px;text-align:left;font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:700}' +
+  'thead th.th-amt,thead th.th-total{text-align:right}' +
+  'tbody tr:nth-child(even){background:#faf8f5}' +
+  '.td-desc{padding:11px 12px;font-size:13px;color:#1a1512}' +
+  '.td-unit{padding:11px 12px;font-size:12px;color:#8a827a;text-align:center;width:40px}' +
+  '.td-amt{padding:11px 12px;font-size:12px;color:#666;text-align:right;font-family:monospace;white-space:nowrap}' +
+  '.td-total{padding:11px 12px;font-size:13px;font-weight:600;text-align:right;font-family:monospace;white-space:nowrap}' +
+  'tbody tr{border-bottom:1px solid #eee}' +
+
+  /* Subtotal area */
+  '.totals-area{display:flex;justify-content:flex-end;margin-bottom:28px}' +
+  '.totals-table{width:260px;border-collapse:collapse}' +
+  '.totals-table td{padding:6px 0;font-size:12px}' +
+  '.totals-table td:last-child{text-align:right;font-family:monospace;color:#1a1512}' +
+  '.totals-table tr.total-final td{padding-top:12px;border-top:2px solid #1a1512;font-size:18px;font-weight:800}' +
+  '.totals-table tr.total-final td:last-child{color:#7a2f2f;font-size:22px}' +
+
+  /* Validity + delivery */
+  '.conditions{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}' +
+  '.cond-box{background:#f5f0e8;border-radius:6px;padding:12px 14px}' +
+  '.cond-label{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#8a827a;margin-bottom:5px}' +
+  '.cond-val{font-size:13px;font-weight:700;color:#1a1512}' +
+
+  /* Notes */
+  '.notes-box{background:#fff8f0;border:1px solid #e8ddd4;border-radius:6px;padding:14px 16px;margin-bottom:28px}' +
+  '.notes-label{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#8a827a;margin-bottom:8px}' +
+  '.notes-text{font-size:12px;color:#555;line-height:1.65}' +
+
+  /* Footer */
+  '.footer{border-top:1px solid #eee;padding-top:16px;display:flex;justify-content:space-between;align-items:flex-end}' +
+  '.footer-brand{font-size:10px;color:#aaa;line-height:1.6}' +
+  '.footer-sign{text-align:right}' +
+  '.footer-sign-line{width:140px;border-top:1px solid #aaa;margin-bottom:6px;margin-left:auto}' +
+  '.footer-sign-label{font-size:9px;color:#aaa;letter-spacing:1px}' +
+  '</style></head><body>' +
+
+  /* HEADER */
+  '<div class="header">' +
+    '<div class="brand-block">' +
+      '<div class="brand-name">KIRI</div>' +
+      '<div class="brand-kanji">桐</div>' +
+      '<div class="brand-tagline">Arquitectura mobiliaria · Muebles a medida</div>' +
     '</div>' +
-    '<h1>' + esc(q.client) + '</h1>' +
-    (q.desc ? '<div class="desc">' + esc(q.desc) + '</div>' : '') +
-    '<table><thead><tr><th>Concepto</th><th>Monto</th></tr></thead><tbody>' +
-    '<tr><td style="padding:12px 0;border-bottom:1px solid #eee">Mano de obra</td><td style="padding:12px 0;border-bottom:1px solid #eee;text-align:right;font-family:monospace">$' + fmt(q.mo||0) + '</td></tr>' +
-    '<tr><td style="padding:12px 0;border-bottom:1px solid #eee">Materiales</td><td style="padding:12px 0;border-bottom:1px solid #eee;text-align:right;font-family:monospace">$' + fmt(q.mat||0) + '</td></tr>' +
+    '<div class="doc-meta">' +
+      '<div class="doc-type">Cotización</div>' +
+      '<div class="doc-num">N° COT-' + nroCot + '</div>' +
+      '<div class="doc-date">Emisión: ' + fechaEmision + '</div>' +
+      '<div class="doc-date" style="color:#c8773a">Vence: ' + fechaVenc + '</div>' +
+    '</div>' +
+  '</div>' +
+  '<hr class="divider">' +
+
+  /* PARTES */
+  '<div class="parties">' +
+    '<div>' +
+      '<div class="party-label">Cliente</div>' +
+      '<div class="party-name">' + esc(q.client) + '</div>' +
+      '<div class="party-detail">' +
+        (q.address ? esc(q.address) + '<br>' : '') +
+        (q.phone   ? 'Tel: ' + esc(q.phone) + '<br>' : '') +
+        (q.email   ? esc(q.email) : '') +
+      '</div>' +
+    '</div>' +
+    '<div>' +
+      '<div class="party-label">Proveedor</div>' +
+      '<div class="party-name">Kiri — Arquitectura Mobiliaria</div>' +
+      '<div class="party-detail">Córdoba, Argentina</div>' +
+    '</div>' +
+  '</div>' +
+
+  /* PROYECTO */
+  (q.desc ? '<div class="project-banner"><div class="project-label">Trabajo cotizado</div><div class="project-name">' + esc(q.desc) + '</div></div>' : '') +
+
+  /* TABLA DE ÍTEMS */
+  '<table class="items-table">' +
+    '<thead><tr>' +
+      '<th>Concepto</th><th style="text-align:center;width:40px">Und.</th>' +
+      '<th class="th-amt">Precio unit.</th><th class="th-total">Total</th>' +
+    '</tr></thead>' +
+    '<tbody>' +
+    ((q.mo||0) > 0 ? '<tr><td class="td-desc">Mano de obra</td><td class="td-unit">1</td><td class="td-amt">$' + fmt(q.mo) + '</td><td class="td-total">$' + fmt(q.mo) + '</td></tr>' : '') +
+    ((q.mat||0) > 0 ? '<tr><td class="td-desc">Materiales</td><td class="td-unit">1</td><td class="td-amt">$' + fmt(q.mat) + '</td><td class="td-total">$' + fmt(q.mat) + '</td></tr>' : '') +
     extrasRows +
-    '<tr class="total-row"><td>Total</td><td>$' + fmt(total) + '</td></tr>' +
-    '</tbody></table>' +
-    (q.notes ? '<div class="notes"><div class="notes-label">Observaciones</div>' + esc(q.notes) + '</div>' : '') +
-    '<div class="footer">Esta cotización tiene validez de 30 días · Kiri Muebles</div>' +
-    '</body></html>';
+    '</tbody>' +
+  '</table>' +
+
+  /* TOTALES */
+  '<div class="totals-area">' +
+    '<table class="totals-table">' +
+      '<tr><td style="color:#666">Subtotal</td><td>$' + fmt(total) + '</td></tr>' +
+      '<tr class="total-final"><td>TOTAL</td><td>$' + fmt(total) + '</td></tr>' +
+    '</table>' +
+  '</div>' +
+
+  /* CONDICIONES */
+  '<div class="conditions">' +
+    '<div class="cond-box">' +
+      '<div class="cond-label">Validez de la oferta</div>' +
+      '<div class="cond-val">' + validity + ' días corridos</div>' +
+    '</div>' +
+    (q.delivery ? '<div class="cond-box"><div class="cond-label">Plazo de entrega</div><div class="cond-val">' + esc(q.delivery) + '</div></div>' : '<div></div>') +
+  '</div>' +
+
+  /* OBSERVACIONES */
+  (q.notes ? '<div class="notes-box"><div class="notes-label">Observaciones y condiciones</div><div class="notes-text">' + esc(q.notes).replace(/\n/g,'<br>') + '</div></div>' : '') +
+
+  /* FOOTER */
+  '<div class="footer">' +
+    '<div class="footer-brand">Kiri — Arquitectura Mobiliaria<br>Cotización generada digitalmente<br>Este documento no tiene valor fiscal</div>' +
+    '<div class="footer-sign">' +
+      '<div class="footer-sign-line"></div>' +
+      '<div class="footer-sign-label">Firma y aclaración · Kiri</div>' +
+    '</div>' +
+  '</div>' +
+
+  '</body></html>';
 
   closeModal('quote-detail');
-  const filename = 'kiri-cotizacion-' + (q.client || 'cliente').toLowerCase().replace(/\s+/g, '-') + '.html';
+  const slug = (q.client || 'cliente').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  const filename = 'cotizacion-kiri-' + nroCot + '-' + slug + '.pdf';
   await mobileShareOrPrint(htmlContent, filename);
 }
 
@@ -7554,35 +7750,82 @@ const personColors = ['#7a2f2f','#c8773a','#5a6e5a','#4a6a9a','#8a5a9a','#4a8a7a
 
 function isMobile() { return window.innerWidth <= 700; }
 
+// ── FAB BOTTOM-SHEET — 2 pasos ────────────────────────────────────────────────
+
+let _fabType = null; // 'pres' | 'cot'
+
 function toggleFab() {
-  const wrap = document.getElementById('fab-wrap');
+  const sheet = document.getElementById('fab-sheet');
   const overlay = document.getElementById('fab-overlay');
   const plus = document.getElementById('fab-icon-plus');
   const close = document.getElementById('fab-icon-close');
-  const isOpen = wrap.classList.contains('open');
+  const isOpen = sheet.classList.contains('open');
   if (isOpen) {
-    wrap.classList.remove('open');
-    overlay.classList.remove('visible');
-    plus.style.display = '';
-    close.style.display = 'none';
+    closeFab();
   } else {
-    wrap.classList.add('open');
+    // Resetear al paso 1
+    fabShowStep(1);
+    sheet.classList.remove('type-pres','type-cot');
+    sheet.classList.add('open');
     overlay.classList.add('visible');
     plus.style.display = 'none';
     close.style.display = '';
+    document.getElementById('fab-wrap').classList.add('open');
   }
 }
 
 function closeFab() {
-  const wrap = document.getElementById('fab-wrap');
+  const sheet   = document.getElementById('fab-sheet');
   const overlay = document.getElementById('fab-overlay');
-  const plus = document.getElementById('fab-icon-plus');
-  const close = document.getElementById('fab-icon-close');
-  wrap.classList.remove('open');
+  const plus    = document.getElementById('fab-icon-plus');
+  const close   = document.getElementById('fab-icon-close');
+  const wrap    = document.getElementById('fab-wrap');
+  sheet.classList.remove('open');
   overlay.classList.remove('visible');
-  if (plus) plus.style.display = '';
+  if (plus)  plus.style.display  = '';
   if (close) close.style.display = 'none';
+  if (wrap)  wrap.classList.remove('open');
 }
+
+function fabShowStep(n) {
+  document.querySelectorAll('.fab-step').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('fab-step-' + n);
+  if (el) el.classList.add('active');
+}
+
+function fabSelectType(type) {
+  _fabType = type;
+  const sheet = document.getElementById('fab-sheet');
+  sheet.classList.remove('type-pres','type-cot');
+  sheet.classList.add('type-' + type);
+  const label = document.getElementById('fab-breadcrumb-label');
+  if (label) {
+    label.textContent = type === 'pres' ? 'Presupuesto' : 'Cotización';
+    label.className = 'fab-breadcrumb type-' + type;
+  }
+  fabShowStep(2);
+}
+
+function fabGoBack() {
+  fabShowStep(1);
+}
+
+function fabSelectMethod(method) {
+  closeFab();
+  if (_fabType === 'pres') {
+    if      (method === 'manual') openModal('proj');
+    else if (method === 'voz')    openModal('voice');
+    else if (method === 'imagen') openModal('computo');
+  } else {
+    // cotización
+    if      (method === 'manual') openModal('quote');
+    else if (method === 'voz')    openModal('voice-quote');
+    else if (method === 'imagen') openModal('computo-quote');
+  }
+}
+
+// ── FIN FAB ───────────────────────────────────────────────────────────────────
+
 
 function mobileNavHome() {
   closeMobileMenu();
