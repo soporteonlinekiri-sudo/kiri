@@ -643,54 +643,63 @@ header {
   font-family: 'DM Mono', monospace;
 }
 
-/* Grid de cuadrantes — contenedor con overflow hidden para el auto-scroll */
+/* Grid de cuadrantes — scroll manual con inercia */
 .mproj-grid {
   flex: 1;
-  overflow: hidden;
-  padding: 12px 12px 0;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 12px;
+  padding-bottom: 24px;
+  scrollbar-width: none;
   position: relative;
 }
+.mproj-grid::-webkit-scrollbar { display: none; }
 
-/* Inner scrolling track — contiene las cards duplicadas para loop infinito */
+/* Inner grid — track real de cards */
 .mproj-scroll-inner {
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-auto-rows: calc((100dvh - 54px - 76px - 60px - 24px) / 3);
   gap: 8px;
-  will-change: transform;
-  animation: kGridScroll var(--scroll-dur, 20s) linear infinite;
-}
-.mproj-scroll-inner.paused {
-  animation-play-state: paused;
 }
 
-@keyframes kGridScroll {
-  0%   { transform: translateY(0); }
-  100% { transform: translateY(-50%); }
-}
-
-/* Fade masks top y bottom para suavizar bordes */
+/* Fades top/bottom para suavizar bordes */
 .mproj-grid::before,
 .mproj-grid::after {
   content: '';
-  position: absolute;
+  position: sticky;
   left: 0; right: 0;
-  height: 48px;
+  height: 28px;
   z-index: 10;
   pointer-events: none;
+  display: block;
+  flex-shrink: 0;
 }
-.mproj-grid::before {
+.mproj-grid-fade-top {
+  position: sticky;
   top: 0;
+  height: 28px;
   background: linear-gradient(to bottom, var(--surface) 0%, transparent 100%);
+  z-index: 10;
+  pointer-events: none;
+  margin-bottom: -28px;
+  grid-column: 1 / -1;
 }
-.mproj-grid::after {
+.mproj-grid-fade-bottom {
+  position: sticky;
   bottom: 0;
+  height: 28px;
   background: linear-gradient(to top, var(--surface) 0%, transparent 100%);
+  z-index: 10;
+  pointer-events: none;
+  margin-top: -28px;
+  grid-column: 1 / -1;
 }
 
 
-/* Cards en el grid de scroll — sin animación de entrada individual */
-.mproj-scroll-inner .mproj-card { animation: none !important; opacity: 1 !important; transform: none !important; }
+/* Cards en el grid — animación de entrada staggered */
 
 /* Tamaños según cuadrantes */
 .mproj-card[data-size="4"] { grid-column: span 2; grid-row: span 2; }
@@ -3415,68 +3424,53 @@ function renderMobileHome(el, tab) {
     );
   }).join('');
 
-  // Duración del scroll proporcional a cantidad de cards
-  // Más proyectos = más lento para que se pueda leer
-  const scrollDur = Math.max(14, n * 5) + 's';
-
-  // Duplicamos las cards para el loop infinito (sin clases de animación en la copia)
-  const cardsDup = cardsHTML.replace(/anim-fade-up anim-d\d+/g, '').replace(/anim-d\d+/g, '');
-
   el.innerHTML =
     '<div class="mproj-wrap">' +
       '<div class="mproj-topbar">' +
         '<span class="mproj-title">Proyectos</span>' +
-        '<div style="display:flex;align-items:center;gap:10px">' +
-          '<div id="mproj-live-dot" style="display:flex;align-items:center;gap:5px;font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)">' +
-            '<div style="width:5px;height:5px;border-radius:50%;background:var(--kiri);animation:kPulse 2s ease infinite"></div>' +
-            'LIVE' +
-          '</div>' +
-          '<span class="mproj-count">' + n + ' ' + (n === 1 ? 'proyecto' : 'proyectos') + '</span>' +
-        '</div>' +
+        '<span class="mproj-count">' + n + ' ' + (n === 1 ? 'proyecto' : 'proyectos') + '</span>' +
       '</div>' +
       '<div class="mproj-grid" id="mproj-grid-outer">' +
-        '<div class="mproj-scroll-inner" id="mproj-scroll-inner" style="--scroll-dur:' + scrollDur + '">' +
-          cardsHTML + cardsDup +
+        '<div class="mproj-scroll-inner">' +
+          cardsHTML +
         '</div>' +
       '</div>' +
     '</div>';
 
-  // Touch handlers: pausar al tocar, reanudar al soltar
-  const gridOuter = document.getElementById('mproj-grid-outer');
-  const scrollInner = document.getElementById('mproj-scroll-inner');
-  const liveDot = document.getElementById('mproj-live-dot');
+  // Momentum scroll para Android (iOS ya tiene -webkit-overflow-scrolling:touch nativo)
+  const grid = document.getElementById('mproj-grid-outer');
+  if (!grid) return;
 
-  function setPaused(paused) {
-    if (!scrollInner) return;
-    scrollInner.classList.toggle('paused', paused);
-    if (liveDot) {
-      liveDot.innerHTML = paused
-        ? '<div style="width:5px;height:5px;border-radius:2px;background:var(--muted)"></div>PAUSA'
-        : '<div style="width:5px;height:5px;border-radius:50%;background:var(--kiri);animation:kPulse 2s ease infinite"></div>LIVE';
-    }
+  let velY = 0, lastY = 0, lastT = 0, isDragging = false, rafId = null;
+
+  function momentumLoop() {
+    velY *= 0.90;
+    grid.scrollTop += velY;
+    if (Math.abs(velY) > 0.8) rafId = requestAnimationFrame(momentumLoop);
+    else rafId = null;
   }
 
-  if (gridOuter && scrollInner) {
-    let _touchStartTime = 0;
-    let _resumeTimer = null;
+  grid.addEventListener('touchstart', e => {
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    isDragging = true;
+    lastY = e.touches[0].clientY;
+    lastT = Date.now();
+    velY = 0;
+  }, { passive: true });
 
-    gridOuter.addEventListener('touchstart', () => {
-      _touchStartTime = Date.now();
-      clearTimeout(_resumeTimer);
-      setPaused(true);
-    }, { passive: true });
+  grid.addEventListener('touchmove', e => {
+    if (!isDragging) return;
+    const y = e.touches[0].clientY;
+    const now = Date.now();
+    const dt = Math.max(now - lastT, 1);
+    velY = (lastY - y) / dt * 16;
+    lastY = y; lastT = now;
+  }, { passive: true });
 
-    gridOuter.addEventListener('touchend', () => {
-      const dur = Date.now() - _touchStartTime;
-      clearTimeout(_resumeTimer);
-      _resumeTimer = setTimeout(() => setPaused(false), dur < 250 ? 800 : 300);
-    }, { passive: true });
-
-    gridOuter.addEventListener('touchcancel', () => {
-      clearTimeout(_resumeTimer);
-      _resumeTimer = setTimeout(() => setPaused(false), 400);
-    }, { passive: true });
-  }
+  grid.addEventListener('touchend', () => {
+    isDragging = false;
+    if (Math.abs(velY) > 1.5) rafId = requestAnimationFrame(momentumLoop);
+  }, { passive: true });
 }
 
 function initDeck(deckEl, total) {
