@@ -1749,10 +1749,11 @@ header {
 
 /* ── FAB RADIAL 2 NIVELES ────────────────────────────────────── */
 #fab-wrap { display: none; }
+.fab-option { display: none; }
 
 @media (max-width: 700px) {
 
-  /* Overlay oscuro */
+  /* Overlay */
   #fab-overlay {
     display: none; position: fixed; inset: 0;
     background: rgba(0,0,0,0); z-index: 1050;
@@ -1762,7 +1763,7 @@ header {
     display: block; background: rgba(0,0,0,0.45); pointer-events: all;
   }
 
-  /* Ancla del FAB */
+  /* Ancla del FAB — centrada sobre el botón inicio */
   #fab-wrap {
     display: block; position: fixed;
     bottom: 72px; left: 50%; transform: translateX(-50%);
@@ -1781,74 +1782,91 @@ header {
   }
   #fab-btn svg { width: 16px; height: 16px; stroke: #fff; stroke-width: 2.5; }
   #fab-btn:active { transform: translateX(-50%) scale(0.85); }
-  #fab-wrap.open #fab-btn { transform: translateX(-50%) rotate(45deg); background: #2a2a2a; }
+  body.fab-open #fab-btn { transform: translateX(-50%) rotate(45deg); background: #2a2a2a; }
 
   /* ── OPCIONES RADIALES — base ── */
+  /* Los .fab-option son position:fixed independientes del ancla */
   .fab-option {
-    position: fixed; bottom: 84px; left: 50%;
-    display: flex; flex-direction: column; align-items: center; gap: 7px;
+    display: flex !important;
+    position: fixed;
+    /* punto de reposo: encima del FAB, centrado, invisible */
+    bottom: 84px; left: 50%;
+    flex-direction: column; align-items: center; gap: 7px;
     z-index: 1101; opacity: 0; pointer-events: none;
-    transform: translateX(-50%) translateY(16px) scale(0.72);
+    transform: translateX(-50%) translateY(12px) scale(0.7);
     transition: opacity 0.22s ease, transform 0.34s cubic-bezier(0.34,1.4,0.64,1);
   }
 
-  /* NIVEL 1: tipo (Proyecto / Cotización) */
-  .fab-l1 { transition-delay: 0s; }
-  #fab-wrap.lvl1 .fab-l1 { opacity: 1; pointer-events: all; transform: translateX(-50%) scale(1); }
-  #fab-wrap.lvl1 #fab-type-pres { transform: translateX(calc(-50% - 78px)) translateY(-44px) scale(1); }
-  #fab-wrap.lvl1 #fab-type-cot  { transform: translateX(calc(-50% + 78px)) translateY(-44px) scale(1); }
-  #fab-type-pres { transition-delay: 0.00s; }
-  #fab-type-cot  { transition-delay: 0.07s; }
+  /* NIVEL 1 — Proyecto / Cotización */
+  body.fab-lvl1 #fab-type-pres {
+    opacity: 1; pointer-events: all;
+    transform: translateX(calc(-50% - 80px)) translateY(-52px) scale(1);
+    transition-delay: 0.00s;
+  }
+  body.fab-lvl1 #fab-type-cot {
+    opacity: 1; pointer-events: all;
+    transform: translateX(calc(-50% + 80px)) translateY(-52px) scale(1);
+    transition-delay: 0.07s;
+  }
 
-  /* NIVEL 2: método (manual / voz / imagen) */
-  .fab-l2 { transition-delay: 0s; }
-  #fab-wrap.lvl2 .fab-l2 { opacity: 1; pointer-events: all; transform: translateX(-50%) scale(1); }
-  #fab-wrap.lvl2 #fab-method-manual { transform: translateX(calc(-50% - 112px)) translateY(-32px) scale(1); transition-delay:0.00s; }
-  #fab-wrap.lvl2 #fab-method-voz    { transform: translateX(-50%) translateY(-72px) scale(1); transition-delay:0.06s; }
-  #fab-wrap.lvl2 #fab-method-imagen { transform: translateX(calc(-50% + 112px)) translateY(-32px) scale(1); transition-delay:0.12s; }
+  /* NIVEL 2 — Manual / Voz / Imagen */
+  body.fab-lvl2 #fab-method-manual {
+    opacity: 1; pointer-events: all;
+    transform: translateX(calc(-50% - 110px)) translateY(-36px) scale(1);
+    transition-delay: 0.00s;
+  }
+  body.fab-lvl2 #fab-method-voz {
+    opacity: 1; pointer-events: all;
+    transform: translateX(-50%) translateY(-80px) scale(1);
+    transition-delay: 0.06s;
+  }
+  body.fab-lvl2 #fab-method-imagen {
+    opacity: 1; pointer-events: all;
+    transform: translateX(calc(-50% + 110px)) translateY(-36px) scale(1);
+    transition-delay: 0.12s;
+  }
 
   /* Ícono circular */
   .fab-opt-icon {
-    width: 50px; height: 50px; border-radius: 50%;
+    width: 52px; height: 52px; border-radius: 50%;
     background: var(--surface); border: 2px solid var(--border);
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 18px rgba(0,0,0,0.18);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
     transition: transform 0.15s;
   }
-  .fab-opt-icon svg { width: 20px; height: 20px; stroke: var(--ink); stroke-width: 1.75; }
+  .fab-opt-icon svg { width: 21px; height: 21px; stroke: var(--ink); stroke-width: 1.75; }
   .fab-option:active .fab-opt-icon { transform: scale(0.88); }
 
-  /* Tinte de color según tipo */
+  /* Colores distintivos: Proyecto oscuro, Cotización borravino */
   #fab-type-pres .fab-opt-icon { background: var(--ink); border-color: var(--ink); }
   #fab-type-pres .fab-opt-icon svg { stroke: #fff; }
   #fab-type-cot  .fab-opt-icon { background: var(--kiri); border-color: var(--kiri); }
   #fab-type-cot  .fab-opt-icon svg { stroke: #fff; }
 
-  /* Cuando hay tipo activo, el método hereda color */
-  #fab-wrap.type-pres.lvl2 .fab-opt-icon { border-color: rgba(26,21,18,0.3); }
-  #fab-wrap.type-cot.lvl2  .fab-opt-icon { border-color: rgba(122,47,47,0.35); }
+  /* Lvl2: borde tintado según tipo */
+  body.fab-type-pres.fab-lvl2 .fab-opt-icon { border-color: rgba(26,21,18,0.3); }
+  body.fab-type-cot.fab-lvl2  .fab-opt-icon { border-color: rgba(122,47,47,0.35); }
 
-  /* Label flotante */
+  /* Label */
   .fab-opt-label {
     font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
     color: #fff; white-space: nowrap;
-    text-shadow: 0 1px 6px rgba(0,0,0,0.7);
-    background: rgba(0,0,0,0.42);
+    text-shadow: 0 1px 6px rgba(0,0,0,0.75);
+    background: rgba(0,0,0,0.45);
     padding: 3px 9px; border-radius: 10px;
   }
 
-  /* Chip de tipo activo — aparece junto al FAB en nivel 2 */
+  /* Chip de tipo — aparece debajo del arco en lvl2 */
   #fab-type-chip {
-    position: fixed; bottom: 116px; left: 50%;
+    position: fixed; bottom: 122px; left: 50%;
     transform: translateX(-50%);
-    z-index: 1101;
+    z-index: 1102;
     font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
     padding: 4px 12px; border-radius: 20px;
     opacity: 0; pointer-events: none;
-    transition: opacity 0.2s ease;
-    white-space: nowrap;
+    transition: opacity 0.2s ease; white-space: nowrap;
   }
-  #fab-type-chip.visible { opacity: 1; }
+  body.fab-lvl2 #fab-type-chip { opacity: 1; }
   #fab-type-chip.type-pres { background: var(--ink); color: #fff; }
   #fab-type-chip.type-cot  { background: var(--kiri); color: #fff; }
 
@@ -5602,149 +5620,6 @@ async function exportPDF() {
   /* Note box */
   .note-box { background: #f5f0e8; border-left: 3px solid #7a2f2f; padding: 10px 14px; border-radius: 0 3px 3px 0; font-size: 11px; color: #5a4a3a; margin-top: 8px; }
 
-/* ── FAB RADIAL ─────────────────────────────────────────────────── */
-/* ── FAB + NAV (mobile) ─────────────────────────────────────── */
-#fab-wrap { display: none; }
-
-@media (max-width: 700px) {
-
-  /* Overlay oscuro detrás del menú radial */
-  #fab-overlay {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0);
-    z-index: 1050;
-    transition: background 0.3s;
-    pointer-events: none;
-  }
-  #fab-overlay.visible {
-    display: block;
-    background: rgba(0,0,0,0.45);
-    pointer-events: all;
-  }
-
-  /* Contenedor del FAB — centrado justo sobre el botón inicio */
-  #fab-wrap {
-    display: block;
-    position: fixed;
-    bottom: 72px; /* sobre el nav */
-    left: 50%; transform: translateX(-50%);
-    z-index: 1100;
-    width: 0; height: 0; /* solo ancla, no ocupa espacio */
-  }
-
-  /* Botón "+" pequeño que flota sobre el botón inicio */
-  #fab-btn {
-    position: absolute;
-    bottom: 0; left: 50%;
-    transform: translateX(-50%);
-    width: 32px; height: 32px;
-    background: var(--kiri);
-    border: 2px solid rgba(255,255,255,0.25);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 2px 12px rgba(122,47,47,0.6);
-    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1),
-                background 0.2s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  #fab-btn svg { width: 16px; height: 16px; stroke: #fff; stroke-width: 2.5; }
-  #fab-btn:active { transform: translateX(-50%) scale(0.85); }
-  #fab-wrap.open #fab-btn {
-    transform: translateX(-50%) rotate(45deg);
-    background: #333;
-  }
-
-  /* Opciones radiales — parten desde el centro del FAB */
-  .fab-option {
-    position: fixed;
-    bottom: 84px; left: 50%;
-    display: flex; flex-direction: column; align-items: center; gap: 8px;
-    z-index: 1101;
-    opacity: 0; pointer-events: none;
-    /* posición de reposo: todas en el centro */
-    transform: translateX(-50%) translateY(20px) scale(0.7);
-    transition: opacity 0.22s ease,
-                transform 0.35s cubic-bezier(0.34,1.4,0.64,1);
-  }
-  #fab-wrap.open .fab-option {
-    opacity: 1; pointer-events: all;
-    transform: translateX(-50%) scale(1);
-  }
-  /* Arco semicircular hacia arriba */
-  #fab-opt-manual    { transition-delay: 0.00s; }
-  #fab-opt-voz       { transition-delay: 0.05s; }
-  #fab-opt-archivo   { transition-delay: 0.10s; }
-
-  #fab-wrap.open #fab-opt-manual  {
-    transform: translateX(calc(-50% - 100px)) translateY(-30px) scale(1);
-  }
-  #fab-wrap.open #fab-opt-voz {
-    transform: translateX(-50%) translateY(-60px) scale(1);
-  }
-  #fab-wrap.open #fab-opt-archivo {
-    transform: translateX(calc(-50% + 100px)) translateY(-30px) scale(1);
-  }
-
-  .fab-opt-icon {
-    width: 52px; height: 52px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 6px 24px rgba(0,0,0,0.2);
-    transition: transform 0.15s;
-  }
-  .fab-opt-icon svg { width: 22px; height: 22px; stroke: var(--ink); }
-  .fab-option:active .fab-opt-icon { transform: scale(0.88); }
-  .fab-opt-label {
-    font-size: 9px; font-weight: 400; letter-spacing: 1.5px;
-    text-transform: lowercase; color: #fff;
-    white-space: nowrap;
-    text-shadow: 0 1px 6px rgba(0,0,0,0.6);
-    background: rgba(0,0,0,0.4);
-    padding: 3px 8px; border-radius: 10px;
-  }
-
-  /* ── NAV — 3 botones, pill rojo en el activo ── */
-  #mobile-nav {
-    align-items: center;
-    padding: 0 6px;
-    height: 62px;
-    gap: 4px;
-  }
-  #mnav-indicator { display: none; }
-
-  /* Todos los botones iguales */
-  .mnav-btn {
-    flex: 1 !important;
-    border-radius: 14px !important;
-    height: 46px !important;
-    margin: 0 !important;
-    box-shadow: none !important;
-    color: rgba(255,255,255,0.4) !important;
-    position: relative;
-    transition: color 0.2s, background 0.2s !important;
-  }
-  /* Pill rojo al activar cualquier tab */
-  .mnav-btn.active {
-    background: var(--kiri) !important;
-    color: #fff !important;
-    box-shadow: 0 2px 12px rgba(122,47,47,0.4) !important;
-  }
-  /* Centro ya no tiene estilo especial propio */
-  .mnav-home-center {
-    flex: 1 !important;
-    color: rgba(255,255,255,0.4) !important;
-    background: none !important;
-    box-shadow: none !important;
-    margin-bottom: 0 !important;
-    height: 46px !important;
-  }
-  .mnav-home-center::before { display: none !important; }
-  .mnav-home-center svg { position: static !important; }
-}
 
 </style>
 </head>
@@ -6117,149 +5992,6 @@ async function exportClientPDF() {
     color: #ccc;
   }
 
-/* ── FAB RADIAL ─────────────────────────────────────────────────── */
-/* ── FAB + NAV (mobile) ─────────────────────────────────────── */
-#fab-wrap { display: none; }
-
-@media (max-width: 700px) {
-
-  /* Overlay oscuro detrás del menú radial */
-  #fab-overlay {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0);
-    z-index: 1050;
-    transition: background 0.3s;
-    pointer-events: none;
-  }
-  #fab-overlay.visible {
-    display: block;
-    background: rgba(0,0,0,0.45);
-    pointer-events: all;
-  }
-
-  /* Contenedor del FAB — centrado justo sobre el botón inicio */
-  #fab-wrap {
-    display: block;
-    position: fixed;
-    bottom: 72px; /* sobre el nav */
-    left: 50%; transform: translateX(-50%);
-    z-index: 1100;
-    width: 0; height: 0; /* solo ancla, no ocupa espacio */
-  }
-
-  /* Botón "+" pequeño que flota sobre el botón inicio */
-  #fab-btn {
-    position: absolute;
-    bottom: 0; left: 50%;
-    transform: translateX(-50%);
-    width: 32px; height: 32px;
-    background: var(--kiri);
-    border: 2px solid rgba(255,255,255,0.25);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 2px 12px rgba(122,47,47,0.6);
-    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1),
-                background 0.2s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  #fab-btn svg { width: 16px; height: 16px; stroke: #fff; stroke-width: 2.5; }
-  #fab-btn:active { transform: translateX(-50%) scale(0.85); }
-  #fab-wrap.open #fab-btn {
-    transform: translateX(-50%) rotate(45deg);
-    background: #333;
-  }
-
-  /* Opciones radiales — parten desde el centro del FAB */
-  .fab-option {
-    position: fixed;
-    bottom: 84px; left: 50%;
-    display: flex; flex-direction: column; align-items: center; gap: 8px;
-    z-index: 1101;
-    opacity: 0; pointer-events: none;
-    /* posición de reposo: todas en el centro */
-    transform: translateX(-50%) translateY(20px) scale(0.7);
-    transition: opacity 0.22s ease,
-                transform 0.35s cubic-bezier(0.34,1.4,0.64,1);
-  }
-  #fab-wrap.open .fab-option {
-    opacity: 1; pointer-events: all;
-    transform: translateX(-50%) scale(1);
-  }
-  /* Arco semicircular hacia arriba */
-  #fab-opt-manual    { transition-delay: 0.00s; }
-  #fab-opt-voz       { transition-delay: 0.05s; }
-  #fab-opt-archivo   { transition-delay: 0.10s; }
-
-  #fab-wrap.open #fab-opt-manual  {
-    transform: translateX(calc(-50% - 100px)) translateY(-30px) scale(1);
-  }
-  #fab-wrap.open #fab-opt-voz {
-    transform: translateX(-50%) translateY(-60px) scale(1);
-  }
-  #fab-wrap.open #fab-opt-archivo {
-    transform: translateX(calc(-50% + 100px)) translateY(-30px) scale(1);
-  }
-
-  .fab-opt-icon {
-    width: 52px; height: 52px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 6px 24px rgba(0,0,0,0.2);
-    transition: transform 0.15s;
-  }
-  .fab-opt-icon svg { width: 22px; height: 22px; stroke: var(--ink); }
-  .fab-option:active .fab-opt-icon { transform: scale(0.88); }
-  .fab-opt-label {
-    font-size: 9px; font-weight: 400; letter-spacing: 1.5px;
-    text-transform: lowercase; color: #fff;
-    white-space: nowrap;
-    text-shadow: 0 1px 6px rgba(0,0,0,0.6);
-    background: rgba(0,0,0,0.4);
-    padding: 3px 8px; border-radius: 10px;
-  }
-
-  /* ── NAV — 3 botones, pill rojo en el activo ── */
-  #mobile-nav {
-    align-items: center;
-    padding: 0 6px;
-    height: 62px;
-    gap: 4px;
-  }
-  #mnav-indicator { display: none; }
-
-  /* Todos los botones iguales */
-  .mnav-btn {
-    flex: 1 !important;
-    border-radius: 14px !important;
-    height: 46px !important;
-    margin: 0 !important;
-    box-shadow: none !important;
-    color: rgba(255,255,255,0.4) !important;
-    position: relative;
-    transition: color 0.2s, background 0.2s !important;
-  }
-  /* Pill rojo al activar cualquier tab */
-  .mnav-btn.active {
-    background: var(--kiri) !important;
-    color: #fff !important;
-    box-shadow: 0 2px 12px rgba(122,47,47,0.4) !important;
-  }
-  /* Centro ya no tiene estilo especial propio */
-  .mnav-home-center {
-    flex: 1 !important;
-    color: rgba(255,255,255,0.4) !important;
-    background: none !important;
-    box-shadow: none !important;
-    margin-bottom: 0 !important;
-    height: 46px !important;
-  }
-  .mnav-home-center::before { display: none !important; }
-  .mnav-home-center svg { position: static !important; }
-}
 
 </style>
 </head>
@@ -7767,33 +7499,29 @@ function isMobile() { return window.innerWidth <= 700; }
 let _fabType = null; // 'pres' | 'cot'
 
 function toggleFab() {
-  const wrap    = document.getElementById('fab-wrap');
-  const overlay = document.getElementById('fab-overlay');
-  const plus    = document.getElementById('fab-icon-plus');
-  const close   = document.getElementById('fab-icon-close');
-  const isOpen  = wrap.classList.contains('open');
-  if (isOpen) {
-    _fabClose();
-  } else {
-    _fabType = null;
-    wrap.classList.add('open', 'lvl1');
-    wrap.classList.remove('lvl2', 'type-pres', 'type-cot');
-    overlay.classList.add('visible');
-    plus.style.display  = 'none';
-    close.style.display = '';
-    _fabChip('');
-  }
+  const isOpen = document.body.classList.contains('fab-open');
+  if (isOpen) { _fabClose(); } else { _fabOpen(); }
+}
+
+function _fabOpen() {
+  _fabType = null;
+  document.body.classList.add('fab-open', 'fab-lvl1');
+  document.body.classList.remove('fab-lvl2', 'fab-type-pres', 'fab-type-cot');
+  document.getElementById('fab-overlay').classList.add('visible');
+  const p = document.getElementById('fab-icon-plus');
+  const c = document.getElementById('fab-icon-close');
+  if (p) p.style.display = 'none';
+  if (c) c.style.display = '';
+  _fabChip('');
 }
 
 function _fabClose() {
-  const wrap    = document.getElementById('fab-wrap');
-  const overlay = document.getElementById('fab-overlay');
-  const plus    = document.getElementById('fab-icon-plus');
-  const close   = document.getElementById('fab-icon-close');
-  wrap.classList.remove('open', 'lvl1', 'lvl2', 'type-pres', 'type-cot');
-  overlay.classList.remove('visible');
-  if (plus)  plus.style.display  = '';
-  if (close) close.style.display = 'none';
+  document.body.classList.remove('fab-open','fab-lvl1','fab-lvl2','fab-type-pres','fab-type-cot');
+  document.getElementById('fab-overlay').classList.remove('visible');
+  const p = document.getElementById('fab-icon-plus');
+  const c = document.getElementById('fab-icon-close');
+  if (p) p.style.display = '';
+  if (c) c.style.display = 'none';
   _fabChip('');
 }
 
@@ -7802,16 +7530,15 @@ function closeFab() { _fabClose(); }
 function _fabChip(type) {
   const chip = document.getElementById('fab-type-chip');
   if (!chip) return;
-  if (!type) { chip.classList.remove('visible','type-pres','type-cot'); return; }
+  if (!type) { chip.className = ''; chip.textContent = ''; return; }
   chip.textContent = type === 'pres' ? 'Presupuesto' : 'Cotización';
-  chip.className   = 'visible type-' + type;
+  chip.className   = 'type-' + type;
 }
 
 function fabSelectType(type) {
   _fabType = type;
-  const wrap = document.getElementById('fab-wrap');
-  wrap.classList.remove('lvl1');
-  wrap.classList.add('lvl2', 'type-' + type);
+  document.body.classList.remove('fab-lvl1');
+  document.body.classList.add('fab-lvl2', 'fab-type-' + type);
   _fabChip(type);
 }
 
@@ -7822,7 +7549,7 @@ function fabSelectMethod(method) {
     else if (method === 'voz')    openModal('voice');
     else if (method === 'imagen') openModal('computo');
   } else {
-    if (method === 'manual') openModal('quote');
+    if      (method === 'manual') openModal('quote');
     else if (method === 'voz')    openModal('voice');
     else if (method === 'imagen') openModal('computo');
   }
