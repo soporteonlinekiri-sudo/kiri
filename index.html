@@ -1747,110 +1747,110 @@ header {
 }
 
 
-/* ── FAB + BOTTOM-SHEET (mobile) ─────────────────────────────── */
+/* ── FAB RADIAL 2 NIVELES ────────────────────────────────────── */
 #fab-wrap { display: none; }
 
 @media (max-width: 700px) {
 
+  /* Overlay oscuro */
   #fab-overlay {
     display: none; position: fixed; inset: 0;
     background: rgba(0,0,0,0); z-index: 1050;
     transition: background 0.3s; pointer-events: none;
   }
   #fab-overlay.visible {
-    display: block; background: rgba(0,0,0,0.55); pointer-events: all;
+    display: block; background: rgba(0,0,0,0.45); pointer-events: all;
   }
 
+  /* Ancla del FAB */
   #fab-wrap {
     display: block; position: fixed;
     bottom: 72px; left: 50%; transform: translateX(-50%);
     z-index: 1100; width: 0; height: 0;
   }
+
+  /* Botón + */
   #fab-btn {
     position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-    width: 32px; height: 32px; background: var(--kiri);
+    width: 34px; height: 34px; background: var(--kiri);
     border: 2px solid rgba(255,255,255,0.25); border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    cursor: pointer; box-shadow: 0 2px 12px rgba(122,47,47,0.6);
+    cursor: pointer; box-shadow: 0 2px 14px rgba(122,47,47,0.65);
     transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), background 0.2s;
     -webkit-tap-highlight-color: transparent;
   }
   #fab-btn svg { width: 16px; height: 16px; stroke: #fff; stroke-width: 2.5; }
   #fab-btn:active { transform: translateX(-50%) scale(0.85); }
-  #fab-wrap.open #fab-btn { transform: translateX(-50%) rotate(45deg); background: #333; }
+  #fab-wrap.open #fab-btn { transform: translateX(-50%) rotate(45deg); background: #2a2a2a; }
 
-  /* ── BOTTOM SHEET ─── */
-  #fab-sheet {
-    position: fixed; bottom: 0; left: 0; right: 0; z-index: 1200;
-    background: var(--surface); border-radius: 18px 18px 0 0;
-    padding: 0 0 calc(76px + env(safe-area-inset-bottom));
-    box-shadow: 0 -8px 40px rgba(0,0,0,0.25);
-    transform: translateY(100%);
-    transition: transform 0.32s cubic-bezier(0.4,0,0.2,1);
-    pointer-events: none;
-  }
-  #fab-sheet.open { transform: translateY(0); pointer-events: all; }
-  .fab-sheet-handle {
-    width: 36px; height: 4px; background: var(--border);
-    border-radius: 2px; margin: 14px auto 0;
-  }
-  .fab-step { display: none; padding: 16px 18px 8px; }
-  .fab-step.active { display: block; }
-  .fab-step-title {
-    font-size: 9px; font-weight: 700; letter-spacing: 2.5px;
-    text-transform: uppercase; color: var(--muted);
-    margin-bottom: 14px; text-align: center;
-  }
-
-  /* Paso 1: tipo */
-  .fab-type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 6px; }
-  .fab-type-card {
-    border: 2px solid var(--border); border-radius: 12px;
-    padding: 18px 12px 14px;
-    display: flex; flex-direction: column; align-items: center; gap: 10px;
-    cursor: pointer; -webkit-tap-highlight-color: transparent;
-    transition: transform 0.12s; text-align: center;
-  }
-  .fab-type-card:active { transform: scale(0.96); }
-  .fab-type-card.type-pres { border-color: var(--ink); background: var(--ink); }
-  .fab-type-card.type-cot  { border-color: var(--kiri); background: var(--kiri); }
-  .fab-type-icon {
-    width: 44px; height: 44px; border-radius: 50%;
-    background: rgba(255,255,255,0.15);
-    display: flex; align-items: center; justify-content: center;
-  }
-  .fab-type-icon svg { width: 22px; height: 22px; stroke: #fff; stroke-width: 1.75; }
-  .fab-type-name { font-size: 12px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #fff; }
-  .fab-type-sub { font-size: 10px; color: rgba(255,255,255,0.65); line-height: 1.3; }
-
-  /* Paso 2: método */
-  .fab-back-row { display: flex; align-items: center; gap: 6px; margin-bottom: 14px; }
-  .fab-back-btn {
-    background: none; border: none; color: var(--muted); font-size: 18px;
-    cursor: pointer; padding: 0; line-height: 1; -webkit-tap-highlight-color: transparent;
-  }
-  .fab-breadcrumb { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
-  .fab-breadcrumb.type-pres { color: var(--ink); }
-  .fab-breadcrumb.type-cot  { color: var(--kiri); }
-  .fab-method-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 6px; }
-  .fab-method-card {
-    background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
-    padding: 14px 8px 12px;
+  /* ── OPCIONES RADIALES — base ── */
+  .fab-option {
+    position: fixed; bottom: 84px; left: 50%;
     display: flex; flex-direction: column; align-items: center; gap: 7px;
-    cursor: pointer; -webkit-tap-highlight-color: transparent;
-    transition: transform 0.12s, background 0.12s;
+    z-index: 1101; opacity: 0; pointer-events: none;
+    transform: translateX(-50%) translateY(16px) scale(0.72);
+    transition: opacity 0.22s ease, transform 0.34s cubic-bezier(0.34,1.4,0.64,1);
   }
-  .fab-method-card:active { transform: scale(0.94); background: var(--border); }
-  .fab-method-icon {
-    width: 40px; height: 40px; border-radius: 50%;
-    background: var(--surface); border: 1px solid var(--border);
+
+  /* NIVEL 1: tipo (Proyecto / Cotización) */
+  .fab-l1 { transition-delay: 0s; }
+  #fab-wrap.lvl1 .fab-l1 { opacity: 1; pointer-events: all; transform: translateX(-50%) scale(1); }
+  #fab-wrap.lvl1 #fab-type-pres { transform: translateX(calc(-50% - 78px)) translateY(-44px) scale(1); }
+  #fab-wrap.lvl1 #fab-type-cot  { transform: translateX(calc(-50% + 78px)) translateY(-44px) scale(1); }
+  #fab-type-pres { transition-delay: 0.00s; }
+  #fab-type-cot  { transition-delay: 0.07s; }
+
+  /* NIVEL 2: método (manual / voz / imagen) */
+  .fab-l2 { transition-delay: 0s; }
+  #fab-wrap.lvl2 .fab-l2 { opacity: 1; pointer-events: all; transform: translateX(-50%) scale(1); }
+  #fab-wrap.lvl2 #fab-method-manual { transform: translateX(calc(-50% - 112px)) translateY(-32px) scale(1); transition-delay:0.00s; }
+  #fab-wrap.lvl2 #fab-method-voz    { transform: translateX(-50%) translateY(-72px) scale(1); transition-delay:0.06s; }
+  #fab-wrap.lvl2 #fab-method-imagen { transform: translateX(calc(-50% + 112px)) translateY(-32px) scale(1); transition-delay:0.12s; }
+
+  /* Ícono circular */
+  .fab-opt-icon {
+    width: 50px; height: 50px; border-radius: 50%;
+    background: var(--surface); border: 2px solid var(--border);
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 18px rgba(0,0,0,0.18);
+    transition: transform 0.15s;
   }
-  .fab-method-icon svg { width: 18px; height: 18px; stroke: var(--ink); stroke-width: 1.75; }
-  .fab-method-name { font-size: 10px; font-weight: 600; color: var(--ink); text-align: center; line-height: 1.2; }
-  #fab-sheet.type-pres .fab-method-icon { border-color: rgba(26,21,18,0.4); }
-  #fab-sheet.type-cot  .fab-method-icon { border-color: rgba(122,47,47,0.4); }
+  .fab-opt-icon svg { width: 20px; height: 20px; stroke: var(--ink); stroke-width: 1.75; }
+  .fab-option:active .fab-opt-icon { transform: scale(0.88); }
+
+  /* Tinte de color según tipo */
+  #fab-type-pres .fab-opt-icon { background: var(--ink); border-color: var(--ink); }
+  #fab-type-pres .fab-opt-icon svg { stroke: #fff; }
+  #fab-type-cot  .fab-opt-icon { background: var(--kiri); border-color: var(--kiri); }
+  #fab-type-cot  .fab-opt-icon svg { stroke: #fff; }
+
+  /* Cuando hay tipo activo, el método hereda color */
+  #fab-wrap.type-pres.lvl2 .fab-opt-icon { border-color: rgba(26,21,18,0.3); }
+  #fab-wrap.type-cot.lvl2  .fab-opt-icon { border-color: rgba(122,47,47,0.35); }
+
+  /* Label flotante */
+  .fab-opt-label {
+    font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    color: #fff; white-space: nowrap;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.7);
+    background: rgba(0,0,0,0.42);
+    padding: 3px 9px; border-radius: 10px;
+  }
+
+  /* Chip de tipo activo — aparece junto al FAB en nivel 2 */
+  #fab-type-chip {
+    position: fixed; bottom: 116px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 1101;
+    font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    padding: 4px 12px; border-radius: 20px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s ease;
+    white-space: nowrap;
+  }
+  #fab-type-chip.visible { opacity: 1; }
+  #fab-type-chip.type-pres { background: var(--ink); color: #fff; }
+  #fab-type-chip.type-cot  { background: var(--kiri); color: #fff; }
 
   /* NAV */
   #mobile-nav { align-items: center; padding: 0 6px; height: 62px; gap: 4px; }
@@ -1866,6 +1866,7 @@ header {
   .mnav-home-center::before { display: none !important; }
   .mnav-home-center svg { position: static !important; }
 }
+
 
 
 </style>
@@ -2048,69 +2049,51 @@ header {
 <!-- FAB radial -->
 <div id="fab-overlay" onclick="closeFab()"></div>
 
-<!-- BOTTOM SHEET: 2 pasos -->
-<div id="fab-sheet">
-  <div class="fab-sheet-handle"></div>
+<!-- Chip de tipo activo (visible en nivel 2) -->
+<div id="fab-type-chip"></div>
 
-  <!-- PASO 1: elegir tipo -->
-  <div class="fab-step active" id="fab-step-1">
-    <div class="fab-step-title">¿Qué querés cargar?</div>
-    <div class="fab-type-grid">
-      <div class="fab-type-card type-pres" onclick="fabSelectType('pres')">
-        <div class="fab-type-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
-            <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
-          </svg>
-        </div>
-        <div class="fab-type-name">Presupuesto</div>
-        <div class="fab-type-sub">Proyecto confirmado con seguimiento de pagos y gastos</div>
-      </div>
-      <div class="fab-type-card type-cot" onclick="fabSelectType('cot')">
-        <div class="fab-type-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/>
-          </svg>
-        </div>
-        <div class="fab-type-name">Cotización</div>
-        <div class="fab-type-sub">Presupuesto para el cliente, exportable como PDF</div>
-      </div>
-    </div>
+<!-- NIVEL 1: Proyecto / Cotización -->
+<div class="fab-option fab-l1" id="fab-type-pres" onclick="fabSelectType('pres')">
+  <div class="fab-opt-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+      <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+    </svg>
   </div>
+  <div class="fab-opt-label">proyecto</div>
+</div>
+<div class="fab-option fab-l1" id="fab-type-cot" onclick="fabSelectType('cot')">
+  <div class="fab-opt-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/>
+    </svg>
+  </div>
+  <div class="fab-opt-label">cotización</div>
+</div>
 
-  <!-- PASO 2: elegir método -->
-  <div class="fab-step" id="fab-step-2">
-    <div class="fab-back-row">
-      <button class="fab-back-btn" onclick="fabGoBack()">‹</button>
-      <span class="fab-breadcrumb" id="fab-breadcrumb-label">Presupuesto</span>
-      <span style="font-size:10px;color:var(--muted);margin-left:2px">— elegí cómo cargar</span>
-    </div>
-    <div class="fab-method-grid">
-      <div class="fab-method-card" onclick="fabSelectMethod('manual')">
-        <div class="fab-method-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
-            <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-          </svg>
-        </div>
-        <div class="fab-method-name">Manual</div>
-      </div>
-      <div class="fab-method-card" onclick="fabSelectMethod('voz')">
-        <div class="fab-method-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
-            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
-          </svg>
-        </div>
-        <div class="fab-method-name">Por voz</div>
-      </div>
-      <div class="fab-method-card" onclick="fabSelectMethod('imagen')">
-        <div class="fab-method-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
-            <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/>
-          </svg>
-        </div>
-        <div class="fab-method-name">Imagen / archivo</div>
-      </div>
-    </div>
+<!-- NIVEL 2: Manual / Voz / Imagen -->
+<div class="fab-option fab-l2" id="fab-method-manual" onclick="fabSelectMethod('manual')">
+  <div class="fab-opt-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+      <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+    </svg>
   </div>
+  <div class="fab-opt-label">manual</div>
+</div>
+<div class="fab-option fab-l2" id="fab-method-voz" onclick="fabSelectMethod('voz')">
+  <div class="fab-opt-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+    </svg>
+  </div>
+  <div class="fab-opt-label">por voz</div>
+</div>
+<div class="fab-option fab-l2" id="fab-method-imagen" onclick="fabSelectMethod('imagen')">
+  <div class="fab-opt-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+      <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/>
+    </svg>
+  </div>
+  <div class="fab-opt-label">imagen</div>
 </div>
 
 <div id="fab-wrap">
@@ -3578,15 +3561,22 @@ function renderMobileHome(el, tab) {
     );
   }).join('');
 
-  // Grid fijo: siempre 2 columnas × 2 filas = 4 slots de 1×1
-  // Los slots vacíos quedan como espacio muerto
+  // Grid fijo: 2×2 = 4 slots — los vacíos se pueden tocar para agregar
+  const SLOTS = 4;
+  const emptySlots = Math.max(0, SLOTS - indexed.length);
+  const emptySlotsHTML = Array.from({ length: emptySlots }).map(() =>
+    '<div class="mproj-card mproj-card-empty" onclick="_fabType=\'pres\';openModal(\'proj\')" ' +
+        'title="Nuevo proyecto" style="background:var(--bg);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent">' +
+      '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="opacity:0.25"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
+    '</div>'
+  ).join('');
 
   // ── Renderizar cotizaciones ──────────────────────────────────
   S.quotes = S.quotes || [];
   const cotHTML = S.quotes.length === 0
-    ? '<div class="mcot-empty">' +
-        '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="15" x2="12" y2="15"/></svg>' +
-        '<span>Sin cotizaciones</span>' +
+    ? '<div class="mcot-empty" onclick="_fabType=\'cot\';openModal(\'quote\')" style="cursor:pointer;-webkit-tap-highlight-color:transparent">' +
+        '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="15" x2="12" y2="15"/></svg>' +
+        '<span>Tocá para agregar</span>' +
       '</div>'
     : S.quotes.map((q, qi) => {
         const total = (q.mat||0) + (q.mo||0) + (q.extras||[]).reduce((s,e)=>s+(e.monto||0),0);
@@ -3612,7 +3602,7 @@ function renderMobileHome(el, tab) {
           '</div>' +
         '</div>' +
         '<div class="mproj-body">' +
-          '<div class="mproj-grid" id="mproj-grid-outer">' + cardsHTML + '</div>' +
+          '<div class="mproj-grid" id="mproj-grid-outer">' + cardsHTML + emptySlotsHTML + '</div>' +
         '</div>' +
       '</div>' +
       '<div class="mcot-wrap" id="msplit-cot">' +
@@ -4281,7 +4271,12 @@ function renderMain() {
                   + (alDia ? '<div style="font-size:10px;color:var(--sage);margin-top:4px;font-weight:700">✓ Al día</div>' : '')
               )
               + '</div>';
-          }).join('');
+          }).join('') + 
+        // Tarjeta + al final de la lista
+        '<div class="mcot-card" onclick="_fabType=\'cot\';openModal(\'quote\')" ' +
+            'style="background:var(--bg);border:2px dashed var(--border);align-items:center;justify-content:center;min-width:44px;width:44px;padding:0">' +
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="opacity:0.35"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
+        '</div>';
         })() : ''}
       </div>
 
@@ -7750,77 +7745,69 @@ const personColors = ['#7a2f2f','#c8773a','#5a6e5a','#4a6a9a','#8a5a9a','#4a8a7a
 
 function isMobile() { return window.innerWidth <= 700; }
 
-// ── FAB BOTTOM-SHEET — 2 pasos ────────────────────────────────────────────────
+// ── FAB RADIAL 2 NIVELES ─────────────────────────────────────────────────────
 
 let _fabType = null; // 'pres' | 'cot'
 
 function toggleFab() {
-  const sheet = document.getElementById('fab-sheet');
-  const overlay = document.getElementById('fab-overlay');
-  const plus = document.getElementById('fab-icon-plus');
-  const close = document.getElementById('fab-icon-close');
-  const isOpen = sheet.classList.contains('open');
-  if (isOpen) {
-    closeFab();
-  } else {
-    // Resetear al paso 1
-    fabShowStep(1);
-    sheet.classList.remove('type-pres','type-cot');
-    sheet.classList.add('open');
-    overlay.classList.add('visible');
-    plus.style.display = 'none';
-    close.style.display = '';
-    document.getElementById('fab-wrap').classList.add('open');
-  }
-}
-
-function closeFab() {
-  const sheet   = document.getElementById('fab-sheet');
+  const wrap    = document.getElementById('fab-wrap');
   const overlay = document.getElementById('fab-overlay');
   const plus    = document.getElementById('fab-icon-plus');
   const close   = document.getElementById('fab-icon-close');
+  const isOpen  = wrap.classList.contains('open');
+  if (isOpen) {
+    _fabClose();
+  } else {
+    _fabType = null;
+    wrap.classList.add('open', 'lvl1');
+    wrap.classList.remove('lvl2', 'type-pres', 'type-cot');
+    overlay.classList.add('visible');
+    plus.style.display  = 'none';
+    close.style.display = '';
+    _fabChip('');
+  }
+}
+
+function _fabClose() {
   const wrap    = document.getElementById('fab-wrap');
-  sheet.classList.remove('open');
+  const overlay = document.getElementById('fab-overlay');
+  const plus    = document.getElementById('fab-icon-plus');
+  const close   = document.getElementById('fab-icon-close');
+  wrap.classList.remove('open', 'lvl1', 'lvl2', 'type-pres', 'type-cot');
   overlay.classList.remove('visible');
   if (plus)  plus.style.display  = '';
   if (close) close.style.display = 'none';
-  if (wrap)  wrap.classList.remove('open');
+  _fabChip('');
 }
 
-function fabShowStep(n) {
-  document.querySelectorAll('.fab-step').forEach(s => s.classList.remove('active'));
-  const el = document.getElementById('fab-step-' + n);
-  if (el) el.classList.add('active');
+function closeFab() { _fabClose(); }
+
+function _fabChip(type) {
+  const chip = document.getElementById('fab-type-chip');
+  if (!chip) return;
+  if (!type) { chip.classList.remove('visible','type-pres','type-cot'); return; }
+  chip.textContent = type === 'pres' ? 'Presupuesto' : 'Cotización';
+  chip.className   = 'visible type-' + type;
 }
 
 function fabSelectType(type) {
   _fabType = type;
-  const sheet = document.getElementById('fab-sheet');
-  sheet.classList.remove('type-pres','type-cot');
-  sheet.classList.add('type-' + type);
-  const label = document.getElementById('fab-breadcrumb-label');
-  if (label) {
-    label.textContent = type === 'pres' ? 'Presupuesto' : 'Cotización';
-    label.className = 'fab-breadcrumb type-' + type;
-  }
-  fabShowStep(2);
-}
-
-function fabGoBack() {
-  fabShowStep(1);
+  const wrap = document.getElementById('fab-wrap');
+  wrap.classList.remove('lvl1');
+  wrap.classList.add('lvl2', 'type-' + type);
+  _fabChip(type);
 }
 
 function fabSelectMethod(method) {
-  closeFab();
+  _fabClose();
   if (_fabType === 'pres') {
     if      (method === 'manual') openModal('proj');
     else if (method === 'voz')    openModal('voice');
     else if (method === 'imagen') openModal('computo');
   } else {
-    // cotización
-    if      (method === 'manual') openModal('quote');
-    else if (method === 'voz')    openModal('voice-quote');
-    else if (method === 'imagen') openModal('computo-quote');
+    if (method === 'manual') openModal('quote');
+    else if (method === 'voz')    openModal('voice');
+    else if (method === 'imagen') openModal('computo');
   }
 }
 
