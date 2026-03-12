@@ -737,9 +737,21 @@ header {
   text-transform: uppercase; padding: 3px 7px; border-radius: 2px;
   display: inline-block; margin-bottom: 6px;
 }
-.mproj-badge.done { background: rgba(255,255,255,0.25); color: #fff; }
-.mproj-badge.active { background: rgba(0,0,0,0.2); color: rgba(255,255,255,0.7); }
+.mproj-badge.done      { background: rgba(255,255,255,0.25); color: #fff; }
+.mproj-badge.delivered { background: rgba(100,200,100,0.3); color: #cfffcf; }
+.mproj-badge.active    { background: rgba(0,0,0,0.2); color: rgba(255,255,255,0.7); }
+.mproj-badge.urgent    { background: rgba(255,160,0,0.35); color: #ffe0a0; }
+.mproj-badge.overdue   { background: rgba(220,50,50,0.35); color: #ffcfcf; }
 .mproj-card[data-size="1"] .mproj-badge { display: none; }
+
+/* Fecha de entrega chip */
+.mproj-duedate {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px; color: rgba(255,255,255,0.55);
+  text-align: right; line-height: 1.3;
+  letter-spacing: 0.5px;
+}
+.mproj-card[data-size="1"] .mproj-duedate { display: none; }
 
 /* Barra fina en la parte inferior */
 .mproj-bar {
@@ -2083,6 +2095,11 @@ header {
       </select>
       <div class="field-hint">Quien maneja el fondo común. Se puede cambiar después.</div>
     </div>
+    <div class="field">
+      <label>Fecha de confirmación del proyecto</label>
+      <input id="p-confirmed-at" type="date">
+      <div class="field-hint">A partir de esta fecha se calculan los 45 días hábiles de plazo de entrega.</div>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-light" onclick="closeModal('proj')">Cancelar</button>
       <button class="btn btn-primary" onclick="saveProject()">Crear proyecto</button>
@@ -3004,49 +3021,94 @@ function renderMobileHome(el, tab) {
     return;
   }
 
-  // ── Calcular tamaño de cada card en el grid ──────────────────
-  // Asignar cuadrantes según presupuesto relativo al máximo
-  const maxBudget = Math.max(...S.projects.map(p => p.budget || 0), 1);
+  // ── Ordenar por urgencia (días hasta vencimiento ASC; sin fecha = al final) ──
+  const indexed = S.projects.map((p, origIdx) => ({ p, origIdx }));
+  indexed.sort((a, b) => {
+    const da = daysUntilDue(a.p);
+    const db = daysUntilDue(b.p);
+    if (da === Infinity && db === Infinity) return 0;
+    if (da === Infinity) return 1;
+    if (db === Infinity) return -1;
+    return da - db;
+  });
 
+  // ── Tamaño de cada card: 4=2×2, 2w=2×1, 1=1×1 ──────────────
+  // Eliminamos 2h (1×2 tall) para evitar huecos
+  const maxBudget = Math.max(...S.projects.map(p => p.budget || 0), 1);
   function getCardSize(budget) {
     const ratio = (budget || 0) / maxBudget;
-    if (ratio >= 0.65) return '4';   // 2×2 — proyecto grande
-    if (ratio >= 0.35) return '2w';  // 2×1 — proyecto medio
-    if (ratio >= 0.15) return '2h';  // 1×2 — proyecto mediano-chico
-    return '1';                       // 1×1 — proyecto chico
+    if (ratio >= 0.65) return '4';   // 2×2 grande
+    if (ratio >= 0.30) return '2w';  // 2×1 medio
+    return '1';                       // 1×1 chico
   }
 
-  const cardsHTML = S.projects.map((p, i) => {
-    const color  = projColors[i % projColors.length];
-    const pagado = p.pagos.reduce((s, pg) => s + pg.amount, 0);
-    const pct    = p.budget > 0 ? Math.min(100, (pagado / p.budget) * 100) : 0;
-    const isDone = pct >= 100;
-    const size   = getCardSize(p.budget);
-    const visible = !!window._cardPriceVisible[i];
+  // ── Lógica anti-hueco para cards 1×1 ─────────────────────────
+  // Si la cantidad de cards 1×1 seguidas es impar, el último se convierte en 2w
+  function buildSizes(items) {
+    const sizes = items.map(({p}) => getCardSize(p.budget));
+    // scan groups of consecutive '1's
+    let i = 0;
+    while (i < sizes.length) {
+      if (sizes[i] === '1') {
+        let j = i;
+        while (j < sizes.length && sizes[j] === '1') j++;
+        const count = j - i;
+        if (count % 2 !== 0) {
+          // último del grupo se vuelve 2w para cerrar la fila
+          sizes[j - 1] = '2w';
+        }
+        i = j;
+      } else {
+        i++;
+      }
+    }
+    return sizes;
+  }
 
-    // La altura del fill = pct% de la card
-    const fillH  = pct.toFixed(1) + '%';
+  const sizes = buildSizes(indexed);
+
+  const cardsHTML = indexed.map(({ p, origIdx }, sortedIdx) => {
+    const color   = projColors[origIdx % projColors.length];
+    const pagado  = p.pagos.reduce((s, pg) => s + pg.amount, 0);
+    const pct     = p.budget > 0 ? Math.min(100, (pagado / p.budget) * 100) : 0;
+    const size    = sizes[sortedIdx];
+    const due     = getDueDate(p);
+    const daysLeft = daysUntilDue(p);
+    const isDelivered = !!p.deliveredAt;
+    const isPagoComplete = p.budget > 0 && pct >= 100;
+    const fillH   = pct.toFixed(1) + '%';
+
+    // Badge de estado
+    let badgeText, badgeClass;
+    if (isDelivered && isPagoComplete) {
+      badgeText = '✓ finalizado'; badgeClass = 'done';
+    } else if (isDelivered) {
+      badgeText = '✓ entregado'; badgeClass = 'delivered';
+    } else if (daysLeft !== Infinity && daysLeft <= 0) {
+      badgeText = 'vencido'; badgeClass = 'overdue';
+    } else if (daysLeft !== Infinity && daysLeft <= 7) {
+      badgeText = daysLeft + 'd restantes'; badgeClass = 'urgent';
+    } else {
+      badgeText = 'activo'; badgeClass = 'active';
+    }
+
+    // Fecha de entrega en el chip
+    const dueDateStr = due ? formatDateShort(due) : null;
 
     return (
-      '<div class="mproj-card" data-size="' + size + '" data-idx="' + i + '" ' +
-          'style="background:' + color + '" onclick="selectMobileProject(' + i + ')">' +
-        // Fill visual desde abajo
-        '<div class="mproj-fill' + (isDone ? ' done' : '') + '" style="height:' + fillH + '"></div>' +
-        // Barra fina en la base
+      '<div class="mproj-card" data-size="' + size + '" data-idx="' + origIdx + '" ' +
+          'style="background:' + color + '" onclick="selectMobileProject(' + origIdx + ')">' +
+        '<div class="mproj-fill' + (isPagoComplete ? ' done' : '') + '" style="height:' + fillH + '"></div>' +
         '<div class="mproj-bar"><div class="mproj-bar-fill" style="width:' + pct + '%"></div></div>' +
-        // Contenido
         '<div class="mproj-inner">' +
           '<div>' +
-            '<div class="mproj-badge ' + (isDone ? 'done' : 'active') + '">' + (isDone ? '✓ cobrado' : 'activo') + '</div>' +
+            '<div class="mproj-badge ' + badgeClass + '">' + badgeText + '</div>' +
             '<div class="mproj-name">' + esc(p.name) + '</div>' +
             (p.desc ? '<div class="mproj-desc">' + esc(p.desc) + '</div>' : '') +
           '</div>' +
           '<div class="mproj-pct-wrap">' +
             '<div class="mproj-pct"><span class="mproj-pct-sym">%</span>' + pct.toFixed(0) + '</div>' +
-            '<div class="mproj-budget">' +
-              (visible ? '$' + fmt(p.budget) : '$ ···') + '<br>' +
-              '<span style="font-size:0.75em;opacity:0.5">cobrado</span>' +
-            '</div>' +
+            (dueDateStr ? '<div class="mproj-duedate">' + dueDateStr + '</div>' : '') +
           '</div>' +
         '</div>' +
       '</div>'
@@ -3302,6 +3364,30 @@ function renderMobileProject(el) {
     +'</div>';
   }
 
+  // ── Fecha de entrega + estado ──
+  const due       = getDueDate(p);
+  const daysLeft  = daysUntilDue(p);
+  const isDelivered = !!p.deliveredAt;
+  const dueDateStr  = due ? formatDateShort(due) : null;
+  let dueBannerHTML = '';
+  if (p.confirmedAt) {
+    const dueColor = isDelivered ? '#2a6a2a'
+      : daysLeft <= 0  ? 'var(--kiri)'
+      : daysLeft <= 7  ? '#c8773a'
+      : 'var(--muted)';
+    const dueText = isDelivered
+      ? '✓ Entregado el ' + p.deliveredAt.split('-').reverse().join('/')
+      : daysLeft <= 0
+        ? '⚠ Vencido hace ' + Math.abs(daysLeft) + ' días — entrega ' + dueDateStr
+        : daysLeft + ' días para la entrega · ' + dueDateStr;
+    dueBannerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--surface)">'
+      +'<div style="font-size:10px;font-weight:600;color:'+dueColor+'">'+dueText+'</div>'
+      +(isDelivered ? '' :
+        '<button onclick="confirmDelivery('+S.active+')" style="background:none;border:1px solid var(--sage);border-radius:4px;padding:4px 10px;font-size:10px;font-weight:700;color:var(--sage);cursor:pointer;font-family:\'DM Sans\',sans-serif;white-space:nowrap">Confirmar entrega</button>'
+      )
+    +'</div>';
+  }
+
   el.innerHTML = `
   <div style="height:100%;display:flex;flex-direction:column;background:var(--surface);overflow:hidden">
 
@@ -3312,8 +3398,11 @@ function renderMobileProject(el) {
         <div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.name)}</div>
         ${p.desc?'<div style="font-size:9px;color:var(--muted);letter-spacing:1px">'+esc(p.desc)+'</div>':''}
       </div>
-      <button onclick="openModal('editbudget')" style="background:none;border:1px solid var(--border);border-radius:4px;padding:5px 10px;font-size:11px;color:var(--muted);cursor:pointer;font-family:\'DM Sans\',sans-serif">✎ Editar</button>
+      <button onclick="openModal('editbudget')" style="background:none;border:1px solid var(--border);border-radius:4px;padding:5px 10px;font-size:11px;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif">✎ Editar</button>
     </div>
+
+    <!-- BANNER FECHA ENTREGA -->
+    ${dueBannerHTML}
 
     <!-- SCROLL CONTENT -->
     <div style="flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch" id="mproj-scroll">
@@ -3321,6 +3410,7 @@ function renderMobileProject(el) {
       <!-- HERO CARD con fill -->
       <div style="background:${heroColor};position:relative;overflow:hidden;padding:22px 20px 18px">
         <!-- fill visual del % cobrado -->
+
         <div style="position:absolute;left:0;right:0;bottom:0;height:${pct.toFixed(1)}%;background:rgba(255,255,255,0.15);pointer-events:none;transition:height .6s"></div>
         <div style="position:relative;z-index:1">
           <div style="font-size:8px;letter-spacing:3px;color:rgba(255,255,255,0.5);text-transform:uppercase;margin-bottom:14px">Presupuesto del proyecto</div>
@@ -3417,7 +3507,9 @@ function renderMobileProject(el) {
       </div>
 
       <!-- OPCIONES DESTRUCTIVAS -->
-      <div style="padding:16px;margin-top:4px">
+      <div style="padding:16px;margin-top:4px;display:flex;flex-direction:column;gap:8px">
+        ${!p.confirmedAt ? `<button onclick="openModal('editbudget')" style="width:100%;padding:12px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">+ Agregar fecha de confirmación</button>` : ''}
+        ${!isDelivered ? `<button onclick="confirmDelivery(${S.active})" style="width:100%;padding:12px;background:var(--sage);border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer">✓ Confirmar entrega del proyecto</button>` : `<div style="text-align:center;font-size:11px;color:var(--sage);font-weight:600;padding:8px 0">✓ Entregado el ${p.deliveredAt.split('-').reverse().join('/')}</div>`}
         <button onclick="deleteProject()" style="width:100%;padding:12px;background:none;border:1px solid #d9a0a0;border-radius:6px;color:var(--kiri);font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;letter-spacing:0.5px">Eliminar proyecto</button>
       </div>
 
@@ -4211,6 +4303,8 @@ function saveProject() {
     pagos: [],
     transferencias: [],
     expenses: [],
+    confirmedAt: document.getElementById('p-confirmed-at').value || null,
+    deliveredAt: null,
     createdAt: Date.now()
   });
   S.active = S.projects.length - 1;
@@ -6136,6 +6230,32 @@ function resetApp() {
 function fmt(n) { return Number(n).toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
+// ── Días hábiles ───────────────────────────────────────────────
+function addBusinessDays(dateStr, days) {
+  if (!dateStr) return null;
+  var d = new Date(dateStr + 'T00:00:00');
+  var added = 0;
+  while (added < days) {
+    d.setDate(d.getDate() + 1);
+    var dow = d.getDay();
+    if (dow !== 0 && dow !== 6) added++;
+  }
+  return d;
+}
+function getDueDate(p) { if (!p.confirmedAt) return null; return addBusinessDays(p.confirmedAt, 45); }
+function formatDateShort(d) { if (!d) return null; return d.toLocaleDateString('es-AR', {day:'2-digit',month:'2-digit',year:'2-digit'}); }
+function daysUntilDue(p) {
+  var due = getDueDate(p); if (!due) return Infinity;
+  var today = new Date(); today.setHours(0,0,0,0);
+  return Math.round((due - today) / (1000 * 60 * 60 * 24));
+}
+function confirmDelivery(idx) {
+  var proj = S.projects[idx]; if (!proj) return;
+  if (!confirm('¿Confirmar entrega del proyecto? Esto no cierra los pagos pendientes.')) return;
+  proj.deliveredAt = new Date().toISOString().slice(0,10);
+  render();
+}
+
 function setExpenseTab(tab) {
   const isDirecto = tab === 'directo';
   document.getElementById('exp-form-normal').style.display = isDirecto ? 'none' : 'block';
@@ -6368,12 +6488,14 @@ window.addEventListener('resize', () => {
   if (parsed && parsed.projects && parsed.projects.length > 0) return; // ya hay datos reales
   const now = Date.now();
   const d = n => now - n*86400000;
+  // Fechas de confirmación relativas a hoy para demo
+  const dateStr = n => { const dt = new Date(now - n*86400000); return dt.toISOString().slice(0,10); };
   S.projects = [
-    { name:"ANDREA HOMOLA", desc:"Córdoba", budgetMO:2250000, budgetMat:1432000, extras:[], budget:3762000, tesorero:"Agustín", people:["Agustín","Martín","Julia","Matias"], moShares:{}, pagos:[{amount:3026000,date:"2024-01-15",desc:"Pago total",cobrador:"Agustín"}], transferencias:[], expenses:[{desc:"Melanina",amount:980000,cat:"mat",directo:false,payer:"Agustín"},{desc:"Herrajes",amount:320000,cat:"mat",directo:false,payer:"Martín"},{desc:"Flete",amount:181050,cat:"otros",directo:false,payer:"Julia"}], createdAt:d(45) },
-    { name:"RICKY MARTIN", desc:"Buenos Aires", budgetMO:1800000, budgetMat:900000, extras:[{nombre:"Instalación",monto:150000}], budget:2850000, tesorero:"Martín", people:["Agustín","Martín","Matias"], moShares:{}, pagos:[{amount:1500000,date:"2024-02-01",desc:"Anticipo",cobrador:"Martín"}], transferencias:[], expenses:[{desc:"Tableros",amount:640000,cat:"mat",directo:false,payer:"Matias"}], createdAt:d(30) },
-    { name:"FAMILIA GÓMEZ", desc:"Rosario", budgetMO:3100000, budgetMat:2200000, extras:[], budget:5300000, tesorero:"Julia", people:["Agustín","Julia","Matias"], moShares:{}, pagos:[{amount:2650000,date:"2024-03-10",desc:"50% inicio",cobrador:"Julia"},{amount:1000000,date:"2024-04-01",desc:"Cuota 2",cobrador:"Julia"}], transferencias:[], expenses:[{desc:"Melanina roble",amount:1450000,cat:"mat",directo:false,payer:"Agustín"}], createdAt:d(15) },
-    { name:"ESTUDIO ZENTNER", desc:"Mendoza", budgetMO:950000, budgetMat:600000, extras:[{nombre:"Flete",monto:80000}], budget:1630000, tesorero:"Agustín", people:["Agustín","Martín"], moShares:{}, pagos:[], transferencias:[], expenses:[], createdAt:d(5) },
-    { name:"DUPLEX PALERMO", desc:"CABA", budgetMO:4200000, budgetMat:3800000, extras:[{nombre:"Diseño",monto:300000}], budget:8300000, tesorero:"Matias", people:["Agustín","Martín","Julia","Matias"], moShares:{}, pagos:[{amount:4150000,date:"2024-04-15",desc:"Primer tramo",cobrador:"Matias"}], transferencias:[], expenses:[{desc:"MDF premium",amount:2100000,cat:"mat",directo:false,payer:"Matias"}], createdAt:d(60) }
+    { name:"ANDREA HOMOLA", desc:"Córdoba", budgetMO:2250000, budgetMat:1432000, extras:[], budget:3762000, tesorero:"Agustín", people:["Agustín","Martín","Julia","Matias"], moShares:{}, pagos:[{amount:3026000,date:"2024-01-15",desc:"Pago total",cobrador:"Agustín"}], transferencias:[], expenses:[{desc:"Melanina",amount:980000,cat:"mat",directo:false,payer:"Agustín"},{desc:"Herrajes",amount:320000,cat:"mat",directo:false,payer:"Martín"},{desc:"Flete",amount:181050,cat:"otros",directo:false,payer:"Julia"}], confirmedAt:dateStr(80), deliveredAt:dateStr(5), createdAt:d(45) },
+    { name:"RICKY MARTIN", desc:"Buenos Aires", budgetMO:1800000, budgetMat:900000, extras:[{nombre:"Instalación",monto:150000}], budget:2850000, tesorero:"Martín", people:["Agustín","Martín","Matias"], moShares:{}, pagos:[{amount:1500000,date:"2024-02-01",desc:"Anticipo",cobrador:"Martín"}], transferencias:[], expenses:[{desc:"Tableros",amount:640000,cat:"mat",directo:false,payer:"Matias"}], confirmedAt:dateStr(30), deliveredAt:null, createdAt:d(30) },
+    { name:"FAMILIA GÓMEZ", desc:"Rosario", budgetMO:3100000, budgetMat:2200000, extras:[], budget:5300000, tesorero:"Julia", people:["Agustín","Julia","Matias"], moShares:{}, pagos:[{amount:2650000,date:"2024-03-10",desc:"50% inicio",cobrador:"Julia"},{amount:1000000,date:"2024-04-01",desc:"Cuota 2",cobrador:"Julia"}], transferencias:[], expenses:[{desc:"Melanina roble",amount:1450000,cat:"mat",directo:false,payer:"Agustín"}], confirmedAt:dateStr(25), deliveredAt:null, createdAt:d(15) },
+    { name:"ESTUDIO ZENTNER", desc:"Mendoza", budgetMO:950000, budgetMat:600000, extras:[{nombre:"Flete",monto:80000}], budget:1630000, tesorero:"Agustín", people:["Agustín","Martín"], moShares:{}, pagos:[], transferencias:[], expenses:[], confirmedAt:dateStr(10), deliveredAt:null, createdAt:d(5) },
+    { name:"DUPLEX PALERMO", desc:"CABA", budgetMO:4200000, budgetMat:3800000, extras:[{nombre:"Diseño",monto:300000}], budget:8300000, tesorero:"Matias", people:["Agustín","Martín","Julia","Matias"], moShares:{}, pagos:[{amount:4150000,date:"2024-04-15",desc:"Primer tramo",cobrador:"Matias"}], transferencias:[], expenses:[{desc:"MDF premium",amount:2100000,cat:"mat",directo:false,payer:"Matias"}], confirmedAt:dateStr(3), deliveredAt:null, createdAt:d(60) }
   ];
 })();
 // ── FIN DATOS DE PRUEBA ───────────────────────────────────────────────────────
