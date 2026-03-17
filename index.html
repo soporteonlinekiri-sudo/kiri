@@ -347,61 +347,61 @@ header {
 .main { padding: 0; display: flex; flex-direction: column; gap: 0; background: var(--bg); }
 
 /* ── DESKTOP HOME ────────────────────────────────────────────── */
-/* ── DESKTOP HOME — LAYOUT EN CUADRANTES ────────────────────────── */
 .dhome {
   display: flex; flex-direction: column;
   height: calc(100vh - 54px); overflow: hidden;
 }
 
-/* HERO STRIP — franja superior */
+/* HERO STRIP */
 .dhome-hero-strip {
   background: var(--ink); color: #fff;
-  padding: 18px 28px 16px;
-  display: flex; align-items: center; gap: 40px;
+  padding: 20px 32px 18px;
+  display: flex; align-items: center; gap: 44px;
   flex-shrink: 0; border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 .dhome-hero-ganancia { flex-shrink: 0; }
 .dhome-hero-label {
-  font-size: 8px; font-weight: 600; letter-spacing: 3px;
-  text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 3px;
+  font-size: 7px; font-weight: 700; letter-spacing: 3.5px;
+  text-transform: uppercase; color: rgba(255,255,255,0.28); margin-bottom: 5px;
 }
 .dhome-hero-amount {
   font-family: 'DM Mono', monospace;
-  font-size: 32px; font-weight: 400; color: #fff;
-  letter-spacing: -1px; line-height: 1;
+  font-size: 34px; font-weight: 300; color: #fff;
+  letter-spacing: -1.5px; line-height: 1;
 }
 .dhome-hero-amount.negative { color: #e8a0a0; }
-.dhome-hero-divider { width: 1px; height: 44px; background: rgba(255,255,255,0.1); flex-shrink:0; }
-.dhome-hero-bars { flex: 1; display: flex; flex-direction: column; gap: 6px; }
-.dhome-hero-bar-row { display: flex; align-items: center; gap: 10px; }
+.dhome-hero-divider { width: 1px; height: 46px; background: rgba(255,255,255,0.08); flex-shrink:0; }
+.dhome-hero-bars { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.dhome-hero-bar-row { display: flex; align-items: center; gap: 12px; }
 .dhome-hero-bar-label {
-  font-size: 9px; color: rgba(255,255,255,0.35); width: 70px;
-  text-align: right; flex-shrink: 0; letter-spacing: 0.3px;
+  font-size: 7px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  color: rgba(255,255,255,0.28); width: 72px; text-align: right; flex-shrink: 0;
 }
 .dhome-hero-bar-track {
-  flex: 1; height: 5px; background: rgba(255,255,255,0.08);
-  border-radius: 3px; overflow: hidden;
+  flex: 1; height: 3px; background: rgba(255,255,255,0.06);
+  border-radius: 2px; overflow: hidden;
 }
-.dhome-hero-bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
+.dhome-hero-bar-fill { height: 100%; border-radius: 2px; transition: width 0.7s cubic-bezier(0.4,0,0.2,1); }
 .dhome-hero-bar-fill.bar-cobrado { background: var(--kiri); }
 .dhome-hero-bar-fill.bar-falta   { background: var(--sun); }
 .dhome-hero-bar-fill.bar-gastos  { background: var(--sage); }
 .dhome-hero-bar-val {
-  font-family: 'DM Mono', monospace; font-size: 10px;
-  color: rgba(255,255,255,0.5); width: 110px; flex-shrink: 0; letter-spacing: -0.3px;
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  color: rgba(255,255,255,0.4); width: 118px; flex-shrink: 0; text-align: right;
 }
-.dhome-hero-stats-right { display: flex; gap: 28px; flex-shrink: 0; }
+.dhome-hero-stats-right { display: flex; gap: 32px; flex-shrink: 0; }
 .dhome-hero-stat { text-align: right; }
 .dhome-hero-stat-val {
   font-family: 'DM Mono', monospace; font-size: 14px;
-  font-weight: 400; color: rgba(255,255,255,0.8);
+  font-weight: 300; color: rgba(255,255,255,0.7);
 }
+.dhome-hero-stat-val.neg { color: #e8a0a0; }
 .dhome-hero-stat-lbl {
-  font-size: 7px; letter-spacing: 1.5px; text-transform: uppercase;
-  color: rgba(255,255,255,0.28); margin-top: 2px;
+  font-size: 7px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase;
+  color: rgba(255,255,255,0.2); margin-top: 3px;
 }
 
-/* CUADRANTES — 3 columnas */
+/* CUADRANTES */
 .dhome-body {
   flex: 1; display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -410,117 +410,95 @@ header {
 .dhome-panel {
   display: flex; flex-direction: column;
   overflow: hidden; border-right: 1px solid var(--border);
+  background: var(--bg);
 }
 .dhome-panel:last-child { border-right: none; }
 .dhome-panel-header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 20px 12px; flex-shrink: 0;
+  padding: 15px 22px 13px; flex-shrink: 0;
   border-bottom: 1px solid var(--border);
+  background: var(--surface);
 }
 .dhome-panel-title {
-  font-size: 8px; font-weight: 700; letter-spacing: 3px;
+  font-size: 7px; font-weight: 700; letter-spacing: 3.5px;
   text-transform: uppercase; color: var(--muted);
 }
 .dhome-panel-count {
-  font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted);
+  font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted);
 }
 .dhome-panel-body {
-  flex: 1; overflow-y: auto; padding: 14px 16px;
+  flex: 1; overflow-y: auto; padding: 18px 18px;
   scrollbar-width: thin; scrollbar-color: var(--border) transparent;
 }
-.dhome-panel-body::-webkit-scrollbar { width: 4px; }
+.dhome-panel-body::-webkit-scrollbar { width: 3px; }
 .dhome-panel-body::-webkit-scrollbar-track { background: transparent; }
 .dhome-panel-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.dpanel-add-btn {
+  width: 24px; height: 24px; background: var(--kiri); border: none;
+  border-radius: 4px; color: #fff; font-size: 17px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: opacity 0.15s;
+}
+.dpanel-add-btn:hover { opacity: 0.82; }
 
-/* Tarjeta de proyecto desktop */
-.dproj-card {
-  display: flex; flex-direction: column;
-  border-radius: 6px; overflow: hidden; position: relative;
-  cursor: pointer; margin-bottom: 10px;
-  border: 1px solid var(--border); background: var(--surface);
-  transition: transform 0.15s, box-shadow 0.15s;
-}
-.dproj-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
-.dproj-card-accent { position: absolute; left:0; top:0; bottom:0; width:3px; background: var(--card-color, var(--kiri)); }
-.dproj-card-inner { padding: 14px 16px 12px 18px; }
-.dproj-card-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:10px; gap:8px; }
-.dproj-card-name { font-size:11px; font-weight:700; color:var(--ink); text-transform:uppercase; letter-spacing:0.8px; line-height:1.2; flex:1; }
-.dproj-card-pct { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); flex-shrink:0; }
-.dproj-card-amount { font-family:'DM Mono',monospace; font-size:22px; font-weight:300; color:var(--ink); letter-spacing:-0.5px; margin-bottom:10px; line-height:1; }
-.dproj-card-bar { height:2px; background:var(--border); border-radius:1px; overflow:hidden; margin-bottom:10px; }
-.dproj-card-bar-fill { height:100%; background:var(--card-color,var(--kiri)); border-radius:1px; }
-.dproj-card-footer { display:flex; gap:0; margin-bottom:10px; }
-.dproj-card-stat { flex:1; }
-.dproj-card-stat + .dproj-card-stat { border-left:1px solid var(--border); padding-left:12px; }
-.dproj-card-stat-lbl { font-size:7px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:3px; }
-.dproj-card-stat-val { font-family:'DM Mono',monospace; font-size:11px; color:var(--ink); }
-.dproj-card-stat-val.neg { color:var(--kiri); }
-.dproj-card-actions { display:flex; gap:5px; padding-top:10px; border-top:1px solid var(--border); opacity:0; transition:opacity 0.15s; }
-.dproj-card:hover .dproj-card-actions { opacity:1; }
-.dproj-card-btn {
-  flex:1; padding:6px 0; font-size:10px; font-weight:600; letter-spacing:0.3px;
-  border:1px solid var(--border); border-radius:3px; background:var(--surface2);
-  color:var(--ink); cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.1s;
-}
-.dproj-card-btn:hover { background:var(--border); }
-.dproj-card-btn.primary { background:var(--kiri); color:#fff; border-color:var(--kiri); }
-.dproj-card-btn.primary:hover { opacity:0.85; }
-.dproj-card-delete {
-  background:none; border:none; color:rgba(0,0,0,0.2); cursor:pointer;
-  padding:2px 5px; font-size:12px; border-radius:3px; transition:all 0.15s;
-  display:flex; align-items:center;
-}
-.dproj-card-delete:hover { color:var(--kiri); background:var(--kiri-lt); }
+/* Tarjeta proyecto desktop — usa tarjetas estilo mobile en grid 2 col */
+.dproj-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.dproj-wrap { position: relative; }
+.dproj-wrap .mproj-card { height: 148px; border-radius: 8px; }
+.dproj-wrap .mcard-delete-btn { position: absolute; top: -7px; right: -7px; z-index: 10; }
 
-/* Panel de estadísticas */
-.dstat-block { margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid var(--border); }
-.dstat-block:last-child { border-bottom:none; }
-.dstat-block-label { font-size:7px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; color:var(--muted); margin-bottom:10px; }
-.dstat-row { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
-.dstat-row-label { font-size:11px; color:var(--ink); }
-.dstat-row-val { font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:var(--ink); }
-.dstat-row-val.pos { color:var(--sage); }
-.dstat-row-val.neg { color:var(--kiri); }
-.dstat-bar-row { margin-bottom:8px; }
-.dstat-bar-label-row { display:flex; justify-content:space-between; margin-bottom:4px; }
-.dstat-bar-label-name { font-size:10px; color:var(--ink); }
-.dstat-bar-label-val  { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); }
-.dstat-bar-track { height:4px; background:var(--border); border-radius:2px; overflow:hidden; }
-.dstat-bar-fill  { height:100%; border-radius:2px; transition:width 0.6s cubic-bezier(0.4,0,0.2,1); }
+/* Panel estadísticas */
+.dstat-block { margin-bottom: 20px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
+.dstat-block:last-child { border-bottom: none; margin-bottom: 0; }
+.dstat-block-label {
+  font-size: 7px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 13px;
+}
+.dstat-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 8px; gap: 12px;
+}
+.dstat-row-label { font-size: 12px; color: var(--ink); line-height: 1.3; }
+.dstat-row-val {
+  font-family: 'DM Mono', monospace; font-size: 13px;
+  font-weight: 400; color: var(--ink); white-space: nowrap;
+}
+.dstat-row-val.pos { color: var(--sage); }
+.dstat-row-val.neg { color: var(--kiri); }
+.dstat-bar-row { margin-bottom: 11px; }
+.dstat-bar-label-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+.dstat-bar-label-name { font-size: 12px; font-weight: 600; color: var(--ink); }
+.dstat-bar-label-val  { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+.dstat-bar-track { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.dstat-bar-fill  { height: 100%; border-radius: 2px; transition: width 0.7s cubic-bezier(0.4,0,0.2,1); }
 
 /* Tarjeta cotización desktop */
 .dcot-card {
-  border:1px solid var(--border); border-radius:6px; padding:13px 15px 11px;
-  cursor:pointer; margin-bottom:9px; background:var(--surface);
-  position:relative; overflow:hidden; transition:transform 0.15s, box-shadow 0.15s;
+  border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px 12px;
+  cursor: pointer; margin-bottom: 10px; background: var(--surface);
+  position: relative; overflow: hidden; transition: transform 0.15s, box-shadow 0.15s;
 }
-.dcot-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--kiri); }
-.dcot-card:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,0.08); }
-.dcot-card-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:5px; }
-.dcot-card-client { font-size:11px; font-weight:700; color:var(--ink); text-transform:uppercase; letter-spacing:0.8px; flex:1; }
+.dcot-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--kiri); }
+.dcot-card:hover { transform: translateY(-2px); box-shadow: 0 5px 18px rgba(0,0,0,0.07); }
+.dcot-card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 4px; }
+.dcot-card-client {
+  font-size: 11px; font-weight: 700; color: var(--ink);
+  text-transform: uppercase; letter-spacing: 1px; flex: 1; line-height: 1.2;
+}
 .dcot-card-delete {
-  background:none; border:none; color:rgba(0,0,0,0.2); cursor:pointer;
-  padding:1px 4px; font-size:12px; border-radius:3px; transition:all 0.15s;
-  display:flex; align-items:center;
+  background: none; border: none; color: rgba(0,0,0,0.18); cursor: pointer;
+  padding: 1px 4px; border-radius: 3px; transition: all 0.15s; display: flex; align-items: center;
 }
-.dcot-card-delete:hover { color:var(--kiri); background:var(--kiri-lt); }
-.dcot-card-desc { font-size:10px; color:var(--muted); margin-bottom:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.dcot-card-bottom { display:flex; align-items:baseline; justify-content:space-between; }
-.dcot-card-total { font-family:'DM Mono',monospace; font-size:18px; font-weight:300; color:var(--ink); letter-spacing:-0.5px; }
-.dcot-card-date { font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); }
+.dcot-card-delete:hover { color: var(--kiri); background: var(--kiri-lt); }
+.dcot-card-desc { font-size: 10px; color: var(--muted); margin-bottom: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dcot-card-bottom { display: flex; align-items: baseline; justify-content: space-between; }
+.dcot-card-total { font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 300; color: var(--ink); letter-spacing: -0.5px; }
+.dcot-card-date { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); }
 
-/* Desktop empty state */
-.dhome-empty {
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  min-height: 50vh; gap: 14px; text-align: center;
-}
-.dhome-empty-kanji {
-  font-family: 'Noto Sans JP', sans-serif;
-  font-size: 80px; color: var(--border2); line-height: 1; margin-bottom: 8px;
-}
+/* Empty states */
+.dhome-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 50vh; gap: 14px; text-align: center; }
 .dhome-empty-text { color: var(--muted); font-size: 13px; line-height: 1.7; }
-.dpanel-empty { padding:24px 0; text-align:center; color:var(--muted); font-size:11px; line-height:1.7; }
+.dpanel-empty { padding: 32px 0; text-align: center; color: var(--muted); font-size: 12px; line-height: 1.8; }
 
 
 /* Legacy welcome — keep for safety */
@@ -2547,6 +2525,69 @@ header {
 </style>
 
 <!-- MODAL VOZ -->
+<!-- MODAL VOZ PARA MOVIMIENTOS (gasto/ingreso dentro de proyecto) -->
+<div class="overlay" id="modal-voice-mov" onclick="overlayClick(event,'voice-mov')">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title" id="vmov-title">Ingreso por voz</div>
+    <div id="vmov-idle">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:20px;line-height:1.7">
+        Dictá el monto y una descripción.<br>
+        <em style="color:var(--ink)" id="vmov-example">"Cobro de 500 mil, anticipo del cliente"</em>
+      </p>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:20px 0">
+        <button onclick="vmovStart()" style="width:76px;height:76px;border-radius:50%;background:var(--kiri);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(122,47,47,0.4);-webkit-tap-highlight-color:transparent">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="white" stroke="none"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="19" x2="12" y2="23" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="23" x2="16" y2="23" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div style="font-size:12px;color:var(--muted);font-weight:600">Tocá para hablar</div>
+      </div>
+      <div class="modal-actions"><button class="btn btn-light" onclick="closeModal('voice-mov')">Cancelar</button></div>
+    </div>
+    <div id="vmov-recording" style="display:none;text-align:center;padding:8px 0 0">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:16px 0">
+        <button onclick="vmovStop()" style="width:76px;height:76px;border-radius:50%;background:#cc3333;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;animation:voicePulse 1.4s ease infinite;-webkit-tap-highlight-color:transparent">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+        </button>
+        <div style="font-size:12px;color:#cc3333;font-weight:700;letter-spacing:1px">● GRABANDO</div>
+      </div>
+      <div id="vmov-live-text" style="min-height:48px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:10px 14px;font-size:13px;color:var(--ink);line-height:1.6;text-align:left;font-style:italic;margin-bottom:16px"><span style="color:var(--muted)">Escuchando...</span></div>
+      <div class="modal-actions">
+        <button class="btn btn-light" onclick="vmovCancel()">Cancelar</button>
+        <button class="btn btn-primary" onclick="vmovStop()">✓ Listo</button>
+      </div>
+    </div>
+    <div id="vmov-loading" style="display:none;text-align:center;padding:32px 0">
+      <div style="font-size:36px;animation:spin 1.2s linear infinite;display:inline-block">⊙</div>
+      <div style="margin-top:16px;font-weight:600;font-size:14px;color:var(--ink)">Interpretando con IA…</div>
+    </div>
+    <div id="vmov-result" style="display:none">
+      <div style="background:#f0f6f0;border:1px solid var(--sage);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--sage);margin-bottom:16px">✓ Revisá los datos antes de guardar</div>
+      <div id="vmov-transcript" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;font-size:11px;color:var(--muted);margin-bottom:14px;font-style:italic"></div>
+      <div class="field"><label>Monto ($) *</label><input id="vmov-amount" type="number" min="0" step="0.01" placeholder="0" style="font-family:'DM Mono',monospace"><div class="field-error" id="err-vmov-amount">Ingresá un monto</div></div>
+      <div class="field"><label>Descripción</label><input id="vmov-desc" type="text" placeholder="Descripción"></div>
+      <div id="vmov-pago-fields">
+        <div class="field"><label>Cobrador</label><select id="vmov-cobrador"></select></div>
+        <div class="field"><label>Fecha</label><input id="vmov-date" type="date"></div>
+      </div>
+      <div id="vmov-exp-fields" style="display:none">
+        <div class="field"><label>Categoría</label><select id="vmov-cat" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:12px;background:var(--surface);color:var(--ink);outline:none"><option value="mat">Materiales</option><option value="mo">Mano de obra</option><option value="flete">Flete</option><option value="otros">Otros</option></select></div>
+        <div class="field"><label>Pagador</label><select id="vmov-payer"></select></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-light" onclick="vmovReset()">← Volver</button>
+        <button class="btn btn-primary" onclick="vmovSave()">Guardar</button>
+      </div>
+    </div>
+    <div id="vmov-error" style="display:none;text-align:center;padding:24px 0">
+      <div style="font-size:36px">😕</div>
+      <div style="margin-top:12px;font-weight:600;font-size:14px;color:var(--ink)" id="vmov-error-msg">No se pudo procesar</div>
+      <div class="modal-actions" style="justify-content:center;margin-top:16px">
+        <button class="btn btn-light" onclick="vmovReset()">Intentar de nuevo</button>
+        <button class="btn btn-light" onclick="closeModal('voice-mov')">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="modal-voice" onclick="overlayClick(event,'voice')">
   <div class="modal" style="max-width:480px">
     <div class="modal-title">Nuevo proyecto por voz</div>
@@ -6332,6 +6373,35 @@ window.setKiriPassword = async function(newPass) {
 
 
 
+// ── HELPERS PARA TAB PROYECTOS ────────────────────────────────────────────────
+function getDueDate(p) {
+  if (!p.confirmedAt) return null;
+  const d = new Date(p.confirmedAt + 'T00:00');
+  if (isNaN(d)) return null;
+  return d;
+}
+
+function daysUntilDue(p) {
+  const due = getDueDate(p);
+  if (!due) return Infinity;
+  return Math.ceil((due - new Date()) / 86400000);
+}
+
+function formatDateShort(d) {
+  if (!d) return '';
+  return d.toLocaleDateString('es-AR', { day: '2-digit', month: 'short' });
+}
+
+function toggleSplitSection(sec) {
+  window._splitCollapsed = window._splitCollapsed || {};
+  const wrap = document.getElementById('msplit-' + sec);
+  const btn  = document.getElementById('btn-collapse-' + sec);
+  if (!wrap) return;
+  const collapsed = wrap.classList.toggle('sec-collapsed');
+  window._splitCollapsed[sec] = collapsed;
+  if (btn) btn.textContent = collapsed ? '▸' : '▾';
+}
+
 // ── EXPORT MENU (desktop) ─────────────────────────────────────────────────────
 function toggleExportMenu() {
   const dd = document.getElementById('export-dropdown');
@@ -6748,12 +6818,177 @@ function projFabSelect(type) {
   });
 }
 
+// ── VOZ PARA MOVIMIENTOS ──────────────────────────────────────────────────────
+let _apiKey = sessionStorage.getItem('kiri_apikey') || '';
+let _vmovType = null; // 'pago' | 'exp'
+let _vmovRecognition = null;
+let _vmovTranscript  = '';
+
+function openVoiceMov(type) {
+  _vmovType = type;
+  const p = S.projects[S.active];
+  if (!p) return;
+  const title = document.getElementById('vmov-title');
+  const ex    = document.getElementById('vmov-example');
+  if (title) title.textContent = type === 'pago' ? 'Ingreso por voz' : 'Gasto por voz';
+  if (ex) ex.textContent = type === 'pago'
+    ? '"Cobro de 500 mil, anticipo del cliente"'
+    : '"Gasto de 80 mil en materiales, lo pagó Agustín"';
+  // Campos pago vs gasto
+  const pagoF = document.getElementById('vmov-pago-fields');
+  const expF  = document.getElementById('vmov-exp-fields');
+  if (pagoF) pagoF.style.display = type === 'pago' ? '' : 'none';
+  if (expF)  expF.style.display  = type === 'exp'  ? '' : 'none';
+  // Poblar selects
+  const cobSel  = document.getElementById('vmov-cobrador');
+  const paySel  = document.getElementById('vmov-payer');
+  const opts = p.people.map(per => '<option value="' + esc(per) + '">' + esc(per) + '</option>').join('');
+  if (cobSel) cobSel.innerHTML = opts;
+  if (paySel) paySel.innerHTML = opts;
+  // Fecha hoy
+  const dateEl = document.getElementById('vmov-date');
+  if (dateEl) dateEl.value = new Date().toISOString().slice(0,10);
+  vmovReset();
+  document.getElementById('modal-voice-mov').classList.add('open');
+}
+
+function vmovReset() {
+  ['vmov-idle','vmov-result','vmov-error'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.style.display = '';
+  });
+  document.getElementById('vmov-idle').style.display = '';
+  document.getElementById('vmov-recording').style.display = 'none';
+  document.getElementById('vmov-loading').style.display = 'none';
+  document.getElementById('vmov-result').style.display = 'none';
+  document.getElementById('vmov-error').style.display = 'none';
+  _vmovTranscript = '';
+}
+
+function vmovStart() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    showMobileToast('Tu navegador no soporta reconocimiento de voz');
+    return;
+  }
+  document.getElementById('vmov-idle').style.display = 'none';
+  document.getElementById('vmov-recording').style.display = '';
+  const liveEl = document.getElementById('vmov-live-text');
+  if (liveEl) liveEl.innerHTML = '<span style="color:var(--muted)">Escuchando...</span>';
+
+  _vmovRecognition = new SpeechRecognition();
+  _vmovRecognition.lang = 'es-AR';
+  _vmovRecognition.continuous = true;
+  _vmovRecognition.interimResults = true;
+  _vmovTranscript = '';
+
+  _vmovRecognition.onresult = e => {
+    let interim = '', final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    if (final) _vmovTranscript += final;
+    if (liveEl) liveEl.textContent = _vmovTranscript + interim;
+  };
+  _vmovRecognition.onerror = err => {
+    console.warn('vmov speech error:', err.error);
+    if (err.error !== 'no-speech') vmovCancel();
+  };
+  _vmovRecognition.start();
+}
+
+function vmovStop() {
+  if (_vmovRecognition) { _vmovRecognition.stop(); _vmovRecognition = null; }
+  document.getElementById('vmov-recording').style.display = 'none';
+  if (!_vmovTranscript.trim()) {
+    vmovReset();
+    return;
+  }
+  vmovProcess(_vmovTranscript.trim());
+}
+
+function vmovCancel() {
+  if (_vmovRecognition) { _vmovRecognition.stop(); _vmovRecognition = null; }
+  vmovReset();
+}
+
+async function vmovProcess(transcript) {
+  document.getElementById('vmov-loading').style.display = '';
+  const apiKey = _apiKey || sessionStorage.getItem('kiri_apikey') || '';
+  if (!apiKey) {
+    document.getElementById('vmov-loading').style.display = 'none';
+    // Sin IA: poner transcripción en descripción y dejar que el usuario complete
+    vmovShowResult(transcript, null);
+    return;
+  }
+  try {
+    const type = _vmovType === 'pago' ? 'cobro/ingreso' : 'gasto';
+    const prompt = 'Extraé los datos de este dictado de un ' + type + ' de una empresa de muebles.\n' +
+      'Respondé SOLO con JSON, sin explicación ni backticks:\n' +
+      '{"amount": NUMBER_OR_NULL, "desc": "STRING", "cat": "mat|mo|flete|otros"}\n' +
+      'Dictado: "' + transcript + '"';
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 200, messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await resp.json();
+    const text = (data.content?.[0]?.text || '').replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(text);
+    document.getElementById('vmov-loading').style.display = 'none';
+    vmovShowResult(transcript, parsed);
+  } catch(e) {
+    document.getElementById('vmov-loading').style.display = 'none';
+    vmovShowResult(transcript, null);
+  }
+}
+
+function vmovShowResult(transcript, parsed) {
+  document.getElementById('vmov-result').style.display = '';
+  const trEl = document.getElementById('vmov-transcript');
+  if (trEl) trEl.textContent = '"' + transcript + '"';
+  const amtEl = document.getElementById('vmov-amount');
+  const descEl = document.getElementById('vmov-desc');
+  const catEl  = document.getElementById('vmov-cat');
+  if (amtEl && parsed && parsed.amount)  amtEl.value  = parsed.amount;
+  if (descEl && parsed && parsed.desc)   descEl.value = parsed.desc;
+  if (catEl  && parsed && parsed.cat)    catEl.value  = parsed.cat;
+}
+
+function vmovSave() {
+  const amount = parseFloat(document.getElementById('vmov-amount').value) || 0;
+  if (amount <= 0) {
+    document.getElementById('err-vmov-amount').style.display = 'block';
+    return;
+  }
+  document.getElementById('err-vmov-amount').style.display = 'none';
+  const desc = document.getElementById('vmov-desc').value.trim() || (_vmovType === 'pago' ? 'Cobro' : 'Gasto');
+  const p = S.projects[S.active];
+  if (!p) return;
+
+  if (_vmovType === 'pago') {
+    const cobrador = document.getElementById('vmov-cobrador').value;
+    const date     = document.getElementById('vmov-date').value;
+    p.pagos.push({ amount, desc, date, cobrador });
+  } else {
+    const cat   = document.getElementById('vmov-cat').value || 'otros';
+    const payer = document.getElementById('vmov-payer').value;
+    p.expenses.push({ desc, amount, cat, directo: false, payer });
+  }
+  saveState();
+  if (_jsonbinKey) { if (_cloudSaveTimer) { clearTimeout(_cloudSaveTimer); _cloudSaveTimer = null; } cloudSave(JSON.parse(JSON.stringify(S))); }
+  closeModal('voice-mov');
+  render();
+  showMobileToast(_vmovType === 'pago' ? 'Ingreso guardado' : 'Gasto guardado');
+}
+
 function projFabMethod(method) {
   closeProjFab();
   if (method === 'manual') {
     openModal(_projFabType || 'pago');
   } else {
-    openModal('voice'); // voz — pendiente implementación específica
+    // Voz: abrir modal de voz para movimientos con el tipo correcto
+    openVoiceMov(_projFabType || 'pago');
   }
 }
 
