@@ -6127,7 +6127,7 @@ body{font-family:'DM Sans',sans-serif;color:#1a1512;background:#fff;font-size:14
 .hb-v.p{color:#3a5a3a}.hb-v.r{color:#7a2f2f}.hb-v.g{color:#3a5a3a}
 .prog-wrap{padding:14px 26px;background:#f9f5f0;border-top:1px solid #ede8dc}
 .prog-bar{height:8px;background:#e0dbd4;border-radius:4px;overflow:hidden;margin:6px 0}
-.prog-fill{height:100%;border-radius:4px;background:${saldado?'#5a6e5a':'#7a2f2f'}}
+.prog-fill{height:100%;border-radius:4px;background:#7a2f2f}
 .prog-ls{display:flex;justify-content:space-between;font-size:11px;color:#bbb}
 .sec{font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#7a2f2f;border-bottom:1px solid #e8cece;padding-bottom:6px;margin:28px 0 14px}
 table{width:100%;border-collapse:collapse;font-size:13px}
@@ -6172,7 +6172,7 @@ tfoot td{background:#f9f5f0;font-weight:700;border-top:1px solid #ddd;border-bot
   </div>
   ${p.budget>0?`<div class="prog-wrap">
     <div class="prog-ls"><span>${pct.toFixed(0)}% abonado</span><span>$${fmtN(p.budget)}</span></div>
-    <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+    <div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:${saldado?'#5a6e5a':'#7a2f2f'}"></div></div>
   </div>`:''}
 </div>
 
