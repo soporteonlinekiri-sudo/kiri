@@ -1446,11 +1446,52 @@ header {
     padding: 0 8px;
     transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease;
   }
-  #mobile-nav.nav-hidden {
+  /* En proyecto: nav se oculta, aparece mini-barra de proyecto */
+  body.in-project #mobile-nav {
     transform: translateX(-50%) translateY(110%);
     opacity: 0;
     pointer-events: none;
   }
+  /* Barra mini de proyecto (home + fab) */
+  #proj-minibar {
+    display: none;
+    position: fixed;
+    bottom: 16px;
+    left: 50%; transform: translateX(-50%);
+    z-index: 1100;
+    background: var(--ink);
+    border-radius: 50px;
+    padding: 0 6px;
+    height: 52px;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+  }
+  body.in-project #proj-minibar { display: flex; }
+  .proj-minibar-btn {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: none; border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: rgba(255,255,255,0.6);
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s, color 0.15s;
+  }
+  .proj-minibar-btn:active { background: rgba(255,255,255,0.1); }
+  .proj-minibar-btn svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 1.8; }
+  .proj-minibar-sep { width: 1px; height: 24px; background: rgba(255,255,255,0.12); flex-shrink: 0; }
+  /* FAB del proyecto — botón + grande rojo */
+  #proj-fab {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--kiri); border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; box-shadow: 0 2px 12px rgba(122,47,47,0.6);
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), background 0.15s;
+    flex-shrink: 0;
+  }
+  #proj-fab:active { transform: scale(0.88); }
+  #proj-fab svg { width: 18px; height: 18px; stroke: #fff; stroke-width: 2.5; }
+  body.proj-fab-open #proj-fab { transform: rotate(45deg); background: #333; }
     box-shadow: 0 8px 32px rgba(0,0,0,0.28), 0 2px 8px rgba(0,0,0,0.18);
     gap: 4px;
   }
@@ -1887,6 +1928,10 @@ header {
     display: block; background: rgba(0,0,0,0.45); pointer-events: all;
   }
 
+  /* Ocultar FAB principal dentro de proyecto */
+  body.in-project #fab-wrap { display: none !important; }
+  body.in-project .fab-option { display: none !important; }
+
   /* Ancla del FAB — centrada sobre el botón inicio */
   #fab-wrap {
     display: block; position: fixed;
@@ -2246,6 +2291,48 @@ header {
     <svg id="fab-icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none">
       <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
     </svg>
+  </button>
+</div>
+
+<!-- MINI BARRA DE PROYECTO (mobile, solo dentro de un proyecto) -->
+<div id="proj-minibar">
+  <!-- Opciones FAB proyecto nivel 1: Ingreso / Gasto -->
+  <div id="proj-fab-ingreso" class="proj-fab-opt" onclick="projFabSelect('pago')" style="display:none;position:fixed;bottom:78px;left:50%;transform:translateX(calc(-50% - 60px));flex-direction:column;align-items:center;gap:6px;z-index:1200;opacity:0;pointer-events:none;transition:opacity 0.2s,transform 0.3s cubic-bezier(0.34,1.4,0.64,1)">
+    <div style="width:50px;height:50px;border-radius:50%;background:#2a6a2a;border:2px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,0.3)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+    </div>
+    <span style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,0.8);background:rgba(0,0,0,0.45);padding:3px 8px;border-radius:10px;white-space:nowrap">Ingreso</span>
+  </div>
+  <div id="proj-fab-gasto" class="proj-fab-opt" onclick="projFabSelect('exp')" style="display:none;position:fixed;bottom:78px;left:50%;transform:translateX(calc(-50% + 60px));flex-direction:column;align-items:center;gap:6px;z-index:1200;opacity:0;pointer-events:none;transition:opacity 0.2s,transform 0.3s cubic-bezier(0.34,1.4,0.64,1)">
+    <div style="width:50px;height:50px;border-radius:50%;background:var(--kiri);border:2px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,0.3)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+    </div>
+    <span style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,0.8);background:rgba(0,0,0,0.45);padding:3px 8px;border-radius:10px;white-space:nowrap">Gasto</span>
+  </div>
+  <!-- Nivel 2: Manual / Voz -->
+  <div id="proj-fab-manual" class="proj-fab-opt2" onclick="projFabMethod('manual')" style="display:none;position:fixed;bottom:78px;left:50%;transform:translateX(calc(-50% - 90px));flex-direction:column;align-items:center;gap:6px;z-index:1200;opacity:0;pointer-events:none;transition:opacity 0.2s,transform 0.3s cubic-bezier(0.34,1.4,0.64,1)">
+    <div style="width:50px;height:50px;border-radius:50%;background:var(--surface);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,0.2)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    </div>
+    <span style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,0.8);background:rgba(0,0,0,0.45);padding:3px 8px;border-radius:10px;white-space:nowrap">Manual</span>
+  </div>
+  <div id="proj-fab-voz" class="proj-fab-opt2" onclick="projFabMethod('voz')" style="display:none;position:fixed;bottom:78px;left:50%;transform:translateX(calc(-50% + 90px));flex-direction:column;align-items:center;gap:6px;z-index:1200;opacity:0;pointer-events:none;transition:opacity 0.2s,transform 0.3s cubic-bezier(0.34,1.4,0.64,1)">
+    <div style="width:50px;height:50px;border-radius:50%;background:var(--surface);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,0.2)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    </div>
+    <span style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,0.8);background:rgba(0,0,0,0.45);padding:3px 8px;border-radius:10px;white-space:nowrap">Por voz</span>
+  </div>
+  <!-- Chip tipo seleccionado -->
+  <div id="proj-fab-chip" style="position:fixed;bottom:132px;left:50%;transform:translateX(-50%);z-index:1201;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:4px 14px;border-radius:20px;opacity:0;pointer-events:none;transition:opacity 0.2s;white-space:nowrap"></div>
+
+  <!-- Botón inicio -->
+  <button class="proj-minibar-btn" onclick="S.active=null;window._mobileTab='home';document.body.classList.remove('in-project','proj-fab-open');render()" title="Inicio">
+    <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+  </button>
+  <div class="proj-minibar-sep"></div>
+  <!-- FAB + -->
+  <button id="proj-fab" onclick="toggleProjFab()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
   </button>
 </div>
 
@@ -4228,6 +4315,8 @@ function initDeck(deckEl, total) {
 
 function renderMobileProject(el) {
   el.classList.add('mobile-proj-active');
+  document.body.classList.add('in-project');
+  closeProjFab();
   const p = S.projects[S.active];
   const totalPagado   = p.pagos.reduce((s,pg)=>s+pg.amount,0);
   const resolved      = resolveExpenses(p);
@@ -4568,43 +4657,13 @@ mprojStyle.textContent = `
 `;
 document.head.appendChild(mprojStyle);
 
-// ── Auto-hide nav en scroll dentro de proyecto ─────────────────────────────
-(function() {
-  let _lastScrollY = 0;
-  let _navHideTimer = null;
-  document.addEventListener('scroll', onMprojScroll, { passive: true, capture: true });
 
-  function onMprojScroll(e) {
-    const target = e.target;
-    // Solo aplica al contenedor de proyecto
-    if (!target || !target.id || target.id !== 'mproj-content') return;
-    const nav = document.getElementById('mobile-nav');
-    if (!nav) return;
-    const scrollY = target.scrollTop;
-    const delta   = scrollY - _lastScrollY;
-    _lastScrollY  = scrollY;
-
-    if (delta > 8) {
-      // Scrolleando hacia abajo → ocultar nav
-      nav.classList.add('nav-hidden');
-      if (_navHideTimer) clearTimeout(_navHideTimer);
-    } else if (delta < -8 || scrollY < 20) {
-      // Scrolleando hacia arriba o cerca del top → mostrar nav
-      nav.classList.remove('nav-hidden');
-      if (_navHideTimer) clearTimeout(_navHideTimer);
-    }
-
-    // Auto-mostrar después de 2.5s de inactividad
-    if (_navHideTimer) clearTimeout(_navHideTimer);
-    _navHideTimer = setTimeout(() => {
-      if (nav) nav.classList.remove('nav-hidden');
-    }, 2500);
-  }
-})();
 
 function renderMain() {
   const el = document.getElementById('main');
   el.classList.remove('mobile-proj-active');
+  document.body.classList.remove('in-project', 'proj-fab-open');
+  closeProjFab();
   // Defensivo: si el índice no existe, limpiar
   if (S.active !== null && !S.projects[S.active]) S.active = null;
 
@@ -8089,6 +8148,87 @@ function isMobile() { return window.innerWidth <= 700; }
 // ── FAB RADIAL 2 NIVELES ─────────────────────────────────────────────────────
 
 let _fabType = null; // 'pres' | 'cot'
+
+// ── FAB DE PROYECTO ────────────────────────────────────────────────────────
+let _projFabType = null; // 'pago' | 'exp'
+
+function toggleProjFab() {
+  if (document.body.classList.contains('proj-fab-open')) {
+    closeProjFab();
+  } else {
+    openProjFabLvl1();
+  }
+}
+
+function openProjFabLvl1() {
+  _projFabType = null;
+  document.body.classList.add('proj-fab-open');
+  // Mostrar overlay
+  let ov = document.getElementById('proj-fab-overlay');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'proj-fab-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1150;';
+    ov.onclick = closeProjFab;
+    document.body.appendChild(ov);
+  }
+  ov.style.display = 'block';
+  // Mostrar lvl1
+  ['proj-fab-ingreso','proj-fab-gasto'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.display = 'flex'; requestAnimationFrame(() => { el.style.opacity = '1'; el.style.pointerEvents = 'all'; }); }
+  });
+  ['proj-fab-manual','proj-fab-voz'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.display = 'none'; el.style.opacity = '0'; el.style.pointerEvents = 'none'; }
+  });
+  document.getElementById('proj-fab-chip').style.opacity = '0';
+}
+
+function projFabSelect(type) {
+  _projFabType = type;
+  // Ocultar lvl1
+  ['proj-fab-ingreso','proj-fab-gasto'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.opacity = '0'; el.style.pointerEvents = 'none'; setTimeout(() => { el.style.display = 'none'; }, 200); }
+  });
+  // Mostrar chip
+  const chip = document.getElementById('proj-fab-chip');
+  if (chip) {
+    chip.textContent  = type === 'pago' ? '↑ Ingreso' : '↓ Gasto';
+    chip.style.background = type === 'pago' ? '#2a6a2a' : 'var(--kiri)';
+    chip.style.color  = '#fff';
+    chip.style.opacity = '1';
+  }
+  // Mostrar lvl2
+  ['proj-fab-manual','proj-fab-voz'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.display = 'flex'; requestAnimationFrame(() => { el.style.opacity = '1'; el.style.pointerEvents = 'all'; }); }
+  });
+}
+
+function projFabMethod(method) {
+  closeProjFab();
+  if (method === 'manual') {
+    openModal(_projFabType || 'pago');
+  } else {
+    openModal('voice'); // voz — pendiente implementación específica
+  }
+}
+
+function closeProjFab() {
+  document.body.classList.remove('proj-fab-open');
+  const ov = document.getElementById('proj-fab-overlay');
+  if (ov) ov.style.display = 'none';
+  ['proj-fab-ingreso','proj-fab-gasto','proj-fab-manual','proj-fab-voz'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.opacity = '0'; el.style.pointerEvents = 'none'; setTimeout(() => { el.style.display = 'none'; }, 200); }
+  });
+  const chip = document.getElementById('proj-fab-chip');
+  if (chip) chip.style.opacity = '0';
+}
+
+// ── FAB DE PROYECTO ────────────────────────────────────────────────────────
 
 function toggleFab() {
   const isOpen = document.body.classList.contains('fab-open');
