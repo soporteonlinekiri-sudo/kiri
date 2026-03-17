@@ -3571,7 +3571,7 @@ function renderChartsHTML(p, resolved, totalAbonado, gastosFondo, gastosPersonal
 
 
 function render() {
-  saveState(); renderSidebar(); renderMain(); updatePDFBtn();
+  saveState(); renderSidebar(); renderMain();
   if (typeof updateMobileNav === 'function' && isMobile()) {
     updateMobileNav(S.active !== null ? 'projects' : (window._mobileTab || 'home'));
     requestAnimationFrame(runPostRenderAnimations);
@@ -6788,18 +6788,17 @@ window.addEventListener('resize', () => {
 })();
 // ── FIN PWA ───────────────────────────────────────────────────────────────────
 
-render();
-updateApiKeyBtn();
+try { render(); } catch(e) { console.error('[kiri] render error:', e); }
 initCloudSync();
 initLogin();
 
-// Ocultar splash screen
+// Ocultar splash screen — siempre, incluso si hubo un error
 requestAnimationFrame(() => {
   setTimeout(() => {
     const splash = document.getElementById('splash-screen');
     if (splash) {
       splash.classList.add('hide');
-      setTimeout(() => splash.remove(), 450);
+      setTimeout(() => { try { splash.remove(); } catch(e){} }, 450);
     }
   }, 600);
 });
