@@ -3169,6 +3169,14 @@ const S_DEFAULT = {
   selPeople: []
 };
 
+// ── Formateo de números ───────────────────────────────────────────────────────
+function fmt(n) {
+  return Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 // ── CONFIRM DIALOG PERSONALIZADO ─────────────────────────────────────────────
 let _confirmResolve = null;
 let _confirmReject  = null;
@@ -6323,6 +6331,355 @@ window.setKiriPassword = async function(newPass) {
 };
 
 
+
+// ── EXPORT MENU (desktop) ─────────────────────────────────────────────────────
+function toggleExportMenu() {
+  const dd = document.getElementById('export-dropdown');
+  if (dd) dd.classList.toggle('open');
+  document.addEventListener('click', function handler(e) {
+    const wrap = document.querySelector('.export-wrap');
+    if (wrap && !wrap.contains(e.target)) {
+      if (dd) dd.classList.remove('open');
+      document.removeEventListener('click', handler);
+    }
+  });
+}
+function closeExportMenu() {
+  const dd = document.getElementById('export-dropdown');
+  if (dd) dd.classList.remove('open');
+}
+
+// ── EXPORT / IMPORT DATA ──────────────────────────────────────────────────────
+function exportarDatos() {
+  const blob = new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'kiri-backup-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function importarDatos(input) {
+  const file = input && input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async e => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      if (!parsed.projects) throw new Error('Formato inválido');
+      try { await kiriConfirm('Importar ' + parsed.projects.length + ' proyectos', 'Esto va a reemplazar los datos actuales.', 'Importar'); } catch { return; }
+      Object.assign(S, parsed);
+      S.trash  = S.trash  || [];
+      S.quotes = S.quotes || [];
+      saveState();
+      if (_jsonbinKey) { if (_cloudSaveTimer) { clearTimeout(_cloudSaveTimer); _cloudSaveTimer = null; } cloudSave(JSON.parse(JSON.stringify(S))); }
+      render();
+      showMobileToast('Datos importados');
+    } catch(err) { alert('Error al importar: ' + err.message); }
+  };
+  reader.readAsText(file);
+}
+
+async function resetApp() {
+  try { await kiriConfirm('Borrar todo', '¿Borrar todos los proyectos y datos? Esta acción no se puede deshacer.', 'Borrar todo'); } catch { return; }
+  localStorage.removeItem('kiri_state');
+  Object.assign(S, JSON.parse(JSON.stringify(S_DEFAULT)));
+  S.trash = []; S.quotes = []; S.selPeople = [];
+  saveState();
+  if (_jsonbinKey) { if (_cloudSaveTimer) { clearTimeout(_cloudSaveTimer); _cloudSaveTimer = null; } cloudSave(JSON.parse(JSON.stringify(S))); }
+  render();
+}
+
+// ── API KEY / CONFIG ──────────────────────────────────────────────────────────
+function saveApiKey() {
+  const jKey = document.getElementById('jsonbin-input').value.trim();
+  const aKey = document.getElementById('apikey-input').value.trim();
+  if (jKey) {
+    _jsonbinKey = jKey;
+    localStorage.setItem('kiri_jsonbin_key', jKey);
+  }
+  if (aKey) {
+    _apiKey = aKey;
+    sessionStorage.setItem('kiri_apikey', aKey);
+  }
+  if (jKey) {
+    document.getElementById('jsonbin-status').innerHTML = '<span style="color:var(--sage)">✓ JSONBin configurado — sincronizando…</span>';
+    _jsonbinBin = '';
+    localStorage.removeItem('kiri_jsonbin_bin');
+    initCloudSync();
+  }
+  closeModal('apikey');
+  showMobileToast('Configuración guardada');
+}
+
+function forceCloudUpload() {
+  if (!_jsonbinKey) { showMobileToast('Configurá JSONBin primero'); return; }
+  if (_cloudSaveTimer) { clearTimeout(_cloudSaveTimer); _cloudSaveTimer = null; }
+  saveState();
+  cloudSave(JSON.parse(JSON.stringify(S)));
+  showMobileToast('Subiendo a la nube…');
+  closeModal('apikey');
+}
+
+// ── COTIZACIONES ──────────────────────────────────────────────────────────────
+let _editingQuoteIdx = null;
+let _quoteExtras     = [];
+
+function openModal_quote() {
+  _editingQuoteIdx = null;
+  _quoteExtras = [];
+  const t = document.getElementById('quote-modal-title');
+  if (t) t.textContent = 'Nueva cotización';
+  const b = document.getElementById('q-save-btn');
+  if (b) b.textContent = 'Guardar';
+  ['q-client','q-phone','q-email','q-address','q-desc','q-mo','q-mat','q-notes','q-delivery'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  const val = document.getElementById('q-validity');
+  if (val) val.value = '30';
+  renderQuoteExtras();
+  updateQuotePreview();
+}
+
+function addQuoteExtra() {
+  _quoteExtras.push({ nombre: '', monto: 0 });
+  renderQuoteExtras();
+}
+
+function removeQuoteExtra(i) {
+  _quoteExtras.splice(i, 1);
+  renderQuoteExtras();
+  updateQuotePreview();
+}
+
+function renderQuoteExtras() {
+  const el = document.getElementById('q-extras-list');
+  if (!el) return;
+  el.innerHTML = _quoteExtras.map((ex, i) =>
+    '<div class="quote-extra-row">' +
+      '<input type="text" placeholder="Nombre (ej: Flete)" value="' + esc(ex.nombre||'') + '" ' +
+        'oninput="_quoteExtras[' + i + '].nombre=this.value" ' +
+        'style="flex:2;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:7px 10px;font-family:inherit;font-size:12px;color:var(--ink);outline:none">' +
+      '<input type="number" placeholder="$" value="' + (ex.monto||'') + '" min="0" step="0.01" ' +
+        'oninput="_quoteExtras[' + i + '].monto=parseFloat(this.value)||0;updateQuotePreview()" ' +
+        'style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:7px 10px;font-family:\'DM Mono\',monospace;font-size:12px;color:var(--ink);outline:none">' +
+      '<button onclick="removeQuoteExtra(' + i + ')" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:0 4px;line-height:1">✕</button>' +
+    '</div>'
+  ).join('');
+}
+
+function updateQuotePreview() {
+  const mo  = parseFloat(document.getElementById('q-mo')  && document.getElementById('q-mo').value)  || 0;
+  const mat = parseFloat(document.getElementById('q-mat') && document.getElementById('q-mat').value) || 0;
+  const extrasSum = _quoteExtras.reduce((s,e)=>s+(e.monto||0), 0);
+  const total = mo + mat + extrasSum;
+  const el = document.getElementById('q-total-preview');
+  if (el) el.textContent = '$' + fmt(total);
+}
+
+function saveQuote() {
+  const client = (document.getElementById('q-client').value||'').trim();
+  if (!client) {
+    const err = document.getElementById('err-qclient');
+    if (err) err.style.display = 'block';
+    return;
+  }
+  const errEl = document.getElementById('err-qclient');
+  if (errEl) errEl.style.display = 'none';
+
+  const q = {
+    id:       _editingQuoteIdx !== null ? S.quotes[_editingQuoteIdx].id : Date.now(),
+    client,
+    phone:    (document.getElementById('q-phone')   && document.getElementById('q-phone').value)   || '',
+    email:    (document.getElementById('q-email')   && document.getElementById('q-email').value)   || '',
+    address:  (document.getElementById('q-address') && document.getElementById('q-address').value) || '',
+    desc:     (document.getElementById('q-desc')    && document.getElementById('q-desc').value)    || '',
+    mo:       parseFloat(document.getElementById('q-mo')  && document.getElementById('q-mo').value)  || 0,
+    mat:      parseFloat(document.getElementById('q-mat') && document.getElementById('q-mat').value) || 0,
+    extras:   _quoteExtras.filter(e=>e.nombre||e.monto>0).map(e=>({nombre:e.nombre,monto:e.monto||0})),
+    notes:    (document.getElementById('q-notes')    && document.getElementById('q-notes').value)    || '',
+    delivery: (document.getElementById('q-delivery') && document.getElementById('q-delivery').value) || '',
+    validity: parseInt((document.getElementById('q-validity') && document.getElementById('q-validity').value)||'30'),
+    createdAt: _editingQuoteIdx !== null ? S.quotes[_editingQuoteIdx].createdAt : new Date().toISOString().slice(0,10)
+  };
+
+  if (_editingQuoteIdx !== null) {
+    S.quotes[_editingQuoteIdx] = q;
+  } else {
+    S.quotes = S.quotes || [];
+    S.quotes.unshift(q);
+  }
+  saveState();
+  if (_jsonbinKey) { if (_cloudSaveTimer) { clearTimeout(_cloudSaveTimer); _cloudSaveTimer = null; } cloudSave(JSON.parse(JSON.stringify(S))); }
+  closeModal('quote');
+  render();
+  showMobileToast(_editingQuoteIdx !== null ? 'Cotización actualizada' : 'Cotización guardada');
+}
+
+function openQuoteDetail(qi) {
+  const q = S.quotes[qi];
+  if (!q) return;
+  const total = (q.mo||0) + (q.mat||0) + (q.extras||[]).reduce((s,e)=>s+(e.monto||0),0);
+
+  const extrasRows = (q.extras||[]).length
+    ? (q.extras||[]).map(e =>
+        '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">' +
+          '<span style="font-size:12px;color:var(--muted)">' + esc(e.nombre) + '</span>' +
+          '<span style="font-family:\'DM Mono\',monospace;font-size:12px">$' + fmt(e.monto) + '</span>' +
+        '</div>'
+      ).join('')
+    : '';
+
+  document.getElementById('quote-detail-body').innerHTML =
+    '<div style="padding:20px 18px 4px;display:flex;align-items:flex-start;justify-content:space-between">' +
+      '<div>' +
+        '<div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Cotización</div>' +
+        '<div style="font-size:18px;font-weight:800;text-transform:uppercase;color:var(--ink)">' + esc(q.client||'—') + '</div>' +
+        (q.desc ? '<div style="font-size:11px;color:var(--muted);margin-top:2px">' + esc(q.desc) + '</div>' : '') +
+        (q.phone ? '<div style="font-size:11px;color:var(--muted);margin-top:4px">📞 ' + esc(q.phone) + '</div>' : '') +
+      '</div>' +
+      '<button onclick="closeModal(\'quote-detail\')" style="background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;padding:0 4px;line-height:1">✕</button>' +
+    '</div>' +
+    '<div class="modal-body" style="padding:12px 18px 8px">' +
+      (q.mo>0 ? '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)"><span style="font-size:12px;color:var(--muted)">Mano de obra</span><span style="font-family:\'DM Mono\',monospace;font-size:12px">$' + fmt(q.mo) + '</span></div>' : '') +
+      (q.mat>0 ? '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)"><span style="font-size:12px;color:var(--muted)">Materiales</span><span style="font-family:\'DM Mono\',monospace;font-size:12px">$' + fmt(q.mat) + '</span></div>' : '') +
+      extrasRows +
+      '<div style="display:flex;justify-content:space-between;padding:10px 0;margin-top:4px">' +
+        '<span style="font-size:13px;font-weight:700;color:var(--ink)">Total</span>' +
+        '<span style="font-family:\'DM Mono\',monospace;font-size:18px;font-weight:700;color:var(--kiri)">$' + fmt(total) + '</span>' +
+      '</div>' +
+      (q.notes ? '<div style="background:var(--bg);border-radius:6px;padding:10px 12px;font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5">' + esc(q.notes) + '</div>' : '') +
+    '</div>' +
+    '<div style="padding:0 18px 20px;display:flex;flex-direction:column;gap:8px">' +
+      '<button onclick="exportQuotePDF(' + qi + ')" style="width:100%;padding:12px;background:var(--kiri);border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:700;font-family:\'DM Sans\',sans-serif;cursor:pointer">↑ Compartir cotización PDF</button>' +
+      '<button onclick="editQuote(' + qi + ')" style="width:100%;padding:12px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--ink);font-size:12px;font-weight:600;font-family:\'DM Sans\',sans-serif;cursor:pointer">Editar</button>' +
+      '<button onclick="deleteQuote(' + qi + ')" style="width:100%;padding:12px;background:none;border:1px solid #d9a0a0;border-radius:6px;color:var(--kiri);font-size:12px;font-weight:600;font-family:\'DM Sans\',sans-serif;cursor:pointer">Eliminar cotización</button>' +
+    '</div>';
+
+  document.getElementById('modal-quote-detail').classList.add('open');
+}
+
+function editQuote(qi) {
+  const q = S.quotes[qi];
+  if (!q) return;
+  closeModal('quote-detail');
+  _editingQuoteIdx = qi;
+  _quoteExtras = (q.extras||[]).map(e=>({...e}));
+  const t = document.getElementById('quote-modal-title');
+  if (t) t.textContent = 'Editar cotización';
+  const b = document.getElementById('q-save-btn');
+  if (b) b.textContent = 'Actualizar';
+  const fields = { 'q-client':q.client, 'q-phone':q.phone||'', 'q-email':q.email||'',
+    'q-address':q.address||'', 'q-desc':q.desc||'', 'q-mo':q.mo||'', 'q-mat':q.mat||'',
+    'q-notes':q.notes||'', 'q-delivery':q.delivery||'', 'q-validity':q.validity||30 };
+  Object.entries(fields).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.value=val; });
+  renderQuoteExtras();
+  updateQuotePreview();
+  document.getElementById('modal-quote').classList.add('open');
+}
+
+async function deleteQuote(qi) {
+  try { await kiriConfirm('Eliminar cotización', '¿Seguro que querés eliminarla?', 'Eliminar'); } catch { return; }
+  S.quotes.splice(qi, 1);
+  saveState();
+  if (_jsonbinKey) { if (_cloudSaveTimer) { clearTimeout(_cloudSaveTimer); _cloudSaveTimer = null; } await cloudSave(JSON.parse(JSON.stringify(S))); }
+  closeModal('quote-detail');
+  render();
+  showMobileToast('Cotización eliminada');
+}
+
+async function deleteQuoteDirect(qi) {
+  const q = S.quotes[qi];
+  if (!q) return;
+  try { await kiriConfirm('Eliminar cotización de "' + q.client + '"', 'Esta acción no se puede deshacer.', 'Eliminar'); } catch { return; }
+  S.quotes.splice(qi, 1);
+  saveState();
+  if (_jsonbinKey) { if (_cloudSaveTimer) { clearTimeout(_cloudSaveTimer); _cloudSaveTimer = null; } await cloudSave(JSON.parse(JSON.stringify(S))); }
+  render();
+  showMobileToast('Cotización eliminada');
+}
+
+async function exportQuotePDF(qi) {
+  const q = S.quotes[qi];
+  if (!q) return;
+  const total    = (q.mo||0) + (q.mat||0) + (q.extras||[]).reduce((s,e)=>s+(e.monto||0),0);
+  const anticipo = Math.round(total * 0.5);
+  const saldo    = total - anticipo;
+  const nroCot   = String(qi+1).padStart(4,'0');
+  const validity = q.validity || 30;
+  const fmtN = n => Number(n).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const fechaEmision = new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
+  const vencDate = new Date(); vencDate.setDate(vencDate.getDate()+validity);
+  const fechaVenc = vencDate.toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
+  const precioBase = (q.mo||0) + (q.mat||0);
+  const baseRow = precioBase > 0
+    ? '<tr><td class="td-desc">' + esc(q.desc||'Proyecto de muebles a medida') + '</td><td class="td-unit">1</td><td class="td-total">$' + fmtN(precioBase) + '</td></tr>'
+    : '';
+  const extrasRows = (q.extras||[]).filter(e=>e.nombre&&e.monto>0).map(e=>
+    '<tr><td class="td-desc">' + esc(e.nombre) + '</td><td class="td-unit">1</td><td class="td-total">$' + fmtN(e.monto) + '</td></tr>'
+  ).join('');
+
+  const html = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">' +
+  '<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">' +
+  '<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:\'DM Sans\',Arial,sans-serif;color:#1a1512;background:#fff;padding:40px 36px;max-width:700px;margin:0 auto;font-size:13px}' +
+  '@media print{*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}' +
+  '.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px}' +
+  '.brand-name{font-size:30px;font-weight:800;letter-spacing:8px;color:#7a2f2f;line-height:1}' +
+  '.brand-tag{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#b0a8a0;margin-top:6px}' +
+  '.doc-meta{text-align:right}.doc-type{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#b0a8a0}' +
+  '.doc-num{font-size:22px;font-weight:800;color:#1a1512;margin-top:2px;letter-spacing:-0.5px}' +
+  '.doc-date{font-size:11px;color:#b0a8a0;margin-top:3px}.doc-venc{font-size:11px;color:#c8773a;margin-top:1px;font-weight:600}' +
+  '.divider{height:3px;background:#7a2f2f;margin:0 0 28px;border:none}' +
+  '.parties{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px}' +
+  '.party-label{font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#b0a8a0;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid #ede8dc}' +
+  '.party-name{font-size:15px;font-weight:700;color:#1a1512;margin-bottom:4px;text-transform:uppercase}' +
+  '.party-detail{font-size:11px;color:#7a7270;line-height:1.7}' +
+  '.items-table{width:100%;border-collapse:collapse;margin-bottom:20px}' +
+  '.items-table thead tr{background:#1a1512}.items-table thead th{padding:11px 14px;text-align:left;font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:#fff}' +
+  '.items-table thead th.th-r{text-align:right}.items-table tbody tr{border-bottom:1px solid #f0ece4}' +
+  '.items-table tbody tr:nth-child(even){background:#faf8f5}' +
+  '.td-desc{padding:13px 14px;font-size:13px;color:#1a1512;font-weight:500}.td-unit{padding:13px 8px;font-size:12px;color:#b0a8a0;text-align:center;width:40px}' +
+  '.td-total{padding:13px 14px;font-size:14px;font-weight:700;text-align:right;font-family:\'DM Mono\',monospace;color:#1a1512;white-space:nowrap}' +
+  '.total-box{display:flex;justify-content:flex-end;margin-bottom:28px}.total-inner{width:280px}' +
+  '.total-row{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;font-size:12px;color:#7a7270}' +
+  '.total-row.final{border-top:2px solid #1a1512;margin-top:8px;padding-top:12px}' +
+  '.total-row.final .t-label{font-size:16px;font-weight:800;color:#1a1512}.total-row.final .t-val{font-size:24px;font-weight:800;color:#7a2f2f;font-family:\'DM Mono\',monospace;letter-spacing:-1px}' +
+  '.anticipo-box{background:#7a2f2f;border-radius:8px;padding:18px 22px;margin-bottom:28px;display:flex;justify-content:space-between;align-items:center}' +
+  '.ant-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.55);margin-bottom:4px}' +
+  '.ant-val{font-size:22px;font-weight:800;color:#fff;font-family:\'DM Mono\',monospace;letter-spacing:-0.5px}.ant-note{font-size:11px;color:rgba(255,255,255,0.45);margin-top:3px}' +
+  '.conds{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:28px}' +
+  '.cond{background:#f5f0e8;border-radius:6px;padding:13px 14px}.cond-label{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#b0a8a0;margin-bottom:5px}' +
+  '.cond-val{font-size:13px;font-weight:700;color:#1a1512}' +
+  '.notes-box{background:#fff8f0;border:1px solid #e8ddd4;border-radius:6px;padding:14px 16px;margin-bottom:28px}' +
+  '.notes-label{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#b0a8a0;margin-bottom:8px}' +
+  '.notes-text{font-size:12px;color:#5a4a3a;line-height:1.7}' +
+  '.footer{border-top:1px solid #ede8dc;padding-top:16px;display:flex;justify-content:space-between;align-items:flex-end}' +
+  '.footer-brand{font-size:10px;color:#b0a8a0;line-height:1.7}.sign-line{width:150px;border-top:1px solid #c0b8b0;margin-bottom:6px;margin-left:auto}.sign-label{font-size:9px;color:#b0a8a0;letter-spacing:1px;text-align:right}' +
+  '</style></head><body>' +
+  '<div class="header"><div><div class="brand-name">KIRI</div><div class="brand-tag">arquitectura mobiliaria · muebles a medida</div></div>' +
+  '<div class="doc-meta"><div class="doc-type">Cotización</div><div class="doc-num">COT-' + nroCot + '</div><div class="doc-date">Emisión: ' + fechaEmision + '</div><div class="doc-venc">Válida hasta: ' + fechaVenc + '</div></div></div>' +
+  '<hr class="divider">' +
+  '<div class="parties"><div><div class="party-label">Para</div><div class="party-name">' + esc(q.client||'—') + '</div>' +
+  '<div class="party-detail">' + (q.address?esc(q.address)+'<br>':'') + (q.phone?'Tel: '+esc(q.phone)+'<br>':'') + (q.email?esc(q.email):'') + '</div></div>' +
+  '<div><div class="party-label">De</div><div class="party-name">Kiri</div><div class="party-detail">Arquitectura Mobiliaria<br>Muebles a medida<br>Córdoba, Argentina</div></div></div>' +
+  '<table class="items-table"><thead><tr><th>Descripción del trabajo</th><th style="text-align:center;width:40px">Und.</th><th class="th-r">Importe</th></tr></thead>' +
+  '<tbody>' + baseRow + extrasRows + '</tbody></table>' +
+  '<div class="total-box"><div class="total-inner"><div class="total-row final"><span class="t-label">TOTAL</span><span class="t-val">$' + fmtN(total) + '</span></div></div></div>' +
+  '<div class="anticipo-box"><div><div class="ant-label">Anticipo para inicio de obra</div><div class="ant-val">$' + fmtN(anticipo) + '</div><div class="ant-note">El 50% del proyecto es requisito para comenzar los trabajos</div></div>' +
+  '<div style="text-align:right"><div class="ant-label">Saldo contra entrega</div><div class="ant-val">$' + fmtN(saldo) + '</div></div></div>' +
+  '<div class="conds"><div class="cond"><div class="cond-label">Validez</div><div class="cond-val">' + validity + ' días corridos</div></div>' +
+  (q.delivery ? '<div class="cond"><div class="cond-label">Plazo de entrega</div><div class="cond-val">' + esc(q.delivery) + '</div></div>' : '<div></div>') +
+  '<div class="cond"><div class="cond-label">Inicio de obra</div><div class="cond-val">Con el 50% abonado</div></div></div>' +
+  (q.notes ? '<div class="notes-box"><div class="notes-label">Observaciones y condiciones</div><div class="notes-text">' + esc(q.notes).replace(/\n/g,'<br>') + '</div></div>' : '') +
+  '<div class="footer"><div class="footer-brand">Kiri — arquitectura mobiliaria<br>Esta cotización no tiene valor fiscal</div>' +
+  '<div><div class="sign-line"></div><div class="sign-label">Firma y aclaración · Kiri</div></div></div>' +
+  '</body></html>';
+
+  closeModal('quote-detail');
+  const slug = (q.client||'cliente').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+  await mobileShareOrPrint(html, 'cotizacion-kiri-' + nroCot + '-' + slug + '.pdf');
+}
 
 // ── MOBILE NAV ────────────────────────────────────────────────────────────────
 const personColors = ['#7a2f2f','#c8773a','#5a6e5a','#4a6a9a','#8a5a9a','#4a8a7a'];
