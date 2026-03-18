@@ -6882,199 +6882,175 @@ async function deleteQuoteDirect(qi) {
 
 // ── Generar PDF de una etapa individual ──────────────────────────────────────
 function buildEtapaPDF(q, etapa, etapaIdx, nroCot, fmtN, today, validity, fechaVenc) {
-  const isAll   = etapa === null;
-  const etapas  = q.etapas || [];
-  const etapasTotal = etapas.reduce((s,e)=>s+(e.precio||0),0);
-  const baseTotal   = (q.mo||0) + (q.mat||0) + (q.extras||[]).filter(e=>e.monto>0).reduce((s,e)=>s+(e.monto||0),0);
-  const totalFull   = baseTotal + etapasTotal;
-  const precio   = isAll ? totalFull : (etapa.precio || 0);
-  const anticipo = Math.round(precio * 0.5);
-  const saldo    = precio - anticipo;
-  const etapaLabel = isAll ? 'Proyecto completo' : ('Etapa ' + (etapaIdx + 1));
-  const etapaName  = isAll ? (q.desc || 'Total del proyecto') : (etapa.nombre || ('Etapa ' + (etapaIdx + 1)));
-  const docNum = 'COT-' + nroCot + (isAll ? '' : '-E' + (etapaIdx + 1));
+  const isAll      = etapa === null;
+  const etapas     = q.etapas || [];
+  const extrasVal  = (q.extras||[]).filter(e=>e.nombre&&e.monto>0);
+  const etapasTotal= etapas.reduce((s,e)=>s+(e.precio||0),0);
+  const baseTotal  = (q.mo||0)+(q.mat||0)+extrasVal.reduce((s,e)=>s+(e.monto||0),0);
+  const totalFull  = baseTotal + etapasTotal;
+  const precio     = isAll ? totalFull : (etapa.precio||0);
+  const anticipo   = Math.round(precio*0.5);
+  const saldo      = precio - anticipo;
+  const etapaName  = isAll ? (q.desc||'Total del proyecto') : (etapa.nombre||('Etapa '+(etapaIdx+1)));
+  const etapaLabel = isAll ? 'Proyecto completo' : ('Etapa '+(etapaIdx+1));
+  const docNum     = 'COT-'+nroCot+(isAll?'':'-E'+(etapaIdx+1));
 
-  // ── CSS — misma identidad que los PDFs de proyecto ────────────────────────
-  const css = `
-    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;600;700;800&family=DM+Mono:wght@400;500&display=swap');
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'DM Sans',Arial,sans-serif;color:#1a1512;background:#fff;font-size:13px}
-    @page{margin:0;size:A4}
-    @media print{*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}
+  // Filas de tabla
+  const rows = [];
+  if (isAll) {
+    etapas.forEach(et => { if(et.nombre||et.precio>0) rows.push({d:et.nombre||'Etapa', m:et.precio||0}); });
+    if((q.mo||0)>0)  rows.push({d:'Mano de obra', m:q.mo});
+    if((q.mat||0)>0) rows.push({d:'Materiales', m:q.mat});
+    extrasVal.forEach(e=>rows.push({d:e.nombre, m:e.monto}));
+  } else {
+    rows.push({d:etapaName, m:precio});
+  }
+  const rowsHTML = rows.map((r,i)=>
+    '<tr style="background:'+(i%2===0?'#fff':'#fdfaf7')+'">'
+    +'<td style="padding:11px 14px;font-size:12px;color:#1a1512;font-weight:500">'+esc(r.d)+'</td>'
+    +'<td style="padding:11px 8px;text-align:center;font-size:11px;color:#aaa">1</td>'
+    +'<td style="padding:11px 14px;text-align:right;font-family:monospace;font-size:12px;font-weight:600;color:#1a1512">$'+fmtN(r.m)+'</td>'
+    +'</tr>'
+  ).join('');
 
-    /* Header fijo */
-    .ph{position:fixed;top:0;left:0;right:0;z-index:100;background:#1a1512}
-    .ph-inner{display:flex;justify-content:space-between;align-items:stretch;min-height:68px}
-    .ph-left{padding:13px 28px;flex:1;border-right:1px solid rgba(255,255,255,0.07);display:flex;flex-direction:column;justify-content:center}
-    .ph-right{padding:13px 28px;min-width:210px;display:flex;flex-direction:column;justify-content:center;align-items:flex-end}
-    .ph-project{font-size:14px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;color:#fff;line-height:1.1;margin-bottom:3px}
-    .ph-client{font-size:10px;color:rgba(255,255,255,0.45);line-height:1.5}
-    .ph-brand{font-size:18px;font-weight:800;letter-spacing:5px;color:#7a2f2f;line-height:1;margin-bottom:2px}
-    .ph-sub{font-size:7px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-bottom:4px}
-    .ph-date{font-size:9px;color:rgba(255,255,255,0.35);letter-spacing:0.3px}
-    .ph-bar{height:3px;background:#7a2f2f}
-
-    /* Body — respeta header */
-    .page-body{padding:88px 32px 48px}
-
-    /* Strip de precio — igual a los strips del proyecto */
-    .strip{display:flex;border:1px solid #ede8dc;border-radius:4px;overflow:hidden;margin-bottom:22px}
-    .sc{flex:1;padding:14px 18px;border-right:1px solid #ede8dc}
-    .sc:last-child{border-right:none}
-    .sc-l{font-size:7px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#bbb;margin-bottom:5px}
-    .sc-v{font-size:22px;font-weight:700;letter-spacing:-0.5px;font-family:'DM Mono',monospace}
-    .sc.dark{background:#1a1512}.sc.dark .sc-l{color:rgba(255,255,255,0.35)}.sc.dark .sc-v{color:#fff;font-size:26px}
-    .sc.red .sc-v{color:#7a2f2f}
-    .sc.grn .sc-v{color:#4e6450}
-    .sc-note{font-size:9px;color:#bbb;margin-top:4px}
-    .sc.dark .sc-note{color:rgba(255,255,255,0.25)}
-
-    /* Sección label — igual al interno */
-    .sec{font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#7a2f2f;border-bottom:1px solid #e8cece;padding-bottom:5px;margin:22px 0 14px}
-
-    /* Imagen */
-    .img-wrap{border-radius:6px;overflow:hidden;margin-bottom:6px}
-    .img-full{width:100%;max-height:260px;object-fit:cover;display:block}
-    .img-cap{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#b0a8a0;text-align:center;padding:6px 0 16px}
-
-    /* Etapa descriptor (cuando es PDF total) */
-    .etapa-row{border:1px solid #ede8dc;border-radius:4px;overflow:hidden;margin-bottom:10px}
-    .etapa-hdr{background:#f5f0e8;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ede8dc}
-    .etapa-hdr-left{display:flex;align-items:center;gap:10px}
-    .etapa-num{width:22px;height:22px;border-radius:50%;background:#7a2f2f;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-    .etapa-name{font-size:12px;font-weight:700;color:#1a1512;text-transform:uppercase;letter-spacing:0.5px}
-    .etapa-price{font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:#7a2f2f}
-    .etapa-desc{padding:10px 16px;font-size:11px;color:#5a4a3a;line-height:1.65;background:#fff}
-
-    /* Condiciones */
-    .conds{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:22px}
-    .cond{background:#f5f0e8;border-radius:4px;padding:11px 14px}
-    .cond-l{font-size:7px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#b0a8a0;margin-bottom:5px}
-    .cond-v{font-size:13px;font-weight:700;color:#1a1512}
-
-    /* Observaciones */
-    .notes{background:#fff8f0;border:1px solid #e8ddd4;border-radius:4px;padding:12px 16px;margin-bottom:22px}
-    .notes-l{font-size:7px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#b0a8a0;margin-bottom:7px}
-    .notes-t{font-size:12px;color:#5a4a3a;line-height:1.7}
-
-    /* Footer */
-    .ftr{border-top:1px solid #ede8dc;padding-top:14px;display:flex;justify-content:space-between;align-items:flex-end;margin-top:28px}
-    .ftr-brand{font-size:10px;color:#b0a8a0;line-height:1.7}
-    .sign-line{width:140px;border-top:1px solid #c0b8b0;margin-bottom:5px;margin-left:auto}
-    .sign-label{font-size:9px;color:#b0a8a0;letter-spacing:1px;text-align:right}
-  `;
-
-  // ── Header ────────────────────────────────────────────────────────────────
-  const headerHTML = `
-  <div class="ph">
-    <div class="ph-inner">
-      <div class="ph-left">
-        <div class="ph-project">${esc(q.desc || q.client || 'Proyecto Kiri')}</div>
-        <div class="ph-client">${esc(q.client||'')}${q.address?' · '+esc(q.address):''}${q.phone?' · '+esc(q.phone):''}</div>
-      </div>
-      <div class="ph-right">
-        <div class="ph-brand">KIRI</div>
-        <div class="ph-sub">arquitectura mobiliaria</div>
-        <div class="ph-date">${today} · Válida hasta: ${fechaVenc}</div>
-      </div>
-    </div>
-    <div class="ph-bar"></div>
-  </div>`;
-
-  // ── Imágenes ──────────────────────────────────────────────────────────────
-  let imgsHTML = '';
-  if (!isAll && etapa.imgBase64) {
-    imgsHTML = `<div class="sec">Imagen del proyecto</div>
-    <div class="img-wrap"><img class="img-full" src="${etapa.imgBase64}"></div>
-    <div class="img-cap">${esc(etapa.nombre||'')}</div>`;
+  // Imagen
+  let imgHTML = '';
+  if (!isAll && etapa && etapa.imgBase64) {
+    imgHTML = '<p style="font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#aaa;margin:20px 0 8px">IMAGEN DEL PROYECTO</p>'
+      +'<img src="'+etapa.imgBase64+'" style="width:100%;max-height:260px;object-fit:cover;;display:block">'
+      +(etapa.desc?'<p style="font-size:11px;color:#777;line-height:1.7;margin-top:8px;padding:10px 12px;background:#f9f5f0;">'+esc(etapa.desc).replace(/\n/g,'<br>')+'</p>':'');
   } else if (isAll) {
-    const withImgs = etapas.filter(e=>e.imgBase64);
-    if (withImgs.length > 0) {
-      imgsHTML = `<div class="sec">Imágenes del proyecto</div>`
-        + withImgs.map(e =>
-          `<div class="img-wrap"><img class="img-full" src="${e.imgBase64}"></div><div class="img-cap">${esc(e.nombre||'')}</div>`
-        ).join('');
+    const imgs = etapas.filter(e=>e.imgBase64);
+    if (imgs.length>0) {
+      imgHTML = '<p style="font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#aaa;margin:20px 0 8px">IMÁGENES DEL PROYECTO</p>'
+        + imgs.map(e=>'<div style="margin-bottom:10px"><img src="'+e.imgBase64+'" style="width:100%;max-height:220px;object-fit:cover;;display:block"><p style="font-size:9px;text-align:center;color:#aaa;margin-top:4px;letter-spacing:1px;text-transform:uppercase">'+esc(e.nombre||'')+'</p></div>').join('');
     }
   }
 
-  // ── Strip de precio ───────────────────────────────────────────────────────
-  const numLabel = isAll ? 'TOTAL PROYECTO' : etapaLabel.toUpperCase();
-  const stripHTML = `
-  <div class="sec">Valor · ${docNum}</div>
-  <div class="strip">
-    <div class="sc dark">
-      <div class="sc-l">${numLabel}</div>
-      <div class="sc-v">$${fmtN(precio)}</div>
-      <div class="sc-note">${esc(etapaName)}</div>
-    </div>
-    <div class="sc red">
-      <div class="sc-l">Anticipo para inicio</div>
-      <div class="sc-v">$${fmtN(anticipo)}</div>
-      <div class="sc-note">50% — requerido para comenzar</div>
-    </div>
-    <div class="sc grn">
-      <div class="sc-l">Saldo contra entrega</div>
-      <div class="sc-v">$${fmtN(saldo)}</div>
-      <div class="sc-note">50% — al momento de entrega</div>
-    </div>
-  </div>`;
-
-  // ── Descripción / Etapas ──────────────────────────────────────────────────
-  let contentHTML = '';
-  if (!isAll && etapa.desc) {
-    contentHTML = `<div class="sec">Descripción</div>
-    <div style="font-size:12px;color:#5a4a3a;line-height:1.75;padding:14px 16px;background:#fdf9f5;border-radius:4px;border:1px solid #ede8dc;margin-bottom:4px">
-      ${esc(etapa.desc).replace(/\n/g,'<br>')}
-    </div>`;
-  } else if (isAll && etapas.length > 0) {
-    contentHTML = `<div class="sec">Etapas del proyecto</div>`
-      + etapas.map((et,i) => `
-        <div class="etapa-row">
-          <div class="etapa-hdr">
-            <div class="etapa-hdr-left">
-              <div class="etapa-num">${i+1}</div>
-              <div class="etapa-name">${esc(et.nombre||'Etapa '+(i+1))}</div>
-            </div>
-            ${et.precio>0?`<div class="etapa-price">$${fmtN(et.precio)}</div>`:''}
-          </div>
-          ${et.desc?`<div class="etapa-desc">${esc(et.desc).replace(/\n/g,'<br>')}</div>`:''}
-        </div>`).join('');
+  // Etapas detalle (solo total)
+  let etapasHTML = '';
+  if (isAll && etapas.length>0) {
+    etapasHTML = '<p style="font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#7a2f2f;border-bottom:1px solid #e8cece;padding-bottom:5px;margin:20px 0 12px">DETALLE DE ETAPAS</p>'
+      + etapas.map((et,i)=>'<div style="border:1px solid #ede8dc;;margin-bottom:8px;overflow:hidden">'
+        +'<div style="background:#f5f0e8;padding:9px 14px;display:flex;align-items:center;gap:10px">'
+        +'<span style="width:20px;height:20px;border-radius:50%;background:#7a2f2f;color:#fff;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">'+(i+1)+'</span>'
+        +'<span style="font-size:12px;font-weight:700;color:#1a1512;flex:1;text-transform:uppercase;letter-spacing:0.4px">'+esc(et.nombre||'Etapa '+(i+1))+'</span>'
+        +(et.precio>0?'<span style="font-family:monospace;font-size:13px;font-weight:700;color:#7a2f2f">$'+fmtN(et.precio)+'</span>':'')
+        +'</div>'
+        +(et.desc?'<div style="padding:9px 14px;font-size:11px;color:#5a4a3a;line-height:1.6">'+esc(et.desc).replace(/\n/g,'<br>')+'</div>':'')
+        +'</div>'
+      ).join('');
   }
 
-  // ── Condiciones ───────────────────────────────────────────────────────────
-  const condsHTML = `
-  <div class="conds">
-    <div class="cond"><div class="cond-l">Validez de la oferta</div><div class="cond-v">${validity} días corridos</div></div>
-    ${q.delivery?`<div class="cond"><div class="cond-l">Entrega estimada</div><div class="cond-v">${esc(q.delivery)}</div></div>`:'<div></div>'}
-    <div class="cond"><div class="cond-l">Inicio de obra</div><div class="cond-v">Con 50% abonado</div></div>
-  </div>`;
+  return '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">'
+    +'<meta name="viewport" content="width=700,initial-scale=1">'
+    +'<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800;900&family=DM+Mono:wght@400;600&display=swap" rel="stylesheet">'
+    +'<style>'
+    +'*{box-sizing:border-box;margin:0;padding:0}'
+    +'body{font-family:"DM Sans",Arial,sans-serif;color:#1a1512;background:#fff;padding:0;margin:0}'
+    +'img{max-width:100%;height:auto;display:block}'
+    +'.page{background:#fff;width:100%;max-width:100%;padding:28px 32px}'
+    +'@media print{'
+    +'  body{background:#fff;padding:0;margin:0}'
+    +'  .page{padding:10mm 12mm}'
+    +'}'
+    +'@page{margin:0;size:A4 portrait}'
+    +'</style></head><body>'
+    +'<div class="page">'
 
-  // ── Notas ─────────────────────────────────────────────────────────────────
-  const notesHTML = q.notes
-    ? `<div class="notes"><div class="notes-l">Observaciones y condiciones</div><div class="notes-t">${esc(q.notes).replace(/\n/g,'<br>')}</div></div>`
-    : '';
+    // HEADER
+    +'<table width="100%" style="border-bottom:3px solid #7a2f2f;padding-bottom:18px;margin-bottom:26px"><tr>'
+    +'<td style="vertical-align:top">'
+    +'<div style="font-size:34px;font-weight:900;letter-spacing:3px;color:#7a2f2f;line-height:1">KIRI</div>'
+    +'<div style="font-size:8px;font-weight:600;letter-spacing:3.5px;text-transform:uppercase;color:#aaa;margin-top:5px">ARQUITECTURA MOBILIARIA · MUEBLES A MEDIDA</div>'
+    +'</td>'
+    +'<td style="text-align:right;vertical-align:top">'
+    +'<div style="font-size:8px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#aaa;margin-bottom:3px">COTIZACIÓN</div>'
+    +'<div style="font-size:20px;font-weight:900;color:#1a1512;letter-spacing:-0.3px">'+docNum+'</div>'
+    +'<div style="font-size:10px;color:#888;margin-top:4px">Emisión: '+today+'</div>'
+    +'<div style="font-size:10px;font-weight:700;color:#c8773a">Válida hasta: '+fechaVenc+'</div>'
+    +'</td></tr></table>'
 
-  // ── Footer ────────────────────────────────────────────────────────────────
-  const footerHTML = `
-  <div class="ftr">
-    <div class="ftr-brand">Kiri — arquitectura mobiliaria<br>Esta cotización no tiene valor fiscal · ${docNum}</div>
-    <div><div class="sign-line"></div><div class="sign-label">Firma y aclaración · Kiri</div></div>
-  </div>`;
+    // PARTES
+    +'<table width="100%" style="margin-bottom:24px"><tr>'
+    +'<td width="50%" style="vertical-align:top;padding-right:20px;border-bottom:1px solid #ede8dc;padding-bottom:16px">'
+    +'<div style="font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#aaa;margin-bottom:8px">PARA</div>'
+    +'<div style="font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:5px">'+esc(q.client||'—')+'</div>'
+    +(q.address?'<div style="font-size:11px;color:#666;margin-top:2px">'+esc(q.address)+'</div>':'')
+    +(q.phone?'<div style="font-size:11px;color:#666;margin-top:2px">Tel: '+esc(q.phone)+'</div>':'')
+    +(q.email?'<div style="font-size:11px;color:#666;margin-top:2px">'+esc(q.email)+'</div>':'')
+    +'</td>'
+    +'<td width="50%" style="vertical-align:top;padding-left:20px;border-bottom:1px solid #ede8dc;padding-bottom:16px">'
+    +'<div style="font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#aaa;margin-bottom:8px">DE</div>'
+    +'<div style="font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:5px">KIRI</div>'
+    +'<div style="font-size:11px;color:#666;margin-top:2px">Arquitectura Mobiliaria</div>'
+    +'<div style="font-size:11px;color:#666;margin-top:2px">Muebles a medida</div>'
+    +'<div style="font-size:11px;color:#666;margin-top:2px">Córdoba, Argentina</div>'
+    +'</td></tr></table>'
 
-  return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <style>${css}</style>
-  </head><body>
-  ${headerHTML}
-  <div class="page-body">
-    ${imgsHTML}
-    ${stripHTML}
-    ${contentHTML}
-    ${condsHTML}
-    ${notesHTML}
-    ${footerHTML}
-  </div>
-  </body></html>`;
+    // IMÁGENES
+    +imgHTML
+
+    // TABLA
+    +'<table width="100%" style="border-collapse:collapse;margin-bottom:14px">'
+    +'<thead><tr style="background:#1a1512">'
+    +'<th style="padding:10px 14px;text-align:left;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fff">DESCRIPCIÓN DEL TRABAJO</th>'
+    +'<th style="padding:10px 8px;text-align:center;font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#fff;width:44px">UND.</th>'
+    +'<th style="padding:10px 14px;text-align:right;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fff;width:140px">IMPORTE</th>'
+    +'</tr></thead>'
+    +'<tbody>'+rowsHTML+'</tbody>'
+    +'</table>'
+
+    // TOTAL
+    +'<table width="100%" style="margin-bottom:20px"><tr>'
+    +'<td></td>'
+    +'<td style="border-top:2px solid #1a1512;padding-top:10px;text-align:right;width:280px">'
+    +'<table width="100%"><tr>'
+    +'<td style="font-size:13px;font-weight:800;letter-spacing:1px;color:#1a1512">TOTAL</td>'
+    +'<td style="text-align:right;font-family:monospace;font-size:17px;font-weight:700;color:#7a2f2f">$'+fmtN(precio)+'</td>'
+    +'</tr></table>'
+    +'</td></tr></table>'
+
+    // ANTICIPO BANNER
+    +'<table width="100%" style="background:#7a2f2f;border-radius:6px;margin-bottom:16px"><tr>'
+    +'<td width="50%" style="padding:16px 18px;border-right:1px solid rgba(255,255,255,0.15);vertical-align:top">'
+    +'<div style="font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:5px">ANTICIPO PARA INICIO DE OBRA</div>'
+    +'<div style="font-family:monospace;font-size:19px;font-weight:700;color:#fff">$'+fmtN(anticipo)+'</div>'
+    +'<div style="font-size:9px;color:rgba(255,255,255,0.4);margin-top:3px">El 50% es requisito para comenzar los trabajos</div>'
+    +'</td>'
+    +'<td width="50%" style="padding:16px 18px;vertical-align:top">'
+    +'<div style="font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:5px">SALDO CONTRA ENTREGA</div>'
+    +'<div style="font-family:monospace;font-size:19px;font-weight:700;color:#fff">$'+fmtN(saldo)+'</div>'
+    +'<div style="font-size:9px;color:rgba(255,255,255,0.4);margin-top:3px">50% al momento de entrega</div>'
+    +'</td></tr></table>'
+
+    // CONDICIONES
+    +'<table width="100%" style="margin-bottom:16px"><tr>'
+    +'<td width="50%" style="padding-right:8px">'
+    +'<div style="background:#f5f0e8;;padding:11px 14px">'
+    +'<div style="font-size:7px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#aaa;margin-bottom:5px">VALIDEZ</div>'
+    +'<div style="font-size:13px;font-weight:700;color:#1a1512">'+validity+' días corridos</div>'
+    +'</div></td>'
+    +'<td width="50%" style="padding-left:8px">'
+    +'<div style="background:#f5f0e8;;padding:11px 14px">'
+    +'<div style="font-size:7px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#aaa;margin-bottom:5px">INICIO DE OBRA</div>'
+    +'<div style="font-size:13px;font-weight:700;color:#1a1512">Con el 50% abonado</div>'
+    +'</div></td></tr></table>'
+
+    +(q.delivery?'<div style="background:#f5f0e8;;padding:11px 14px;margin-bottom:16px"><div style="font-size:7px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#aaa;margin-bottom:5px">ENTREGA ESTIMADA</div><div style="font-size:13px;font-weight:700;color:#1a1512">'+esc(q.delivery)+'</div></div>':'')
+    +(q.notes?'<div style="background:#fff8f0;border:1px solid #e8ddd4;;padding:12px 14px;margin-bottom:16px"><div style="font-size:7px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#aaa;margin-bottom:6px">OBSERVACIONES Y CONDICIONES</div><div style="font-size:11px;color:#5a4a3a;line-height:1.7">'+esc(q.notes).replace(/\n/g,'<br>')+'</div></div>':'')
+
+    +etapasHTML
+
+    // FOOTER
+    +'<table width="100%" style="border-top:1px solid #ede8dc;padding-top:12px;margin-top:20px"><tr>'
+    +'<td style="font-size:10px;color:#bbb;line-height:1.7">Kiri — arquitectura mobiliaria<br>Esta cotización no tiene valor fiscal</td>'
+    +'<td style="text-align:right;vertical-align:bottom">'
+    +'<div style="width:130px;border-top:1px solid #bbb;margin-bottom:4px;margin-left:auto"></div>'
+    +'<div style="font-size:9px;color:#bbb;letter-spacing:1px">Firma y aclaración · Kiri</div>'
+    +'</td></tr></table>'
+
+    +'</div></body></html>';
 }
 
 
