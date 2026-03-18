@@ -2765,8 +2765,26 @@ header {
 
 <!-- MODAL COTIZACIÓN -->
 <div class="overlay" id="modal-quote" onclick="overlayClick(event,'quote')">
-  <div class="modal">
+  <div class="modal" style="max-width:560px">
     <div class="modal-title" id="quote-modal-title">Nueva cotización</div>
+
+    <!-- ASISTENTE IA -->
+    <div id="q-ai-bar" style="background:linear-gradient(135deg,#1a1512 0%,#3a1a1a 100%);border-radius:8px;padding:12px 14px;margin-bottom:18px;display:flex;gap:10px;align-items:flex-start">
+      <div style="flex-shrink:0;margin-top:2px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.8" stroke-linecap="round"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+      </div>
+      <div style="flex:1">
+        <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:6px">Asistente IA · Dictá los cambios en texto libre</div>
+        <textarea id="q-ai-prompt" rows="2" placeholder='Ej: "Cambiá materiales a 800 mil, agregá etapa Instalación por 120 mil, ponele 60 días de validez"' style="width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:8px 10px;font-family:inherit;font-size:12px;color:rgba(255,255,255,0.85);resize:none;outline:none;box-sizing:border-box;line-height:1.5;-webkit-tap-highlight-color:transparent" placeholder='Ej: "Subí MO a 1.2 millones, agregá etapa terminaciones por 300 mil"'></textarea>
+        <div style="display:flex;justify-content:flex-end;margin-top:7px;gap:7px;align-items:center">
+          <div id="q-ai-status" style="font-size:10px;color:rgba(255,255,255,0.35);flex:1"></div>
+          <button onclick="quotaAiApply()" style="background:var(--kiri);border:none;border-radius:5px;color:#fff;padding:6px 14px;font-size:11px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:6px;-webkit-tap-highlight-color:transparent">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Aplicar con IA
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- DATOS DEL CLIENTE -->
     <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Datos del cliente</div>
@@ -2812,7 +2830,15 @@ header {
       <div id="q-extras-list" class="quote-extras-list"></div>
       <button class="btn btn-light btn-sm" onclick="addQuoteExtra()" type="button" style="align-self:flex-start">+ Agregar</button>
     </div>
-    <div class="quote-row">
+
+    <!-- ETAPAS CON IMÁGENES -->
+    <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:16px 0 10px;display:flex;align-items:center;justify-content:space-between">
+      <span>Etapas del proyecto <span style="font-weight:400;opacity:0.6">(opcional)</span></span>
+      <button class="btn btn-light btn-sm" onclick="addQuoteEtapa()" type="button">+ Etapa</button>
+    </div>
+    <div id="q-etapas-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:4px"></div>
+
+    <div class="quote-row" style="margin-top:14px">
       <div class="field" style="margin:0">
         <label>Validez</label>
         <select id="q-validity" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:12px;background:var(--surface);color:var(--ink);outline:none">
@@ -6496,9 +6522,13 @@ function forceCloudUpload() {
 let _editingQuoteIdx = null;
 let _quoteExtras     = [];
 
+// ── COTIZACIONES — ETAPAS + IA ────────────────────────────────────────────────
+let _quoteEtapas = []; // [{nombre, desc, precio, imgBase64}]
+
 function openModal_quote() {
   _editingQuoteIdx = null;
   _quoteExtras = [];
+  _quoteEtapas = [];
   const t = document.getElementById('quote-modal-title');
   if (t) t.textContent = 'Nueva cotización';
   const b = document.getElementById('q-save-btn');
@@ -6508,8 +6538,172 @@ function openModal_quote() {
   });
   const val = document.getElementById('q-validity');
   if (val) val.value = '30';
+  const aiPrompt = document.getElementById('q-ai-prompt');
+  if (aiPrompt) aiPrompt.value = '';
+  const aiStatus = document.getElementById('q-ai-status');
+  if (aiStatus) aiStatus.textContent = '';
   renderQuoteExtras();
+  renderQuoteEtapas();
   updateQuotePreview();
+}
+
+// ── Etapas ────────────────────────────────────────────────────────────────────
+function addQuoteEtapa() {
+  _quoteEtapas.push({ nombre: '', desc: '', precio: 0, imgBase64: null });
+  renderQuoteEtapas();
+}
+
+function removeQuoteEtapa(i) {
+  _quoteEtapas.splice(i, 1);
+  renderQuoteEtapas();
+  updateQuotePreview();
+}
+
+function renderQuoteEtapas() {
+  const el = document.getElementById('q-etapas-list');
+  if (!el) return;
+  if (_quoteEtapas.length === 0) { el.innerHTML = ''; return; }
+  el.innerHTML = _quoteEtapas.map((et, i) => {
+    const hasImg = !!et.imgBase64;
+    return '<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface)">' +
+      '<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface2);border-bottom:1px solid var(--border)">' +
+        '<div style="width:22px;height:22px;border-radius:50%;background:var(--kiri);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">' + (i+1) + '</div>' +
+        '<input type="text" placeholder="Nombre de la etapa (ej: Fabricación)" value="' + esc(et.nombre||'') + '" ' +
+          'oninput="_quoteEtapas['+i+'].nombre=this.value" ' +
+          'style="flex:1;background:transparent;border:none;font-size:12px;font-weight:600;color:var(--ink);outline:none;font-family:inherit">' +
+        '<input type="number" placeholder="$0" value="' + (et.precio||'') + '" min="0" ' +
+          'oninput="_quoteEtapas['+i+'].precio=parseFloat(this.value)||0;updateQuotePreview()" ' +
+          'style="width:110px;background:transparent;border:none;font-family:\'DM Mono\',monospace;font-size:13px;font-weight:600;color:var(--kiri);text-align:right;outline:none">' +
+        '<button onclick="removeQuoteEtapa('+i+')" style="background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer;padding:0 2px;line-height:1;margin-left:4px">✕</button>' +
+      '</div>' +
+      '<div style="padding:10px 12px;display:flex;gap:10px;align-items:flex-start">' +
+        '<div style="flex:1">' +
+          '<textarea placeholder="Descripción de la etapa (materiales, trabajos incluidos...)" rows="2" ' +
+            'oninput="_quoteEtapas['+i+'].desc=this.value" ' +
+            'style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:7px 9px;font-family:inherit;font-size:11px;color:var(--ink);resize:none;outline:none;box-sizing:border-box">' + esc(et.desc||'') + '</textarea>' +
+        '</div>' +
+        '<div style="flex-shrink:0;text-align:center">' +
+          (hasImg
+            ? '<div style="position:relative;width:64px;height:64px">' +
+                '<img src="' + et.imgBase64 + '" style="width:64px;height:64px;object-fit:cover;border-radius:5px;border:1px solid var(--border)">' +
+                '<button onclick="_quoteEtapas['+i+'].imgBase64=null;renderQuoteEtapas()" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--kiri);border:none;color:#fff;font-size:10px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">✕</button>' +
+              '</div>'
+            : '<label style="width:64px;height:64px;border:2px dashed var(--border);border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:3px;-webkit-tap-highlight-color:transparent">' +
+                '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>' +
+                '<span style="font-size:8px;color:var(--muted);letter-spacing:0.5px">Imagen</span>' +
+                '<input type="file" accept="image/*" style="display:none" onchange="loadEtapaImage('+i+',this)">' +
+              '</label>'
+          ) +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function loadEtapaImage(i, input) {
+  const file = input && input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    // Redimensionar a max 800px
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 800;
+      const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      _quoteEtapas[i].imgBase64 = canvas.toDataURL('image/jpeg', 0.82);
+      renderQuoteEtapas();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── Asistente IA ──────────────────────────────────────────────────────────────
+async function quotaAiApply() {
+  const prompt = (document.getElementById('q-ai-prompt').value || '').trim();
+  if (!prompt) return;
+  const apiKey = _apiKey || sessionStorage.getItem('kiri_apikey') || '';
+  if (!apiKey) {
+    const st = document.getElementById('q-ai-status');
+    if (st) st.textContent = '⚠ Configurá la API key de Anthropic primero';
+    return;
+  }
+  const st = document.getElementById('q-ai-status');
+  if (st) st.textContent = '⊙ Procesando…';
+
+  // Estado actual de la cotización
+  const currentState = {
+    client:   (document.getElementById('q-client')  && document.getElementById('q-client').value)  || '',
+    desc:     (document.getElementById('q-desc')    && document.getElementById('q-desc').value)    || '',
+    mo:       parseFloat(document.getElementById('q-mo')  && document.getElementById('q-mo').value)  || 0,
+    mat:      parseFloat(document.getElementById('q-mat') && document.getElementById('q-mat').value) || 0,
+    extras:   _quoteExtras,
+    etapas:   _quoteEtapas.map(e => ({ nombre: e.nombre, desc: e.desc, precio: e.precio })),
+    notes:    (document.getElementById('q-notes')    && document.getElementById('q-notes').value)    || '',
+    delivery: (document.getElementById('q-delivery') && document.getElementById('q-delivery').value) || '',
+    validity: parseInt((document.getElementById('q-validity') && document.getElementById('q-validity').value) || '30'),
+    phone:    (document.getElementById('q-phone') && document.getElementById('q-phone').value) || '',
+    email:    (document.getElementById('q-email') && document.getElementById('q-email').value) || '',
+    address:  (document.getElementById('q-address') && document.getElementById('q-address').value) || '',
+  };
+
+  const sysPrompt = `Sos asistente de Kiri arquitectura mobiliaria. Te dan el estado actual de una cotización en JSON y una instrucción en lenguaje natural. Devolvés SOLO un JSON con los campos modificados (solo los que cambian). Campos posibles: client, desc, mo (número), mat (número), notes, delivery, validity (número de días), phone, email, address, extras (array de {nombre,monto}), etapas (array de {nombre,desc,precio}). NO incluyas imgBase64. Respondé SOLO con JSON válido, sin explicación ni backticks.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 800,
+        system: sysPrompt,
+        messages: [{ role: 'user', content: 'Estado actual:\n' + JSON.stringify(currentState) + '\n\nInstrucción: ' + prompt }]
+      })
+    });
+    const data = await resp.json();
+    const text = (data.content?.[0]?.text || '').replace(/```json|```/g,'').trim();
+    const changes = JSON.parse(text);
+
+    // Aplicar cambios al formulario
+    const fieldMap = { client:'q-client', desc:'q-desc', notes:'q-notes', delivery:'q-delivery', phone:'q-phone', email:'q-email', address:'q-address' };
+    Object.entries(fieldMap).forEach(([key, id]) => {
+      if (changes[key] !== undefined) {
+        const el = document.getElementById(id);
+        if (el) el.value = changes[key];
+      }
+    });
+    if (changes.mo  !== undefined) { const el = document.getElementById('q-mo');  if (el) el.value = changes.mo; }
+    if (changes.mat !== undefined) { const el = document.getElementById('q-mat'); if (el) el.value = changes.mat; }
+    if (changes.validity !== undefined) {
+      const sel = document.getElementById('q-validity');
+      if (sel) sel.value = String(changes.validity);
+    }
+    if (changes.extras !== undefined) {
+      _quoteExtras = changes.extras.map(e => ({ nombre: e.nombre||'', monto: e.monto||0 }));
+      renderQuoteExtras();
+    }
+    if (changes.etapas !== undefined) {
+      // Preservar imágenes existentes
+      _quoteEtapas = changes.etapas.map((e, i) => ({
+        nombre: e.nombre||'',
+        desc: e.desc||'',
+        precio: e.precio||0,
+        imgBase64: (_quoteEtapas[i] && _quoteEtapas[i].imgBase64) || null
+      }));
+      renderQuoteEtapas();
+    }
+    updateQuotePreview();
+    if (st) st.textContent = '✓ Cambios aplicados';
+    document.getElementById('q-ai-prompt').value = '';
+    setTimeout(() => { if (st) st.textContent = ''; }, 3000);
+  } catch(e) {
+    console.error('AI quote error:', e);
+    if (st) st.textContent = '⚠ Error al procesar, intentá de nuevo';
+  }
 }
 
 function addQuoteExtra() {
@@ -6543,7 +6737,8 @@ function updateQuotePreview() {
   const mo  = parseFloat(document.getElementById('q-mo')  && document.getElementById('q-mo').value)  || 0;
   const mat = parseFloat(document.getElementById('q-mat') && document.getElementById('q-mat').value) || 0;
   const extrasSum = _quoteExtras.reduce((s,e)=>s+(e.monto||0), 0);
-  const total = mo + mat + extrasSum;
+  const etapasSum = _quoteEtapas.reduce((s,e)=>s+(e.precio||0), 0);
+  const total = mo + mat + extrasSum + etapasSum;
   const el = document.getElementById('q-total-preview');
   if (el) el.textContent = '$' + fmt(total);
 }
@@ -6568,6 +6763,7 @@ function saveQuote() {
     mo:       parseFloat(document.getElementById('q-mo')  && document.getElementById('q-mo').value)  || 0,
     mat:      parseFloat(document.getElementById('q-mat') && document.getElementById('q-mat').value) || 0,
     extras:   _quoteExtras.filter(e=>e.nombre||e.monto>0).map(e=>({nombre:e.nombre,monto:e.monto||0})),
+    etapas:   _quoteEtapas.map(e=>({nombre:e.nombre,desc:e.desc,precio:e.precio,imgBase64:e.imgBase64||null})),
     notes:    (document.getElementById('q-notes')    && document.getElementById('q-notes').value)    || '',
     delivery: (document.getElementById('q-delivery') && document.getElementById('q-delivery').value) || '',
     validity: parseInt((document.getElementById('q-validity') && document.getElementById('q-validity').value)||'30'),
@@ -6590,41 +6786,53 @@ function saveQuote() {
 function openQuoteDetail(qi) {
   const q = S.quotes[qi];
   if (!q) return;
-  const total = (q.mo||0) + (q.mat||0) + (q.extras||[]).reduce((s,e)=>s+(e.monto||0),0);
+  const etapas  = q.etapas || [];
+  const extrasSum = (q.extras||[]).reduce((s,e)=>s+(e.monto||0),0);
+  const baseTotal = (q.mo||0) + (q.mat||0) + extrasSum;
+  const etapasTotal = etapas.reduce((s,e)=>s+(e.precio||0),0);
+  const total = baseTotal + etapasTotal;
+  const fmtN = n => Number(n).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
 
-  const extrasRows = (q.extras||[]).length
-    ? (q.extras||[]).map(e =>
-        '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">' +
-          '<span style="font-size:12px;color:var(--muted)">' + esc(e.nombre) + '</span>' +
-          '<span style="font-family:\'DM Mono\',monospace;font-size:12px">$' + fmt(e.monto) + '</span>' +
-        '</div>'
-      ).join('')
-    : '';
+  // Botones PDF: uno por etapa + uno total
+  let pdfBtns = '';
+  if (etapas.length > 0) {
+    pdfBtns += etapas.map((et, i) =>
+      '<button onclick="exportQuotePDF(' + qi + ',' + i + ')" style="width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--ink);font-size:11px;font-weight:600;font-family:\'DM Sans\',sans-serif;cursor:pointer;text-align:left;display:flex;justify-content:space-between;align-items:center">'
+        + '<span>↑ PDF Etapa ' + (i+1) + ' — ' + esc(et.nombre||'Sin nombre') + '</span>'
+        + '<span style="font-family:\'DM Mono\',monospace;color:var(--kiri)">$' + fmtN(et.precio||0) + '</span>'
+      + '</button>'
+    ).join('');
+    pdfBtns += '<button onclick="exportQuotePDF(' + qi + ',null)" style="width:100%;padding:11px 14px;background:var(--kiri);border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:700;font-family:\'DM Sans\',sans-serif;cursor:pointer;display:flex;justify-content:space-between;align-items:center">'
+      + '<span>↑ PDF Total del proyecto</span>'
+      + '<span style="font-family:\'DM Mono\',monospace">$' + fmtN(total) + '</span>'
+    + '</button>';
+  } else {
+    pdfBtns = '<button onclick="exportQuotePDF(' + qi + ',null)" style="width:100%;padding:12px;background:var(--kiri);border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:700;font-family:\'DM Sans\',sans-serif;cursor:pointer">↑ Compartir cotización PDF</button>';
+  }
 
   document.getElementById('quote-detail-body').innerHTML =
     '<div style="padding:20px 18px 4px;display:flex;align-items:flex-start;justify-content:space-between">' +
       '<div>' +
         '<div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Cotización</div>' +
         '<div style="font-size:18px;font-weight:800;text-transform:uppercase;color:var(--ink)">' + esc(q.client||'—') + '</div>' +
-        (q.desc ? '<div style="font-size:11px;color:var(--muted);margin-top:2px">' + esc(q.desc) + '</div>' : '') +
+        (q.desc  ? '<div style="font-size:11px;color:var(--muted);margin-top:2px">' + esc(q.desc) + '</div>' : '') +
         (q.phone ? '<div style="font-size:11px;color:var(--muted);margin-top:4px">📞 ' + esc(q.phone) + '</div>' : '') +
       '</div>' +
       '<button onclick="closeModal(\'quote-detail\')" style="background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;padding:0 4px;line-height:1">✕</button>' +
     '</div>' +
-    '<div class="modal-body" style="padding:12px 18px 8px">' +
-      (q.mo>0 ? '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)"><span style="font-size:12px;color:var(--muted)">Mano de obra</span><span style="font-family:\'DM Mono\',monospace;font-size:12px">$' + fmt(q.mo) + '</span></div>' : '') +
-      (q.mat>0 ? '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)"><span style="font-size:12px;color:var(--muted)">Materiales</span><span style="font-family:\'DM Mono\',monospace;font-size:12px">$' + fmt(q.mat) + '</span></div>' : '') +
-      extrasRows +
-      '<div style="display:flex;justify-content:space-between;padding:10px 0;margin-top:4px">' +
-        '<span style="font-size:13px;font-weight:700;color:var(--ink)">Total</span>' +
-        '<span style="font-family:\'DM Mono\',monospace;font-size:18px;font-weight:700;color:var(--kiri)">$' + fmt(total) + '</span>' +
-      '</div>' +
-      (q.notes ? '<div style="background:var(--bg);border-radius:6px;padding:10px 12px;font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5">' + esc(q.notes) + '</div>' : '') +
+    '<div style="padding:6px 18px 8px">' +
+      '<div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Total cotización</div>' +
+      '<div style="font-family:\'DM Mono\',monospace;font-size:22px;font-weight:700;color:var(--kiri)">$' + fmtN(total) + '</div>' +
+      (etapas.length > 0
+        ? '<div style="font-size:10px;color:var(--muted);margin-top:4px">' + etapas.length + ' etapa' + (etapas.length>1?'s':'') + '</div>'
+        : '') +
     '</div>' +
-    '<div style="padding:0 18px 20px;display:flex;flex-direction:column;gap:8px">' +
-      '<button onclick="exportQuotePDF(' + qi + ')" style="width:100%;padding:12px;background:var(--kiri);border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:700;font-family:\'DM Sans\',sans-serif;cursor:pointer">↑ Compartir cotización PDF</button>' +
-      '<button onclick="editQuote(' + qi + ')" style="width:100%;padding:12px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--ink);font-size:12px;font-weight:600;font-family:\'DM Sans\',sans-serif;cursor:pointer">Editar</button>' +
-      '<button onclick="deleteQuote(' + qi + ')" style="width:100%;padding:12px;background:none;border:1px solid #d9a0a0;border-radius:6px;color:var(--kiri);font-size:12px;font-weight:600;font-family:\'DM Sans\',sans-serif;cursor:pointer">Eliminar cotización</button>' +
+    '<div style="padding:0 18px 20px;display:flex;flex-direction:column;gap:7px">' +
+      '<div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:2px;margin-top:4px">Generar PDF</div>' +
+      pdfBtns +
+      '<div style="height:4px"></div>' +
+      '<button onclick="editQuote(' + qi + ')" style="width:100%;padding:10px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--ink);font-size:12px;font-weight:600;font-family:\'DM Sans\',sans-serif;cursor:pointer">Editar cotización</button>' +
+      '<button onclick="deleteQuote(' + qi + ')" style="width:100%;padding:10px;background:none;border:1px solid #d9a0a0;border-radius:6px;color:var(--kiri);font-size:12px;font-weight:600;font-family:\'DM Sans\',sans-serif;cursor:pointer">Eliminar cotización</button>' +
     '</div>';
 
   document.getElementById('modal-quote-detail').classList.add('open');
@@ -6636,6 +6844,7 @@ function editQuote(qi) {
   closeModal('quote-detail');
   _editingQuoteIdx = qi;
   _quoteExtras = (q.extras||[]).map(e=>({...e}));
+  _quoteEtapas = (q.etapas||[]).map(e=>({...e}));
   const t = document.getElementById('quote-modal-title');
   if (t) t.textContent = 'Editar cotización';
   const b = document.getElementById('q-save-btn');
@@ -6645,6 +6854,7 @@ function editQuote(qi) {
     'q-notes':q.notes||'', 'q-delivery':q.delivery||'', 'q-validity':q.validity||30 };
   Object.entries(fields).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.value=val; });
   renderQuoteExtras();
+  renderQuoteEtapas();
   updateQuotePreview();
   document.getElementById('modal-quote').classList.add('open');
 }
@@ -6670,86 +6880,231 @@ async function deleteQuoteDirect(qi) {
   showMobileToast('Cotización eliminada');
 }
 
-async function exportQuotePDF(qi) {
+// ── Generar PDF de una etapa individual ──────────────────────────────────────
+function buildEtapaPDF(q, etapa, etapaIdx, nroCot, fmtN, today, validity, fechaVenc) {
+  const isAll   = etapa === null;
+  const etapas  = q.etapas || [];
+  const etapasTotal = etapas.reduce((s,e)=>s+(e.precio||0),0);
+  const baseTotal   = (q.mo||0) + (q.mat||0) + (q.extras||[]).filter(e=>e.monto>0).reduce((s,e)=>s+(e.monto||0),0);
+  const totalFull   = baseTotal + etapasTotal;
+  const precio   = isAll ? totalFull : (etapa.precio || 0);
+  const anticipo = Math.round(precio * 0.5);
+  const saldo    = precio - anticipo;
+  const etapaLabel = isAll ? 'Proyecto completo' : ('Etapa ' + (etapaIdx + 1));
+  const etapaName  = isAll ? (q.desc || 'Total del proyecto') : (etapa.nombre || ('Etapa ' + (etapaIdx + 1)));
+  const docNum = 'COT-' + nroCot + (isAll ? '' : '-E' + (etapaIdx + 1));
+
+  // ── CSS — misma identidad que los PDFs de proyecto ────────────────────────
+  const css = `
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',Arial,sans-serif;color:#1a1512;background:#fff;font-size:13px}
+    @page{margin:0;size:A4}
+    @media print{*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}
+
+    /* Header fijo */
+    .ph{position:fixed;top:0;left:0;right:0;z-index:100;background:#1a1512}
+    .ph-inner{display:flex;justify-content:space-between;align-items:stretch;min-height:68px}
+    .ph-left{padding:13px 28px;flex:1;border-right:1px solid rgba(255,255,255,0.07);display:flex;flex-direction:column;justify-content:center}
+    .ph-right{padding:13px 28px;min-width:210px;display:flex;flex-direction:column;justify-content:center;align-items:flex-end}
+    .ph-project{font-size:14px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;color:#fff;line-height:1.1;margin-bottom:3px}
+    .ph-client{font-size:10px;color:rgba(255,255,255,0.45);line-height:1.5}
+    .ph-brand{font-size:18px;font-weight:800;letter-spacing:5px;color:#7a2f2f;line-height:1;margin-bottom:2px}
+    .ph-sub{font-size:7px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-bottom:4px}
+    .ph-date{font-size:9px;color:rgba(255,255,255,0.35);letter-spacing:0.3px}
+    .ph-bar{height:3px;background:#7a2f2f}
+
+    /* Body — respeta header */
+    .page-body{padding:88px 32px 48px}
+
+    /* Strip de precio — igual a los strips del proyecto */
+    .strip{display:flex;border:1px solid #ede8dc;border-radius:4px;overflow:hidden;margin-bottom:22px}
+    .sc{flex:1;padding:14px 18px;border-right:1px solid #ede8dc}
+    .sc:last-child{border-right:none}
+    .sc-l{font-size:7px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#bbb;margin-bottom:5px}
+    .sc-v{font-size:22px;font-weight:700;letter-spacing:-0.5px;font-family:'DM Mono',monospace}
+    .sc.dark{background:#1a1512}.sc.dark .sc-l{color:rgba(255,255,255,0.35)}.sc.dark .sc-v{color:#fff;font-size:26px}
+    .sc.red .sc-v{color:#7a2f2f}
+    .sc.grn .sc-v{color:#4e6450}
+    .sc-note{font-size:9px;color:#bbb;margin-top:4px}
+    .sc.dark .sc-note{color:rgba(255,255,255,0.25)}
+
+    /* Sección label — igual al interno */
+    .sec{font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#7a2f2f;border-bottom:1px solid #e8cece;padding-bottom:5px;margin:22px 0 14px}
+
+    /* Imagen */
+    .img-wrap{border-radius:6px;overflow:hidden;margin-bottom:6px}
+    .img-full{width:100%;max-height:260px;object-fit:cover;display:block}
+    .img-cap{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#b0a8a0;text-align:center;padding:6px 0 16px}
+
+    /* Etapa descriptor (cuando es PDF total) */
+    .etapa-row{border:1px solid #ede8dc;border-radius:4px;overflow:hidden;margin-bottom:10px}
+    .etapa-hdr{background:#f5f0e8;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ede8dc}
+    .etapa-hdr-left{display:flex;align-items:center;gap:10px}
+    .etapa-num{width:22px;height:22px;border-radius:50%;background:#7a2f2f;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .etapa-name{font-size:12px;font-weight:700;color:#1a1512;text-transform:uppercase;letter-spacing:0.5px}
+    .etapa-price{font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:#7a2f2f}
+    .etapa-desc{padding:10px 16px;font-size:11px;color:#5a4a3a;line-height:1.65;background:#fff}
+
+    /* Condiciones */
+    .conds{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:22px}
+    .cond{background:#f5f0e8;border-radius:4px;padding:11px 14px}
+    .cond-l{font-size:7px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#b0a8a0;margin-bottom:5px}
+    .cond-v{font-size:13px;font-weight:700;color:#1a1512}
+
+    /* Observaciones */
+    .notes{background:#fff8f0;border:1px solid #e8ddd4;border-radius:4px;padding:12px 16px;margin-bottom:22px}
+    .notes-l{font-size:7px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#b0a8a0;margin-bottom:7px}
+    .notes-t{font-size:12px;color:#5a4a3a;line-height:1.7}
+
+    /* Footer */
+    .ftr{border-top:1px solid #ede8dc;padding-top:14px;display:flex;justify-content:space-between;align-items:flex-end;margin-top:28px}
+    .ftr-brand{font-size:10px;color:#b0a8a0;line-height:1.7}
+    .sign-line{width:140px;border-top:1px solid #c0b8b0;margin-bottom:5px;margin-left:auto}
+    .sign-label{font-size:9px;color:#b0a8a0;letter-spacing:1px;text-align:right}
+  `;
+
+  // ── Header ────────────────────────────────────────────────────────────────
+  const headerHTML = `
+  <div class="ph">
+    <div class="ph-inner">
+      <div class="ph-left">
+        <div class="ph-project">${esc(q.desc || q.client || 'Proyecto Kiri')}</div>
+        <div class="ph-client">${esc(q.client||'')}${q.address?' · '+esc(q.address):''}${q.phone?' · '+esc(q.phone):''}</div>
+      </div>
+      <div class="ph-right">
+        <div class="ph-brand">KIRI</div>
+        <div class="ph-sub">arquitectura mobiliaria</div>
+        <div class="ph-date">${today} · Válida hasta: ${fechaVenc}</div>
+      </div>
+    </div>
+    <div class="ph-bar"></div>
+  </div>`;
+
+  // ── Imágenes ──────────────────────────────────────────────────────────────
+  let imgsHTML = '';
+  if (!isAll && etapa.imgBase64) {
+    imgsHTML = `<div class="sec">Imagen del proyecto</div>
+    <div class="img-wrap"><img class="img-full" src="${etapa.imgBase64}"></div>
+    <div class="img-cap">${esc(etapa.nombre||'')}</div>`;
+  } else if (isAll) {
+    const withImgs = etapas.filter(e=>e.imgBase64);
+    if (withImgs.length > 0) {
+      imgsHTML = `<div class="sec">Imágenes del proyecto</div>`
+        + withImgs.map(e =>
+          `<div class="img-wrap"><img class="img-full" src="${e.imgBase64}"></div><div class="img-cap">${esc(e.nombre||'')}</div>`
+        ).join('');
+    }
+  }
+
+  // ── Strip de precio ───────────────────────────────────────────────────────
+  const numLabel = isAll ? 'TOTAL PROYECTO' : etapaLabel.toUpperCase();
+  const stripHTML = `
+  <div class="sec">Valor · ${docNum}</div>
+  <div class="strip">
+    <div class="sc dark">
+      <div class="sc-l">${numLabel}</div>
+      <div class="sc-v">$${fmtN(precio)}</div>
+      <div class="sc-note">${esc(etapaName)}</div>
+    </div>
+    <div class="sc red">
+      <div class="sc-l">Anticipo para inicio</div>
+      <div class="sc-v">$${fmtN(anticipo)}</div>
+      <div class="sc-note">50% — requerido para comenzar</div>
+    </div>
+    <div class="sc grn">
+      <div class="sc-l">Saldo contra entrega</div>
+      <div class="sc-v">$${fmtN(saldo)}</div>
+      <div class="sc-note">50% — al momento de entrega</div>
+    </div>
+  </div>`;
+
+  // ── Descripción / Etapas ──────────────────────────────────────────────────
+  let contentHTML = '';
+  if (!isAll && etapa.desc) {
+    contentHTML = `<div class="sec">Descripción</div>
+    <div style="font-size:12px;color:#5a4a3a;line-height:1.75;padding:14px 16px;background:#fdf9f5;border-radius:4px;border:1px solid #ede8dc;margin-bottom:4px">
+      ${esc(etapa.desc).replace(/\n/g,'<br>')}
+    </div>`;
+  } else if (isAll && etapas.length > 0) {
+    contentHTML = `<div class="sec">Etapas del proyecto</div>`
+      + etapas.map((et,i) => `
+        <div class="etapa-row">
+          <div class="etapa-hdr">
+            <div class="etapa-hdr-left">
+              <div class="etapa-num">${i+1}</div>
+              <div class="etapa-name">${esc(et.nombre||'Etapa '+(i+1))}</div>
+            </div>
+            ${et.precio>0?`<div class="etapa-price">$${fmtN(et.precio)}</div>`:''}
+          </div>
+          ${et.desc?`<div class="etapa-desc">${esc(et.desc).replace(/\n/g,'<br>')}</div>`:''}
+        </div>`).join('');
+  }
+
+  // ── Condiciones ───────────────────────────────────────────────────────────
+  const condsHTML = `
+  <div class="conds">
+    <div class="cond"><div class="cond-l">Validez de la oferta</div><div class="cond-v">${validity} días corridos</div></div>
+    ${q.delivery?`<div class="cond"><div class="cond-l">Entrega estimada</div><div class="cond-v">${esc(q.delivery)}</div></div>`:'<div></div>'}
+    <div class="cond"><div class="cond-l">Inicio de obra</div><div class="cond-v">Con 50% abonado</div></div>
+  </div>`;
+
+  // ── Notas ─────────────────────────────────────────────────────────────────
+  const notesHTML = q.notes
+    ? `<div class="notes"><div class="notes-l">Observaciones y condiciones</div><div class="notes-t">${esc(q.notes).replace(/\n/g,'<br>')}</div></div>`
+    : '';
+
+  // ── Footer ────────────────────────────────────────────────────────────────
+  const footerHTML = `
+  <div class="ftr">
+    <div class="ftr-brand">Kiri — arquitectura mobiliaria<br>Esta cotización no tiene valor fiscal · ${docNum}</div>
+    <div><div class="sign-line"></div><div class="sign-label">Firma y aclaración · Kiri</div></div>
+  </div>`;
+
+  return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>${css}</style>
+  </head><body>
+  ${headerHTML}
+  <div class="page-body">
+    ${imgsHTML}
+    ${stripHTML}
+    ${contentHTML}
+    ${condsHTML}
+    ${notesHTML}
+    ${footerHTML}
+  </div>
+  </body></html>`;
+}
+
+
+async function exportQuotePDF(qi, etapaIdx) {
   const q = S.quotes[qi];
   if (!q) return;
-  const total    = (q.mo||0) + (q.mat||0) + (q.extras||[]).reduce((s,e)=>s+(e.monto||0),0);
-  const anticipo = Math.round(total * 0.5);
-  const saldo    = total - anticipo;
+
   const nroCot   = String(qi+1).padStart(4,'0');
   const validity = q.validity || 30;
   const fmtN = n => Number(n).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const fechaEmision = new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
+  const today    = new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
   const vencDate = new Date(); vencDate.setDate(vencDate.getDate()+validity);
   const fechaVenc = vencDate.toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
-  const precioBase = (q.mo||0) + (q.mat||0);
-  const baseRow = precioBase > 0
-    ? '<tr><td class="td-desc">' + esc(q.desc||'Proyecto de muebles a medida') + '</td><td class="td-unit">1</td><td class="td-total">$' + fmtN(precioBase) + '</td></tr>'
-    : '';
-  const extrasRows = (q.extras||[]).filter(e=>e.nombre&&e.monto>0).map(e=>
-    '<tr><td class="td-desc">' + esc(e.nombre) + '</td><td class="td-unit">1</td><td class="td-total">$' + fmtN(e.monto) + '</td></tr>'
-  ).join('');
 
-  const html = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">' +
-  '<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">' +
-  '<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:\'DM Sans\',Arial,sans-serif;color:#1a1512;background:#fff;padding:40px 36px;max-width:700px;margin:0 auto;font-size:13px}' +
-  '@media print{*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}' +
-  '.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px}' +
-  '.brand-name{font-size:30px;font-weight:800;letter-spacing:8px;color:#7a2f2f;line-height:1}' +
-  '.brand-tag{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#b0a8a0;margin-top:6px}' +
-  '.doc-meta{text-align:right}.doc-type{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#b0a8a0}' +
-  '.doc-num{font-size:22px;font-weight:800;color:#1a1512;margin-top:2px;letter-spacing:-0.5px}' +
-  '.doc-date{font-size:11px;color:#b0a8a0;margin-top:3px}.doc-venc{font-size:11px;color:#c8773a;margin-top:1px;font-weight:600}' +
-  '.divider{height:3px;background:#7a2f2f;margin:0 0 28px;border:none}' +
-  '.parties{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px}' +
-  '.party-label{font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#b0a8a0;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid #ede8dc}' +
-  '.party-name{font-size:15px;font-weight:700;color:#1a1512;margin-bottom:4px;text-transform:uppercase}' +
-  '.party-detail{font-size:11px;color:#7a7270;line-height:1.7}' +
-  '.items-table{width:100%;border-collapse:collapse;margin-bottom:20px}' +
-  '.items-table thead tr{background:#1a1512}.items-table thead th{padding:11px 14px;text-align:left;font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:#fff}' +
-  '.items-table thead th.th-r{text-align:right}.items-table tbody tr{border-bottom:1px solid #f0ece4}' +
-  '.items-table tbody tr:nth-child(even){background:#faf8f5}' +
-  '.td-desc{padding:13px 14px;font-size:13px;color:#1a1512;font-weight:500}.td-unit{padding:13px 8px;font-size:12px;color:#b0a8a0;text-align:center;width:40px}' +
-  '.td-total{padding:13px 14px;font-size:14px;font-weight:700;text-align:right;font-family:\'DM Mono\',monospace;color:#1a1512;white-space:nowrap}' +
-  '.total-box{display:flex;justify-content:flex-end;margin-bottom:28px}.total-inner{width:280px}' +
-  '.total-row{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;font-size:12px;color:#7a7270}' +
-  '.total-row.final{border-top:2px solid #1a1512;margin-top:8px;padding-top:12px}' +
-  '.total-row.final .t-label{font-size:16px;font-weight:800;color:#1a1512}.total-row.final .t-val{font-size:24px;font-weight:800;color:#7a2f2f;font-family:\'DM Mono\',monospace;letter-spacing:-1px}' +
-  '.anticipo-box{background:#7a2f2f;border-radius:8px;padding:18px 22px;margin-bottom:28px;display:flex;justify-content:space-between;align-items:center}' +
-  '.ant-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.55);margin-bottom:4px}' +
-  '.ant-val{font-size:22px;font-weight:800;color:#fff;font-family:\'DM Mono\',monospace;letter-spacing:-0.5px}.ant-note{font-size:11px;color:rgba(255,255,255,0.45);margin-top:3px}' +
-  '.conds{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:28px}' +
-  '.cond{background:#f5f0e8;border-radius:6px;padding:13px 14px}.cond-label{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#b0a8a0;margin-bottom:5px}' +
-  '.cond-val{font-size:13px;font-weight:700;color:#1a1512}' +
-  '.notes-box{background:#fff8f0;border:1px solid #e8ddd4;border-radius:6px;padding:14px 16px;margin-bottom:28px}' +
-  '.notes-label{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#b0a8a0;margin-bottom:8px}' +
-  '.notes-text{font-size:12px;color:#5a4a3a;line-height:1.7}' +
-  '.footer{border-top:1px solid #ede8dc;padding-top:16px;display:flex;justify-content:space-between;align-items:flex-end}' +
-  '.footer-brand{font-size:10px;color:#b0a8a0;line-height:1.7}.sign-line{width:150px;border-top:1px solid #c0b8b0;margin-bottom:6px;margin-left:auto}.sign-label{font-size:9px;color:#b0a8a0;letter-spacing:1px;text-align:right}' +
-  '</style></head><body>' +
-  '<div class="header"><div><div class="brand-name">KIRI</div><div class="brand-tag">arquitectura mobiliaria · muebles a medida</div></div>' +
-  '<div class="doc-meta"><div class="doc-type">Cotización</div><div class="doc-num">COT-' + nroCot + '</div><div class="doc-date">Emisión: ' + fechaEmision + '</div><div class="doc-venc">Válida hasta: ' + fechaVenc + '</div></div></div>' +
-  '<hr class="divider">' +
-  '<div class="parties"><div><div class="party-label">Para</div><div class="party-name">' + esc(q.client||'—') + '</div>' +
-  '<div class="party-detail">' + (q.address?esc(q.address)+'<br>':'') + (q.phone?'Tel: '+esc(q.phone)+'<br>':'') + (q.email?esc(q.email):'') + '</div></div>' +
-  '<div><div class="party-label">De</div><div class="party-name">Kiri</div><div class="party-detail">Arquitectura Mobiliaria<br>Muebles a medida<br>Córdoba, Argentina</div></div></div>' +
-  '<table class="items-table"><thead><tr><th>Descripción del trabajo</th><th style="text-align:center;width:40px">Und.</th><th class="th-r">Importe</th></tr></thead>' +
-  '<tbody>' + baseRow + extrasRows + '</tbody></table>' +
-  '<div class="total-box"><div class="total-inner"><div class="total-row final"><span class="t-label">TOTAL</span><span class="t-val">$' + fmtN(total) + '</span></div></div></div>' +
-  '<div class="anticipo-box"><div><div class="ant-label">Anticipo para inicio de obra</div><div class="ant-val">$' + fmtN(anticipo) + '</div><div class="ant-note">El 50% del proyecto es requisito para comenzar los trabajos</div></div>' +
-  '<div style="text-align:right"><div class="ant-label">Saldo contra entrega</div><div class="ant-val">$' + fmtN(saldo) + '</div></div></div>' +
-  '<div class="conds"><div class="cond"><div class="cond-label">Validez</div><div class="cond-val">' + validity + ' días corridos</div></div>' +
-  (q.delivery ? '<div class="cond"><div class="cond-label">Plazo de entrega</div><div class="cond-val">' + esc(q.delivery) + '</div></div>' : '<div></div>') +
-  '<div class="cond"><div class="cond-label">Inicio de obra</div><div class="cond-val">Con el 50% abonado</div></div></div>' +
-  (q.notes ? '<div class="notes-box"><div class="notes-label">Observaciones y condiciones</div><div class="notes-text">' + esc(q.notes).replace(/\n/g,'<br>') + '</div></div>' : '') +
-  '<div class="footer"><div class="footer-brand">Kiri — arquitectura mobiliaria<br>Esta cotización no tiene valor fiscal</div>' +
-  '<div><div class="sign-line"></div><div class="sign-label">Firma y aclaración · Kiri</div></div></div>' +
-  '</body></html>';
+  const etapas = q.etapas || [];
+
+  // etapaIdx: undefined/null → PDF total. Número → PDF de esa etapa.
+  const isAll = (etapaIdx === undefined || etapaIdx === null);
+  const etapa = isAll ? null : etapas[etapaIdx];
+
+  const html = buildEtapaPDF(q, etapa, etapaIdx || 0, nroCot, fmtN, today, validity, fechaVenc);
+
+  const slug = (q.client||'cliente').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+  const suffix = isAll ? 'total' : ('etapa-'+(etapaIdx+1));
+  const filename = 'cotizacion-kiri-' + nroCot + '-' + slug + '-' + suffix + '.pdf';
 
   closeModal('quote-detail');
-  const slug = (q.client||'cliente').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
-  await mobileShareOrPrint(html, 'cotizacion-kiri-' + nroCot + '-' + slug + '.pdf');
+  await mobileShareOrPrint(html, filename);
 }
+
 
 // ── MOBILE NAV ────────────────────────────────────────────────────────────────
 const personColors = ['#7a2f2f','#c8773a','#5a6e5a','#4a6a9a','#8a5a9a','#4a8a7a'];
